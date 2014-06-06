@@ -1,31 +1,32 @@
 // DesktopRouter.js
 // ----------------
-define(["jquery", "backbone", "models/Model", "views/View", "collections/Collection"],
+define(["jquery", "backbone", "models/Model", "views/welcomeView", 
+    "views/editView", "collections/Collection"],
 
-    function($, Backbone, Model, View, Collection) {
+    function($, Backbone, Model, Welcome, Edit, Collection) {
 
         var DesktopRouter = Backbone.Router.extend({
-
+            
             initialize: function() {
-
                 // Tells Backbone to start watching for hashchange events
                 Backbone.history.start();
-
             },
 
             // All of your Backbone Routes (add more)
             routes: {
-
                 // When there is no hash on the url, the home method is called
-                "": "index"
-
+                "": "welcome",
+                "edit": "edit"
             },
 
-            index: function() {
-
+            welcome: function() {
                 // Instantiates a new view which will render the header text to the page
-                new View();
-
+                new Welcome();
+            },
+            
+            edit: function() {
+                // Instantiates a new view which will render the header text to the page
+                new Edit();
             }
 
         });
