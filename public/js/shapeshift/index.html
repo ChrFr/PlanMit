@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Clone Demo</title>
+
+  <!-- jQuery / jQuery UI -->
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+
+  <!-- jQuery Touch Punch - Enable Touch Drag and Drop -->
+  <script src="js/vendor/jquery.touch-punch.min.js"></script>
+
+  <!-- jQuery.Shapeshift -->
+  <script src="js/jquery.shapeshift.adapted.js"></script>
+
+  <!-- CSS -->
+  <style>
+    .container {
+      border: 1px dashed #CCC;
+      height: 200px;
+      position: relative;
+    }
+
+    .container > div {
+      background: #AAA;
+      position: absolute;
+      height: 100px;
+      width: 100px;
+      //overflow: hidden;
+    }
+	
+    .droparea {
+      width: 800px;
+    }
+
+    .container > .ss-placeholder-child {
+      background: transparent;
+      border: 1px dashed blue;
+    }
+    
+    #lefthandle, #righthandle {
+        width: 10px;
+        height: 10px;
+        background-color: #ffffff;
+        border: 1px solid #000000;
+    }
+    
+    #lefthandle{
+        position: absolute;
+        //left:-5px;
+        top:50%;
+    }
+    #righthandle{
+        position: absolute;
+        right:1px;
+        top:50%;
+}
+  </style>
+
+  <!-- Javascript -->
+  <script>
+    $(document).ready(function() {
+      $(".clones").shapeshift({
+          dragClone: true,
+          colWidth: 1,
+          gutterX: 0,
+          minColumns: 800,
+          enableCrossDrop: false
+      });
+      $(".droparea").shapeshift({
+        colWidth: 1,
+	gutterX: 0,
+        minColumns: 800,
+	singleRow: true,
+	maxHeight: 200,
+        enableContainerResize: true
+      }); /*
+      $(".ss-active-child").resizable({
+            handles: {
+                'w': '#lefthandle',
+                'e': '#righthandle'
+            }
+      });*/
+    })
+  </script>
+</head>
+<body>
+    <div class="container clones">
+        <div data-ss-colspan="100">A</div>
+        <div data-ss-colspan="100">B</div>
+        <div data-ss-colspan="100">C</div>
+        <div data-ss-colspan="100">D</div>
+        <div data-ss-colspan="100">E</div>
+    </div>
+
+    <div class="container droparea">
+        <div data-ss-colspan="100">
+            F
+        </div>
+        <div data-ss-colspan="100">F</div>
+    </div>
+    <div class="container droparea">
+    </div>
+</body>
+</html>
