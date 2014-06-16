@@ -170,20 +170,34 @@
                   'w': '#lefthandle',
                   'e': '#righthandle'
               }
-            });      
-            c.resize(function() {
-                  c.attr("data-ss-colspan", c.width());
-                  _this.render(reparse=true);
-                });
-            }
+            });   
+            //var abs_max = c.width() + _this.globals.columns - _this.globals.childrenWidth - 20;
+            c.resize(function() {  
+                if (_this.options.singleRow){
+                    maxResize = _this.globals.columns - _this.globals.childrenWidth - 20;
+                    //workaround: resize fires faster than the render/calc. of the
+                    //columns, limit it
+                    if (maxResize < 10)
+                        maxResize = 0;                
+                    maxWidth = c.width() + maxResize;
+                    console.log(maxResize);
+                    console.log(maxWidth);
+                    c.resizable('option', 'maxWidth', maxWidth);
+                }
+                c.attr("data-ss-colspan", c.width());
+                _this.render(true);                
+            });
+        }
       }
-
+      
       Plugin.prototype.setParsedChildren = function() {
         var $child, $children, child, i, parsedChildren, total, _i;
         $children = this.$container.find("." + this.options.activeClass).filter(":visible");
         total = $children.length;
         console.log();
         parsedChildren = [];
+        //ADDED: track the used columns of the children
+        var childrenWidth = 0;
         for (i = _i = 0; 0 <= total ? _i < total : _i > total; i = 0 <= total ? ++_i : --_i) {
           $child = $($children[i]);   
           //ADDED: calling the resize handles if not already resizable
@@ -196,8 +210,10 @@
             colspan: colspan,
             height: $child.outerHeight()
           };
+          childrenWidth += colspan;
           parsedChildren.push(child);
         }
+        this.globals.childrenWidth = childrenWidth;
         return this.parsedChildren = parsedChildren;
       };
 
@@ -479,10 +495,7 @@
               $current_container = $("." + current_container_class);
               $previous_container = $("." + previous_container_class);
               $selected.removeClass(dragged_class);
-              $("." + placeholder_class).remove();
-              
-            console.log($original_container);
-            console.log($current_container);
+              $("." + placeholder_class).remove();              
               if (drag_clone) {
                 if (delete_clone && $("." + current_container_class)[0] === $("." + original_container_class)[0]) {
                   $clone.remove();
@@ -517,7 +530,7 @@
             },
             drop: function(e, selected) {
               var $current_container, $original_container, $previous_container;
-              if (_this.options.enableTrash || _this.options.dragClone) {
+              if (_this.options.enableTrash) {
                 $original_container = $("." + original_container_class);
                 $current_container = $("." + current_container_class);
                 $previous_container = $("." + previous_container_class);
@@ -547,21 +560,14 @@
         {
             var dragged_div = $selected[0];
             var dragged_width = $(dragged_div).width();
-            children_span = dragged_width;
-            parsed_children = this.parsedChildren;
-            for (i = 0; i < parsed_children.length; i++){
-                children_span += parsed_children[i].colspan; 
-                if (this.globals.columns < children_span){
+            if (this.globals.columns < this.globals.childrenWidth + dragged_width){
                     space_left = false;
                     //swap the origin container to indicate that the widget has 
                     //not been dropped (impacts on stop event of dragging)
                     $selected.parent().removeClass(
                             options.originalContainerClass);
                     this.$container.addClass(options.originalContainerClass);
-                    //$selected.remove();
-                    break;
                 }
-            }
         }
         if (!options.enableTrash && space_left) {
           $start_container = $selected.parent();
