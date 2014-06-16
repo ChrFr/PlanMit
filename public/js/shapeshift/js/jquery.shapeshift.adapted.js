@@ -90,7 +90,7 @@
           if (trigger_drop_finished == null) {
             trigger_drop_finished = false;
           }
-          return _this.render(false, trigger_drop_finished);
+          return _this.arrange(false, trigger_drop_finished);
         });
         $container.off("ss-rearrange").on("ss-rearrange", function() {
           return _this.render(true);
@@ -138,18 +138,9 @@
         $children = this.$container.children(options.selector);
         active_child_class = options.activeClass;
         total = $children.length;
-        var children_width = 0;
-        width = this.$container.width();
         for (i = _i = 0; 0 <= total ? _i < total : _i > total; i = 0 <= total ? ++_i : --_i) {
           child = $($children[i])
-          colspan = parseInt(child.attr("data-ss-colspan")) || 1;
-          children_width += colspan;/*
-          if (width > children_width){*/
-              child.addClass(active_child_class);/*
-          }
-          else{
-              console.log('zu groß setActive');
-          }*/
+          child.addClass(active_child_class);
         }
         this.setParsedChildren();
         columns = options.columns;
@@ -167,6 +158,7 @@
         return _results;
       };
       
+      //ADDED: Resize Handles
       Plugin.prototype.makeResizable = function(c) {
           var _this = this;
           if (!(c.hasClass("ui-resizable"))){
@@ -183,22 +175,7 @@
                   c.attr("data-ss-colspan", c.width());
                   _this.render(reparse=true);
                 });
-            }/*
-          return $(window).on(binding, function() {
-            if (!resizing) {
-              resizing = true;
-              setTimeout((function() {
-                return _this.render();
-              }), animation_speed / 3);
-              setTimeout((function() {
-                return _this.render();
-              }), animation_speed / 3);
-              return setTimeout(function() {
-                resizing = false;
-                return _this.render();
-              }, animation_speed / 3);
             }
-          });*/
       }
 
       Plugin.prototype.setParsedChildren = function() {
@@ -207,18 +184,12 @@
         total = $children.length;
         console.log();
         parsedChildren = [];
-        children_span = 0;
         for (i = _i = 0; 0 <= total ? _i < total : _i > total; i = 0 <= total ? ++_i : --_i) {
           $child = $($children[i]);   
+          //ADDED: calling the resize handles if not already resizable
           if (this.options.enableContainerResize)
             this.makeResizable($child);
-          colspan = parseInt($child.attr("data-ss-colspan")) || 1;/*
-          children_span += colspan;
-          var width = this.$container.width();
-          if (children_span > width){
-              console.log('zu groß');
-              return this.parsedChildren = parsedChildren;
-          }*/
+          colspan = parseInt($child.attr("data-ss-colspan")) || 1;
           child = {
             i: i,
             el: $child,
@@ -245,7 +216,6 @@
       };
 
       Plugin.prototype.render = function(reparse, trigger_drop_finished) {
-        //console.log('render');
         if (reparse == null) {
           reparse = false;
         }
@@ -510,6 +480,9 @@
               $previous_container = $("." + previous_container_class);
               $selected.removeClass(dragged_class);
               $("." + placeholder_class).remove();
+              
+            console.log($original_container);
+            console.log($current_container);
               if (drag_clone) {
                 if (delete_clone && $("." + current_container_class)[0] === $("." + original_container_class)[0]) {
                   $clone.remove();
@@ -519,7 +492,7 @@
                     $original_container.shapeshift($original_container.data("plugin_shapeshift").options);
                     $current_container.shapeshift($current_container.data("plugin_shapeshift").options);
                 }
-              }
+              }              
               if ($original_container[0] === $current_container[0]) {
                 $current_container.trigger("ss-rearranged", $selected);
               } else {
@@ -544,7 +517,7 @@
             },
             drop: function(e, selected) {
               var $current_container, $original_container, $previous_container;
-              if (_this.options.enableTrash) {
+              if (_this.options.enableTrash || _this.options.dragClone) {
                 $original_container = $("." + original_container_class);
                 $current_container = $("." + current_container_class);
                 $previous_container = $("." + previous_container_class);
@@ -562,10 +535,35 @@
 
       Plugin.prototype.setTargetPosition = function() {
         var $selected, $start_container, $target, attributes, child_positions, cutoff_end, cutoff_start, distance, dragged_class, options, parsed_children, placeholder_class, position_i, previous_container_class, selected_x, selected_y, shortest_distance, target_position, total_positions, x_dist, y_dist, _i;
-        options = this.options;
-        if (!options.enableTrash) {
-          dragged_class = options.draggedClass;
-          $selected = $("." + dragged_class);
+        options = this.options;        
+        var space_left = true;
+        dragged_class = options.draggedClass;
+        $selected = $("." + dragged_class);        
+        $start_container = $selected.parent();
+        //ADDED: don't add div if its origin is another container and this
+        //one is already full
+        if (this.options.singleRow && 
+            this.$container.attr('class') !== $start_container.attr('class'))
+        {
+            var dragged_div = $selected[0];
+            var dragged_width = $(dragged_div).width();
+            children_span = dragged_width;
+            parsed_children = this.parsedChildren;
+            for (i = 0; i < parsed_children.length; i++){
+                children_span += parsed_children[i].colspan; 
+                if (this.globals.columns < children_span){
+                    space_left = false;
+                    //swap the origin container to indicate that the widget has 
+                    //not been dropped (impacts on stop event of dragging)
+                    $selected.parent().removeClass(
+                            options.originalContainerClass);
+                    this.$container.addClass(options.originalContainerClass);
+                    //$selected.remove();
+                    break;
+                }
+            }
+        }
+        if (!options.enableTrash && space_left) {
           $start_container = $selected.parent();
           parsed_children = this.parsedChildren;
           child_positions = this.getPositions(false);
