@@ -5,8 +5,11 @@
     var Plugin, defaults, pluginName;
     pluginName = "shapeshift";
     defaults = {
-      singleRow: false,
-      enableContainerResize: false,
+      editTool:{
+          enabled: false,
+          fixedWidth: true,
+          enableWidgetResize: true
+      },
       selector: "*",
       enableDrag: true,
       enableCrossDrop: true,
@@ -48,6 +51,7 @@
       function Plugin(element, options) {
         this.element = element;
         this.options = $.extend({}, defaults, options);
+        this.options.editTool = $.extend({}, defaults.editTool, options.editTool);
         this.globals = {};
         this.$container = $(element);
         if (this.errorCheck()) {
@@ -171,22 +175,30 @@
                   'e': '#righthandle'
               }
             });   
-            //var abs_max = c.width() + _this.globals.columns - _this.globals.childrenWidth - 20;
-            c.resize(function() {  
-                if (_this.options.singleRow){
-                    maxResize = _this.globals.columns - _this.globals.childrenWidth - 20;
-                    //workaround: resize fires faster than the render/calc. of the
-                    //columns, limit it
-                    if (maxResize < 10)
-                        maxResize = 0;                
-                    maxWidth = c.width() + maxResize;
-                    console.log(maxResize);
-                    console.log(maxWidth);
-                    c.resizable('option', 'maxWidth', maxWidth);
-                }
+            function widthToColspan(){
                 c.attr("data-ss-colspan", c.width());
-                _this.render(true);                
+                _this.render(true);
+            }
+            function setMaxResize(){
+                var maxResize = _this.globals.columns - _this.globals.childrenWidth - 1;
+                maxWidth = c.width() + maxResize;
+                c.resizable('option', 'maxWidth', maxWidth);
+            }
+            var TO = false;
+            c.resize(function() {  
+                if(TO !== false) clearTimeout(TO);
+                TO = setTimeout(widthToColspan, 10);
+            });     
+            c.on("resizestop", function(){    
+                if (_this.options.editTool.enabled && 
+                        _this.options.editTool.fixedWidth) 
+                    setMaxResize();                
+                widthToColspan();
             });
+            if (_this.options.editTool.enabled && 
+                    _this.options.editTool.fixedWidth){
+               c.on("resizestart", function(){setMaxResize();});
+            }
         }
       }
       
@@ -194,15 +206,15 @@
         var $child, $children, child, i, parsedChildren, total, _i;
         $children = this.$container.find("." + this.options.activeClass).filter(":visible");
         total = $children.length;
-        console.log();
         parsedChildren = [];
         //ADDED: track the used columns of the children
         var childrenWidth = 0;
         for (i = _i = 0; 0 <= total ? _i < total : _i > total; i = 0 <= total ? ++_i : --_i) {
           $child = $($children[i]);   
           //ADDED: calling the resize handles if not already resizable
-          if (this.options.enableContainerResize)
-            this.makeResizable($child);
+          if (this.options.editTool.enabled && 
+                  this.options.editTool.enableWidgetResize)
+              this.makeResizable($child);
           colspan = parseInt($child.attr("data-ss-colspan")) || 1;
           child = {
             i: i,
@@ -555,7 +567,7 @@
         $start_container = $selected.parent();
         //ADDED: don't add div if its origin is another container and this
         //one is already full
-        if (this.options.singleRow && 
+        if (this.options.editTool.enabled && 
             this.$container.attr('class') !== $start_container.attr('class'))
         {
             var dragged_div = $selected[0];
@@ -665,7 +677,6 @@
         //binding = "resize." + this.identifier;
         return $(".resizable").on('resize', function() {          
           this.attr("data-ss-colspan", this.width());
-          console.log(this);
           if (!resizing) {
             resizing = true;
             setTimeout((function() {

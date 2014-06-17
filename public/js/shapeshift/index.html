@@ -55,7 +55,14 @@
         position: absolute;
         right:1px;
         top:50%;
-}
+    }
+    .trash {
+      border: 1px dashed red;
+      height: 200px;
+      margin-top: 50px;
+      padding: 20px;
+      text-align: center;
+    }
   </style>
 
   <!-- Javascript -->
@@ -72,16 +79,16 @@
         colWidth: 1,
 	gutterX: 0,
         minColumns: 800,
-	singleRow: true,
-	maxHeight: 200,
-        enableContainerResize: true
-      }); /*
-      $(".ss-active-child").resizable({
-            handles: {
-                'w': '#lefthandle',
-                'e': '#righthandle'
-            }
-      });*/
+	editTool: {
+            enabled: true
+        },
+	maxHeight: 200
+      }); 
+      $(".trash").shapeshift({
+        autoHeight: false,
+        colWidth: 80,
+        enableTrash: true
+      });
     })
   </script>
 </head>
@@ -100,7 +107,9 @@
         </div>
         <div data-ss-colspan="100">F</div>
     </div>
-    <div class="container droparea">
+    
+    <div class="trash">
+        Drag items in here to destroy them.
     </div>
 </body>
 </html>
