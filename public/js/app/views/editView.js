@@ -1,8 +1,9 @@
 // View.js
 // -------
-define(["jquery", "backbone", "models/Model", "text!templates/edit.html"],
+define(["jquery", "backbone", "models/Model", "text!templates/edit.html", 
+    "edittool/js/jquery.shapeshift.adapted"],
 
-    function($, Backbone, Model, template){
+    function($, Backbone, Model, template, shapeshift){
 
         var View = Backbone.View.extend({
 
@@ -27,9 +28,30 @@ define(["jquery", "backbone", "models/Model", "text!templates/edit.html"],
 
                 // Setting the view's template property using the Underscore template method
                 this.template = _.template(template, {});
-
+                
                 // Dynamically updates the UI with the view's template
                 this.$el.html(this.template);
+                
+                $(".clones").shapeshift({
+                    dragClone: true,
+                    colWidth: 1,
+                    gutterX: 0,
+                    enableCrossDrop: false
+                });
+                $(".droparea").shapeshift({
+                  colWidth: 1,
+                  gutterX: 0,
+                  minColumns: 800,
+                  editTool: {
+                      enabled: true
+                  },
+                  maxHeight: 200
+                }); 
+                $(".trash").shapeshift({
+                  autoHeight: false,
+                  colWidth: 1,
+                  enableTrash: true
+                });
 
                 // Maintains chainability
                 return this;

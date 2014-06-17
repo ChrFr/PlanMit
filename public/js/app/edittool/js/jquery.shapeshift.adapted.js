@@ -174,7 +174,17 @@
                   'w': '#lefthandle',
                   'e': '#righthandle'
               }
-            });   
+            }); 
+            c.find('.ui-resizable-handle').hide();
+            $(c).on({
+                mouseenter: function () {
+                    $('.ui-resizable-handle').hide();
+                    c.find('.ui-resizable-handle').show();
+                },
+                mouseleave: function () {
+                    c.find('.ui-resizable-handle').hide();
+                }
+            });
             function widthToColspan(){
                 c.attr("data-ss-colspan", c.width());
                 _this.render(true);
@@ -186,13 +196,14 @@
             }
             var TO = false;
             c.resize(function() {  
+                c.find('.ui-resizable-handle').show();
                 if(TO !== false) clearTimeout(TO);
                 TO = setTimeout(widthToColspan, 10);
             });     
             c.on("resizestop", function(){    
                 if (_this.options.editTool.enabled && 
                         _this.options.editTool.fixedWidth) 
-                    setMaxResize();                
+                    setMaxResize(); 
                 widthToColspan();
             });
             if (_this.options.editTool.enabled && 

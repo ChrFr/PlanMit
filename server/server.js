@@ -25,6 +25,8 @@ server.configure(function() {
 
 });
 
+server.use('/db', require('./database')); 
+
 // SERVER
 // ======
 

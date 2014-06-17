@@ -1,2 +1,76 @@
-<!-- HTML Template -->
-<h3>Editieren</h3>
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- CSS -->
+  <style>
+    .container {
+      border: 1px dashed #CCC;
+      height: 200px;
+      position: relative;
+    }
+
+    .container > div {
+      background: #AAA;
+      position: absolute;
+      height: 100px;
+      width: 100px;
+      //overflow: hidden;
+    }
+	
+    .droparea {
+      width: 800px;
+    }
+
+    .container > .ss-placeholder-child {
+      background: transparent;
+      border: 1px dashed blue;
+    }
+    
+    #lefthandle, #righthandle {
+        width: 10px;
+        height: 10px;
+        background-color: #ffffff;
+        border: 1px solid #000000;
+    }
+    
+    #lefthandle{
+        position: absolute;
+        //left:-5px;
+        top:50%;
+    }
+    #righthandle{
+        position: absolute;
+        right:1px;
+        top:50%;
+    }
+    .trash {
+      border: 1px dashed red;
+      height: 200px;
+      margin-top: 50px;
+      padding: 20px;
+      text-align: center;
+    }
+  </style>
+
+</head>
+<body>
+    <div class="container clones">
+        <div data-ss-colspan="100">A</div>
+        <div data-ss-colspan="100">B</div>
+        <div data-ss-colspan="100">C</div>
+        <div data-ss-colspan="100">D</div>
+        <div data-ss-colspan="100">E</div>
+    </div>
+
+    <div class="container droparea">
+        <div data-ss-colspan="100">
+            F
+        </div>
+        <div data-ss-colspan="100">F</div>
+    </div>
+    
+    <div class="trash">
+        Drag items in here to destroy them.
+    </div>
+</body>
+</html>
