@@ -31,16 +31,17 @@ module.exports = function(){
     
     function pqQuery(queryString, callback){
         pg.connect(conString, function(err, client, done) {
+            console.log(queryString);
             if(err) {
-                return console.error('error running query', err);
+                return callback([]);
             }
             client.query(queryString, function(err, result) {
                 //call `done()` to release the client back to the pool
                 done();
                 if(err) {
-                    return console.error('error running query', err);
+                    return callback([]);
                 }
-                callback(result.rows);
+                return callback(result.rows);
             });
         });
     }
@@ -48,13 +49,16 @@ module.exports = function(){
     var projects = {
       list: function(req, res){
         pqQuery('SELECT * from projects', function(result){
-            res.send(result);
+            return res.send(result);
         });
       },
 
       get: function(req, res){
-        pqQuery('SELECT * from projects WHERE id=' + req.params.pid, function(result){
-            res.send(result);
+        pqQuery('SELECT * from projects WHERE id=' + req.params.pid, 
+        function(result){
+            if (result.length === 0)
+                return res.send(404);
+            return res.send(result);
         });
       },
 
@@ -62,13 +66,52 @@ module.exports = function(){
       }
     };
 
+    var segTypeQuery = '(SELECT id AS type_id, ' + 
+            'start_width AS default_start_width, ' + 
+            'image_id AS default_image_id, ' +
+            'rules AS default_rules from segment_types) AS seg_types '
+        
+    var query = 'SELECT * from segments LEFT JOIN ' + segTypeQuery +
+                'ON segments.type_id=seg_types.type_id '
+        
     var segments = {
-      list: function(req, res){
-        res.send('platzhalter liste segmente');
+      list: function(req, res){        
+        pqQuery(query + 'WHERE segments.project_id=' + req.params.pid, 
+        function(result){
+            if (result.length === 0)
+                return res.send(404);
+            return res.send(result);
+        });
       },
 
       get: function(req, res){
-        res.send('Projekt ' + req.params.pid + ' Segment ' + req.params.sid);
+        pqQuery(query + 'WHERE segments.project_id=' + 
+                req.params.pid + ' AND segments.id=' + req.params.sid, 
+        function(result){
+            if (result.length === 0)
+                return res.send(404);
+            return res.send(result);
+        });
+      },
+
+      delete: function(req, res){        
+      }
+    };
+    
+    var images = {
+      //you shouldn't access all images in db at once 
+      //(due to performance issues)
+      list: function(req, res){
+        return res.send(403);
+      },
+
+      get: function(req, res){
+        pqQuery('SELECT * from images WHERE id=' + req.params.iid, 
+        function(result){
+            if (result.length === 0)
+                return res.send(404);
+            return res.send(result);
+        });
       },
 
       delete: function(req, res){        
@@ -89,60 +132,15 @@ module.exports = function(){
                     }
                 }
             }
+        },
+        '/images':{
+            get: images.list,
+            '/:iid': {
+                get: images.get,
+                delete: images.delete
+            }
         }
     });
-    /*
-    var app = express();
     
-    var pg = require("pg");
-    
-    var login = require('./dbconfig')
-
-    var conString = "pg://" + login.user + ":" + login.password + "@" + login.host + ":" + login.port + "/" + login.database;
-
-    //var client = new pg.Client(conString);
-    //client.connect();
-    
-    function pqQuery(queryString){
-        pg.connect(conString, function(err, client, done) {
-            if(err) {
-                return console.error('error running query', err);
-            }
-            client.query(queryString, function(err, result) {
-                //call `done()` to release the client back to the pool
-                done();
-                if(err) {
-                    return console.error('error running query', err);
-                }
-                return result.rows;
-              //output: 1
-            });
-        });
-    }
-    
-    var projects = {
-        log
-    }
-    
-    app.get('/projects', function(req, res){        
-        var result = pqQuery(s, err);
-        if (!result)
-            res.send('404');
-        else 
-            res.send(result);
-    });
-    
-    app.get('/projects/:pid', function(req, res){
-        res.send('Projekt ' + req.params.pid);
-    });
-    
-    app.get('/projects/:pid/segments/', function(req, res){
-        res.send('platzhalter liste segmente');
-    });
-    
-    app.get('/projects/:pid/segments/:sid', function(req, res){
-        res.send('Projekt ' + req.params.pid + ' Segment ' + req.params.sid);
-    });*/
-
     return app;
 }();
