@@ -1,20 +1,22 @@
 // DesktopRouter.js
 // ----------------
-define(["jquery", "backbone", "models/Model", "views/welcomeView", 
-    "views/editView", "collections/Collection"],
+define(["jquery", "backbone", "models/Segments", "views/navbarView",
+    "views/welcomeView", "views/editView", "collections/Collection"],
 
-    function($, Backbone, Model, Welcome, Edit, Collection) {
+    function($, Backbone, Segments, Navbar, Welcome, Edit, Collection) {
 
         var DesktopRouter = Backbone.Router.extend({
             
             initialize: function() {
+                //navbar is always seen
+                this.navbar = new Navbar();
                 // Tells Backbone to start watching for hashchange events
                 Backbone.history.start();
             },
 
             // All of your Backbone Routes (add more)
             routes: {
-                // When there is no hash on the url, the home method is called
+                // when there is no hash on the url, the welcome page is called
                 "": "welcome",
                 "edit": "edit"
             },

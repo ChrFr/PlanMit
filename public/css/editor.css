@@ -1,0 +1,57 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 18.06.2014, 18:31:53
+    Author     : Christoph Franke
+*/
+
+.container {
+  border: 1px dashed #CCC;
+  height: 200px;
+  position: relative;
+}
+
+.container > div {
+  background: #AAA;
+  position: absolute;
+  height: 100px;
+  width: 100px;
+  //overflow: hidden;
+}
+
+.droparea {
+  width: 800px;
+}
+
+.container > .ss-placeholder-child {
+  background: transparent;
+  border: 1px dashed blue;
+}
+
+#lefthandle, #righthandle {
+    width: 10px;
+    height: 10px;
+    background-color: #ffffff;
+    border: 1px solid #000000;
+}
+
+#lefthandle{
+    position: absolute;
+    //left:-5px;
+    top:50%;
+}
+#righthandle{
+    position: absolute;
+    right:1px;
+    top:50%;
+}
+.trash {
+  border: 1px dashed red;
+  height: 200px;
+  margin-top: 50px;
+  padding: 20px;
+  text-align: center;
+}

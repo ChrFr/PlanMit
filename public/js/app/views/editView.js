@@ -1,9 +1,9 @@
 // View.js
 // -------
-define(["jquery", "backbone", "models/Model", "text!templates/edit.html", 
+define(["jquery", "backbone", "models/Segments", "text!templates/edit.html", 
     "edittool/js/jquery.shapeshift.adapted"],
 
-    function($, Backbone, Model, template, shapeshift){
+    function($, Backbone, Segments, template, shapeshift){
 
         var View = Backbone.View.extend({
 
@@ -15,17 +15,7 @@ define(["jquery", "backbone", "models/Model", "text!templates/edit.html",
 
                 // Calls the view's render method
                 this.render();
-
-            },
-
-            // View Event Handlers
-            events: {
-
-            },
-
-            // Renders the view's template to the UI
-            render: function() {
-
+                
                 // Setting the view's template property using the Underscore template method
                 this.template = _.template(template, {});
                 
@@ -53,6 +43,15 @@ define(["jquery", "backbone", "models/Model", "text!templates/edit.html",
                   enableTrash: true
                 });
 
+            },
+
+            // View Event Handlers
+            events: {
+
+            },
+
+            // Renders the view's template to the UI
+            render: function() {     
                 // Maintains chainability
                 return this;
 
