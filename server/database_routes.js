@@ -29,9 +29,8 @@ module.exports = function(){
     //var client = new pg.Client(conString);
     //client.connect();
     
-    function pqQuery(queryString, callback){
+    function pgQuery(queryString, callback){
         pg.connect(conString, function(err, client, done) {
-            console.log(queryString);
             if(err) {
                 return callback([]);
             }
@@ -47,55 +46,94 @@ module.exports = function(){
     }
 
     var projects = {
-      list: function(req, res){
-        pqQuery('SELECT * from projects', function(result){
-            return res.send(result);
-        });
-      },
+        list: function(req, res){
+          pgQuery('SELECT * FROM projects', function(result){
+              return res.send(result);
+          });
+        },
 
-      get: function(req, res){
-        pqQuery('SELECT * from projects WHERE id=' + req.params.pid, 
-        function(result){
-            if (result.length === 0)
-                return res.send(404);
-            return res.send(result);
-        });
-      },
+        get: function(req, res){ 
+            var _pg = pgQuery;
+            pgQuery('SELECT * FROM projects WHERE id=' + req.params.pid, 
+            function(result){
+                //merge the project object with the borders from db
+                var resProj = result[0];
+                var left = resProj.left_border;
+                var right = resProj.right_border;
+                var order = 'ORDER BY id ';
+                if (left < right)
+                    order += 'ASC';
+                else
+                    order += 'DESC';
+                _pg('SELECT * FROM segments WHERE id in(' + left + 
+                        ',' + right + ') ' + order,
+                function(result){
+                    if (result.length === 0)
+                        return res.send(resProj);
+                    if (result.length === 1)                    
+                        result.push(result[0]);
+                    if (left)
+                        resProj.left_border = result[0]
+                    if (right)
+                        resProj.right_border = result[1]
+                    return res.send(resProj);
+                })
+                return;
+            });
+        },
 
-      delete: function(req, res){        
-      }
-    };
+        delete: function(req, res){}
+        };
 
-    var segTypeQuery = '(SELECT id AS type_id, ' + 
-            'start_width AS default_start_width, ' + 
-            'image_id AS default_image_id, ' +
-            'rules AS default_rules from segment_types) AS seg_types '
+    var segments = {        
+        list: function(req, res){  
+            var _pg = pgQuery;
+            pgQuery('SELECT ignore_segments FROM projects WHERE id=' 
+                    + req.params.pid, 
+            function(result){
+                var ignored = result[0].ignore_segments;
+                var ignorestr = "";
+                for (var i = 0; i < ignored.length; i++){
+                    ignorestr += ignored[i]
+                    if (i < ignored.length - 1)
+                        ignorestr += ','
+                }
+                _pg('SELECT * FROM segments WHERE available = true ' + 
+                    'AND id NOT IN (' + ignorestr + ')',
+                function(result){
+                    if (result.length === 0)
+                        return res.send(404);
+                    return res.send(result);
+                })
+                return;
+            });
+        },
+
+        get: function(req, res){
+            var _pg = pgQuery;
+            pgQuery('SELECT * FROM segments WHERE available=true AND id=' 
+                    + req.params.sid, 
+            function(result){ 
+                if (result.length === 0)
+                    return res.send(404);
+                var segment = result[0];
+                _pg('SELECT ignore_segments FROM projects WHERE id=' 
+                    + req.params.pid,
+                function(result){     
+                    if (result.length === 0)
+                        return res.send(segment);
+                    var ignored = result[0].ignore_segments;
+                    //look if found segment is ignored by project
+                    for (var i = 0; i < ignored.length; i++){
+                        if (segment.id === ignored[i])                       
+                            return res.send(404);
+                    }
+                    return res.send(segment);
+                })
+                return;
+            });
+        }
         
-    var query = 'SELECT * from segments LEFT JOIN ' + segTypeQuery +
-                'ON segments.type_id=seg_types.type_id '
-        
-    var segments = {
-      list: function(req, res){        
-        pqQuery(query + 'WHERE segments.project_id=' + req.params.pid, 
-        function(result){
-            if (result.length === 0)
-                return res.send(404);
-            return res.send(result);
-        });
-      },
-
-      get: function(req, res){
-        pqQuery(query + 'WHERE segments.project_id=' + 
-                req.params.pid + ' AND segments.id=' + req.params.sid, 
-        function(result){
-            if (result.length === 0)
-                return res.send(404);
-            return res.send(result);
-        });
-      },
-
-      delete: function(req, res){        
-      }
     };
     
     var images = {
@@ -106,11 +144,11 @@ module.exports = function(){
       },
 
       get: function(req, res){
-        pqQuery('SELECT * from images WHERE id=' + req.params.iid, 
+        pgQuery('SELECT * from images WHERE id=' + req.params.iid, 
         function(result){
             if (result.length === 0)
                 return res.send(404);
-            return res.send(result);
+            return res.send(result[0]);
         });
       },
 
