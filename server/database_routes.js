@@ -91,27 +91,38 @@ module.exports = function(){
             pgQuery('SELECT ignore_segments FROM projects WHERE id=' 
                     + req.params.pid, 
             function(result){
-                var ignored = result[0].ignore_segments;
-                var ignorestr = "";
-                for (var i = 0; i < ignored.length; i++){
-                    ignorestr += ignored[i]
-                    if (i < ignored.length - 1)
-                        ignorestr += ','
+                var ignored = [];
+                var ignorestr = '';
+                if (result.length > 0 && result[0].ignore_segments){
+                    ignored = result[0].ignore_segments;
+                    ignorestr += 'AND id NOT IN (';
+                    for (var i = 0; i < ignored.length; i++){
+                        ignorestr += ignored[i];
+                        if (i < ignored.length - 1)
+                            ignorestr += ',';
+                        else
+                            ignorestr += ')';  
+                    }
                 }
-                _pg('SELECT * FROM segments WHERE available = true ' + 
-                    'AND id NOT IN (' + ignorestr + ')',
+                _pg('SELECT * FROM segments LEFT JOIN ' + 
+                    '(SELECT id AS type, min_width, max_width, rules ' +
+                    'FROM segment_types) AS rule ON segments.type = rule.type' +
+                    ' WHERE available = true ' + ignorestr, 
                 function(result){
                     if (result.length === 0)
                         return res.send(404);
                     return res.send(result);
-                })
+                });
                 return;
             });
         },
 
         get: function(req, res){
             var _pg = pgQuery;
-            pgQuery('SELECT * FROM segments WHERE available=true AND id=' 
+            pgQuery('SELECT * FROM segments LEFT JOIN ' + 
+                    '(SELECT id AS type, min_width, max_width, rules ' +
+                    'FROM segment_types) AS rule ON segments.type = rule.type' +
+                    ' WHERE available = true AND id=' 
                     + req.params.sid, 
             function(result){ 
                 if (result.length === 0)
@@ -122,7 +133,7 @@ module.exports = function(){
                 function(result){     
                     if (result.length === 0)
                         return res.send(segment);
-                    var ignored = result[0].ignore_segments;
+                    var ignored = result[0].ignore_segments || [];
                     //look if found segment is ignored by project
                     for (var i = 0; i < ignored.length; i++){
                         if (segment.id === ignored[i])                       

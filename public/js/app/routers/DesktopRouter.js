@@ -1,13 +1,17 @@
 // DesktopRouter.js
 // ----------------
-define(["jquery", "backbone", "models/Segments", "views/navbarView",
-    "views/welcomeView", "views/editView", "collections/Collection"],
+define(["jquery", "backbone", "views/navbarView",
+    "views/welcomeView", "views/editView", "collections/SegmentSource"],
 
-    function($, Backbone, Segments, Navbar, Welcome, Edit, Collection) {
+    function($, Backbone, Navbar, Welcome, Edit, SegmentSource) {
 
         var DesktopRouter = Backbone.Router.extend({
             
             initialize: function() {
+                //load a project
+                this.resources = new SegmentSource();
+                this.resources.populate(1);                
+                
                 //navbar is always seen
                 this.navbar = new Navbar();
                 // Tells Backbone to start watching for hashchange events
@@ -28,7 +32,7 @@ define(["jquery", "backbone", "models/Segments", "views/navbarView",
             
             edit: function() {
                 // Instantiates a new view which will render the header text to the page
-                new Edit();
+                new Edit(this.resources);
             }
 
         });

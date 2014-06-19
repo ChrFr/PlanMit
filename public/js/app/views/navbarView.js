@@ -31,7 +31,6 @@ define(["jquery", "backbone", "text!templates/navbar.html"],
                 // Setting the view's template property using the Underscore template method
                 this.template = _.template(template, {});
                 // Dynamically updates the UI with the view's template
-                console.log(this.$el);
                 this.$el.html(this.template);
                 // Maintains chainability
                 return this;

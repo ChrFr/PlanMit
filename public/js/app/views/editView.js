@@ -1,9 +1,9 @@
 // View.js
 // -------
-define(["jquery", "backbone", "models/Segments", "text!templates/edit.html", 
-    "edittool/js/jquery.shapeshift.adapted"],
+define(["jquery", "backbone", "text!templates/edit.html", 
+    "edittool/js/jquery.shapeshift.adapted", "collections/SegmentSource"],
 
-    function($, Backbone, Segments, template, shapeshift){
+    function($, Backbone, template, shapeshift, SegmentSource){
 
         var View = Backbone.View.extend({
 
@@ -11,7 +11,10 @@ define(["jquery", "backbone", "models/Segments", "text!templates/edit.html",
             el: ".mainFrame",
 
             // View constructor
-            initialize: function() {
+            initialize: function(resources) {
+                
+                this.resources = resources;
+                this.resources.populate(3);
 
                 // Calls the view's render method
                 this.render();
