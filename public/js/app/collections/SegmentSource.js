@@ -7,9 +7,19 @@ define(["jquery","backbone","models/SegmentModel"],
     // Creates a new Backbone Collection class object
     var SegmentSource = Backbone.Collection.extend({
         
-        model: SegmentModel,   
+        model: SegmentModel,
+        url: 'db/projects/1/segments/',
         
-        populate: function(project_id){
+        initialize: function(project_id){
+            this.project_id = project_id || 1;    
+        },
+        /*
+        sync: function(method, model, options) {
+            console.log('bla');
+        },
+              
+        //asynchronous function, ToDO: ready state for view
+        fromDB: function(project_id){
             _this = this;
             var xmlhttp = new XMLHttpRequest();
             xmlhttp.onreadystatechange=function(){
@@ -17,21 +27,24 @@ define(["jquery","backbone","models/SegmentModel"],
                     _this.fromJSON(JSON.parse(xmlhttp.responseText));
                 }
             }
-            xmlhttp.open("GET","db/projects/" + project_id + "/segments", true);
+            xmlhttp.open("GET","db/projects/" + project_id + "/segments", 
+                         true);
             xmlhttp.send();                  
-        },
+        },*/
     
-        addSegment: function(segment) {      
-            //console.log(json);
-            //this.add(segment);
+        addSegment: function(segment) {  
+            this.add(segment);
         },
-        
-        fromJSON: function(json) {   
+        /*
+        fromJSON: function(json) {
+            _this = this;
             _.each(json, function(segment_json){
                 var segment = new SegmentModel();
-                segment.fromJSON(segment_json);
+                segment.fromJSON(segment_json);  
+                _this.addSegment(segment);
             });
-        }
+        },*/
+                
     });
 
     // Returns the Model class

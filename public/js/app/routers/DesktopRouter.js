@@ -1,7 +1,7 @@
 // DesktopRouter.js
 // ----------------
 define(["jquery", "backbone", "views/navbarView",
-    "views/welcomeView", "views/editView", "collections/SegmentSource"],
+    "views/welcomeView", "views/editMainView", "collections/SegmentSource"],
 
     function($, Backbone, Navbar, Welcome, Edit, SegmentSource) {
 
@@ -9,9 +9,7 @@ define(["jquery", "backbone", "views/navbarView",
             
             initialize: function() {
                 //load a project
-                this.resources = new SegmentSource();
-                this.resources.populate(1);                
-                
+                this.resources = new SegmentSource()                
                 //navbar is always seen
                 this.navbar = new Navbar();
                 // Tells Backbone to start watching for hashchange events

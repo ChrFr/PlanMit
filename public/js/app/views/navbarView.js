@@ -4,7 +4,7 @@ define(["jquery", "backbone", "text!templates/navbar.html"],
 
     function($, Backbone, template){
 
-        var View = Backbone.View.extend({
+        var NavbarView = Backbone.View.extend({
 
             // The DOM Element associated with this view
             el: ".navbar.navbar-default",
@@ -40,7 +40,7 @@ define(["jquery", "backbone", "text!templates/navbar.html"],
         });
 
         // Returns the View class
-        return View;
+        return NavbarView;
 
     }
 

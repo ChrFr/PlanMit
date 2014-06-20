@@ -12,32 +12,35 @@ define(["jquery", "backbone"],
 
             defaults: {
                 id: 0,
-                startWidth: 0,
-                imageID: null,
-                maxWidth: 0,
-                minWidth: 0,
+                start_width: 0,
+                image_id: null,
+                max_width: 0,
+                min_width: 0,
+                image_data: 0,    
                 rules: null
             },
 
             validate: function(attrs) {
                 console.log('validation');
             },
-            
-            //reads attributes from JSON object and assigns them 
-            //(and overwrites)
-            fromJSON: function(json){
-                this.id = json.id;
-                this.startWidth = json.start_width;
-                this.imageID = json.image_id;
-                this.maxWidth = json.max_width;
-                this.minWidth = json.min_width;
-                this.rules = json.rules;
-            },
-            
-            image: function(position){
-                var pos = position || 'front';
-                //switch pos
+                        
+            loadImage: function(pointOfView){
+                var pos = pointOfView || 'front';
+                //ToDo: switch top and front img
+                _this = this;
+                var xmlhttp = new XMLHttpRequest();
+                xmlhttp.onreadystatechange = function(){
+                    if (xmlhttp.readyState==4 && xmlhttp.status==200){
+                        _this.image_data = xmlhttp.responseText;
+                        _this.trigger('image:loaded');
+                    }
+                };                
+                xmlhttp.open("GET","db/images/" + _this.attributes.image_id, 
+                             true);
+                xmlhttp.send();                
             }
+            
+            
 
         });
 

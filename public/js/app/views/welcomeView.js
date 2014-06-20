@@ -3,9 +3,9 @@
 define(["jquery", "backbone", "text!templates/welcome.html"],
 
     function($, Backbone, template){
-        var View = Backbone.View.extend({
+        var WelcomeView = Backbone.View.extend({
             // The DOM Element associated with this view
-            el: ".mainFrame",
+            el: "#mainFrame",
             // View constructor
             initialize: function() {         
                 // Calls the view's render method
@@ -29,7 +29,7 @@ define(["jquery", "backbone", "text!templates/welcome.html"],
         });
 
         // Returns the View class
-        return View;
+        return WelcomeView;
 
     }
 
