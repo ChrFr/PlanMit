@@ -24,15 +24,14 @@ define(["jquery", "backbone"],
                 console.log('validation');
             },
                         
-            loadImage: function(pointOfView){
+            loadImage: function(pointOfView, callback){
                 var pos = pointOfView || 'front';
                 //ToDo: switch top and front img
                 _this = this;
                 var xmlhttp = new XMLHttpRequest();
                 xmlhttp.onreadystatechange = function(){
                     if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                        _this.image_data = xmlhttp.responseText;
-                        _this.trigger('image:loaded');
+                        callback(JSON.parse(xmlhttp.responseText).img_svg);
                     }
                 };                
                 xmlhttp.open("GET","db/images/" + _this.attributes.image_id, 

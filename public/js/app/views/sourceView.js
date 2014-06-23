@@ -66,11 +66,16 @@ define(["jquery", "backbone", "edittool/js/jquery.shapeshift.adapted"],
                 this.collection.each(function(segment){
                     var div = $(document.createElement('div'));
                     $(div).attr('data-ss-colspan', "100");
-                    segment.loadImage();
-                    segment.on("image:loaded", function(){
-                        $(div).attr('background-image', "200")});
-                    console.log($('#resources'));
-                    console.log(div);
+                    segment.loadImage("front", function(image_data){
+                        $(div).html(image_data); 
+                        $(div).attr('width', 100);
+                        $(div).attr('height', 100);
+                        $(div).find('svg')[0].setAttribute("viewBox", "0 0 1000 1000");
+                        $(div).find('svg')[0].setAttribute("width", "100%");
+                        $(div).find('svg')[0].setAttribute("height", "100%");
+                        //$(div).find('svg')[0].setAttribute("preserveAspectRatio","none");
+                        $(div).find('svg')[0].setAttribute("preserveAspectRatio","xMidYMax meet");
+                    });
                     $('#resources').append(div);
                 });
                 $("#resources").shapeshift({

@@ -15,12 +15,13 @@ and open the template in the editor.
 }
 
 .container > div {
-  background: #ffffff;
+  background: mintcream;
   position: absolute;
   height: 100px;
   width: 100px;
   //overflow: hidden;
 }
+.container > div:hover {border:4px dotted #fef;}
 
 .droparea {
   width: 800px;
