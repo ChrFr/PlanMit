@@ -573,12 +573,6 @@
         placeholder_class = this.options.placeholderClass;
         $selected = $("." + dragged_class);
         if (options.editTool.enabled){
-            $selected.height(options.minHeight);//(this.$container.height());
-            console.log($("." + placeholder_class));
-            $("." + placeholder_class).height(options.minHeight);//(this.$container.height());
-            //ADDED: calling the resize handles if not already resizable
-            if (options.editTool.enableWidgetResize)
-                this.makeResizable($selected);  
             $start_container = $selected.parent();
             //ADDED: don't add div if its origin is another container and this
             //one is already full
@@ -586,6 +580,7 @@
                 {
                     var dragged_div = $selected[0];
                     var dragged_width = $(dragged_div).width();
+                    this.setParsedChildren();
                     if (this.globals.columns < this.globals.childrenWidth + dragged_width){
                             space_left = false;
                             //swap the origin container to indicate that the widget has 
@@ -594,6 +589,14 @@
                                     options.originalContainerClass);
                             this.$container.addClass(options.originalContainerClass);
                         }
+                    else {                        
+                        $selected.height(options.minHeight);//(this.$container.height());
+                        console.log($("." + placeholder_class));
+                        $("." + placeholder_class).height(options.minHeight);//(this.$container.height());
+                        //ADDED: calling the resize handles if not already resizable
+                        if (options.editTool.enableWidgetResize)
+                            this.makeResizable($selected);  
+                    }                    
                 }
         }
         if (!options.enableTrash && space_left) {
