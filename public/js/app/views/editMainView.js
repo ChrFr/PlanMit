@@ -42,11 +42,14 @@ define(["jquery", "backbone", "text!templates/editMain.html",
                 $(".droparea").shapeshift({
                   colWidth: 1,
                   gutterX: 0,
-                  minColumns: 800,
+                  minColumns: 1000,
+                  minHeight: 480,
                   editTool: {
                       enabled: true
                   },
-                  maxHeight: 200
+                  //maxHeight: 500,
+                  autoHeight: false,
+                  align: "left"
                 }); 
                 $(".trash").shapeshift({
                   autoHeight: false,

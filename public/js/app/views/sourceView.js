@@ -70,22 +70,22 @@ define(["jquery", "backbone", "edittool/js/jquery.shapeshift.adapted"],
                         $(div).html(image_data); 
                         $(div).attr('width', 100);
                         $(div).attr('height', 100);
-                        $(div).find('svg')[0].setAttribute("viewBox", "0 0 1000 1000");
+                        $(div).find('svg')[0].setAttribute("viewBox", "0 0 900 1100");
                         $(div).find('svg')[0].setAttribute("width", "100%");
                         $(div).find('svg')[0].setAttribute("height", "100%");
                         //$(div).find('svg')[0].setAttribute("preserveAspectRatio","none");
-                        $(div).find('svg')[0].setAttribute("preserveAspectRatio","xMidYMax meet");
+                        $(div).find('svg')[0].setAttribute("preserveAspectRatio","xMidYMax slice");
                     });
                     $('#resources').append(div);
                 });
+                
+                //register the container with it's childs to shapeshift
                 $("#resources").shapeshift({
                     dragClone: true,
                     colWidth: 1,
                     gutterX: 0,
                     enableCrossDrop: false
                 });
-                // Maintains chainability
-                //console.log(this.resources);
                 return this;
 
             }

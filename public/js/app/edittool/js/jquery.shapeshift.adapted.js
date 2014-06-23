@@ -222,10 +222,6 @@
         var childrenWidth = 0;
         for (i = _i = 0; 0 <= total ? _i < total : _i > total; i = 0 <= total ? ++_i : --_i) {
           $child = $($children[i]);   
-          //ADDED: calling the resize handles if not already resizable
-          if (this.options.editTool.enabled && 
-                  this.options.editTool.enableWidgetResize)
-              this.makeResizable($child);
           colspan = parseInt($child.attr("data-ss-colspan")) || 1;
           child = {
             i: i,
@@ -574,22 +570,30 @@
         options = this.options;        
         var space_left = true;
         dragged_class = options.draggedClass;
-        $selected = $("." + dragged_class);        
-        $start_container = $selected.parent();
-        //ADDED: don't add div if its origin is another container and this
-        //one is already full
-        if (this.options.editTool.enabled && 
-            this.$container.attr('class') !== $start_container.attr('class'))
-        {
-            var dragged_div = $selected[0];
-            var dragged_width = $(dragged_div).width();
-            if (this.globals.columns < this.globals.childrenWidth + dragged_width){
-                    space_left = false;
-                    //swap the origin container to indicate that the widget has 
-                    //not been dropped (impacts on stop event of dragging)
-                    $selected.parent().removeClass(
-                            options.originalContainerClass);
-                    this.$container.addClass(options.originalContainerClass);
+        placeholder_class = this.options.placeholderClass;
+        $selected = $("." + dragged_class);
+        if (options.editTool.enabled){
+            $selected.height(options.minHeight);//(this.$container.height());
+            console.log($("." + placeholder_class));
+            $("." + placeholder_class).height(options.minHeight);//(this.$container.height());
+            //ADDED: calling the resize handles if not already resizable
+            if (options.editTool.enableWidgetResize)
+                this.makeResizable($selected);  
+            $start_container = $selected.parent();
+            //ADDED: don't add div if its origin is another container and this
+            //one is already full
+                if (this.$container.attr('class') !== $start_container.attr('class'))
+                {
+                    var dragged_div = $selected[0];
+                    var dragged_width = $(dragged_div).width();
+                    if (this.globals.columns < this.globals.childrenWidth + dragged_width){
+                            space_left = false;
+                            //swap the origin container to indicate that the widget has 
+                            //not been dropped (impacts on stop event of dragging)
+                            $selected.parent().removeClass(
+                                    options.originalContainerClass);
+                            this.$container.addClass(options.originalContainerClass);
+                        }
                 }
         }
         if (!options.enableTrash && space_left) {
@@ -651,8 +655,7 @@
                   return $("." + previous_container_class);
               }
           }
-        } else {
-          placeholder_class = this.options.placeholderClass;
+        } else {          
           return $("." + placeholder_class).remove();
         }
       };

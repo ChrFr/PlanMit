@@ -24,30 +24,33 @@ and open the template in the editor.
 .container > div:hover {border:4px dotted #fef;}
 
 .droparea {
-  width: 800px;
+  height: 500px;
+  width: 1000px;
 }
 
 .container > .ss-placeholder-child {
   background: transparent;
   border: 1px dashed blue;
+  cursor: move;
 }
 
 #lefthandle, #righthandle {
     width: 10px;
-    height: 10px;
-    background-color: #ffffff;
-    border: 1px solid #000000;
+    height: 100%;
+    background-color: #c8bebe;
+    opacity: .5;
+    //border: 1px solid #000000;
 }
 
 #lefthandle{
     position: absolute;
     //left:-5px;
-    top:50%;
+    top: 0px;
 }
 #righthandle{
     position: absolute;
     right:1px;
-    top:50%;
+    top: 0px;
 }
 .trash {
   border: 1px dashed red;
