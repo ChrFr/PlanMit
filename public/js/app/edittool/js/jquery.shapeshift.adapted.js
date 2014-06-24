@@ -190,6 +190,7 @@
                 _this.render(true);
             }
             function setMaxResize(){
+                _this.setParsedChildren();
                 var maxResize = _this.globals.columns - _this.globals.childrenWidth - 1;
                 maxWidth = c.width() + maxResize;
                 c.resizable('option', 'maxWidth', maxWidth);
@@ -590,12 +591,14 @@
                             this.$container.addClass(options.originalContainerClass);
                         }
                     else {                        
+                        console.log(options.minHeight);
                         $selected.height(options.minHeight);//(this.$container.height());
-                        console.log($("." + placeholder_class));
+                        console.log($selected.height());
                         $("." + placeholder_class).height(options.minHeight);//(this.$container.height());
                         //ADDED: calling the resize handles if not already resizable
                         if (options.editTool.enableWidgetResize)
                             this.makeResizable($selected);  
+                        this.$container.trigger('divAdded', [$selected]);
                     }                    
                 }
         }

@@ -3,9 +3,10 @@
 // -------
 define(["jquery", "backbone", "text!templates/editMain.html", 
     "edittool/js/jquery.shapeshift.adapted", "collections/SegmentSource",
-    "views/sourceView"],
+    "views/sourceView", "views/editorView"],
 
-    function($, Backbone, template, shapeshift, SegmentSource, SourceView){
+    function($, Backbone, template, shapeshift, SegmentSource, SourceView,
+             EditorView){
 
         var editView = Backbone.View.extend({
 
@@ -13,15 +14,17 @@ define(["jquery", "backbone", "text!templates/editMain.html",
             el: "#mainFrame",
 
             // View constructor
-            initialize: function(resources) {
+            initialize: function(resources, edition) {
                 
                 this.resources = resources;    
+                // Calls the view's render method
+                this.render();         
+                
                 this.resourcesView = new SourceView({collection: resources,
                                                      el: '#resources'});
                 this.resources.fetch({reset: true});
-
-                // Calls the view's render method
-                this.render();               
+                this.editorView = new EditorView({collection: resources,
+                                                  el: '#edition'})
 
             },
 
@@ -37,29 +40,12 @@ define(["jquery", "backbone", "text!templates/editMain.html",
                 this.template = _.template(template, {});
                 
                 // Dynamically updates the UI with the view's template
-                this.$el.html(this.template);                
+                this.$el.html(this.template); 
                 
-                $(".droparea").shapeshift({
-                  colWidth: 1,
-                  gutterX: 0,
-                  minColumns: 1000,
-                  minHeight: 480,
-                  editTool: {
-                      enabled: true
-                  },
-                  //maxHeight: 500,
-                  autoHeight: false,
-                  align: "left"
-                }); 
-                $(".trash").shapeshift({
-                  autoHeight: false,
-                  colWidth: 1,
-                  enableTrash: true
-                });
                 // Maintains chainability
                 return this;
 
-            }
+            },            
 
         });
 
