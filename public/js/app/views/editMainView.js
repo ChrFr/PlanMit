@@ -16,15 +16,17 @@ define(["jquery", "backbone", "text!templates/editMain.html",
             // View constructor
             initialize: function(resources, edition) {
                 
-                this.resources = resources;    
+                this.resources = resources;  
+                this.edition = edition;
                 // Calls the view's render method
                 this.render();         
                 
                 this.resourcesView = new SourceView({collection: resources,
                                                      el: '#resources'});
                 this.resources.fetch({reset: true});
-                this.editorView = new EditorView({collection: resources,
-                                                  el: '#edition'})
+                this.editorView = new EditorView({collection: this.edition,
+                                                  el: '#edition',
+                                                  resources: this.resources})
 
             },
 

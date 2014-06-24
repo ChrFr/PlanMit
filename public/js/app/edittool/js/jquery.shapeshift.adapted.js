@@ -555,6 +555,7 @@
                 $current_container = $("." + current_container_class);
                 $previous_container = $("." + previous_container_class);
                 $selected = $(selected.helper);
+                $original_container.trigger('divRemoved', [$selected.attr('id')]);
                 $current_container.trigger("ss-trashed", $selected);
                 $selected.remove();
                 $original_container.trigger("ss-rearrange").removeClass(original_container_class);
@@ -573,7 +574,7 @@
         dragged_class = options.draggedClass;
         placeholder_class = this.options.placeholderClass;
         $selected = $("." + dragged_class);
-        if (options.editTool.enabled){
+        if (options.editTool.enabled){            
             $start_container = $selected.parent();
             //ADDED: don't add div if its origin is another container and this
             //one is already full
@@ -591,9 +592,9 @@
                             this.$container.addClass(options.originalContainerClass);
                         }
                     else {                        
-                        console.log(options.minHeight);
+                        //console.log(options.minHeight);
                         $selected.height(options.minHeight);//(this.$container.height());
-                        console.log($selected.height());
+                        //console.log($selected.height());
                         $("." + placeholder_class).height(options.minHeight);//(this.$container.height());
                         //ADDED: calling the resize handles if not already resizable
                         if (options.editTool.enableWidgetResize)

@@ -95,7 +95,6 @@ define(["jquery", "backbone", "edittool/js/jquery.shapeshift.adapted"],
                 xmlhttp.open("GET","db/images/" + imageID, true);
                 xmlhttp.send();
             }
-
         });
 
         // Returns the View class

@@ -10,9 +10,8 @@ define(["jquery", "backbone", "edittool/js/jquery.shapeshift.adapted"],
             el: ".sink",
 
             // View constructor
-            initialize: function(source) {
-                this.resources = source;
-                console.log(this.collection);
+            initialize: function(options) {
+                this.resources = options.resources;
                 this.render();
                 //if collection changes, view will be rendered
                 //_.bindAll(this, "render");
@@ -41,31 +40,36 @@ define(["jquery", "backbone", "edittool/js/jquery.shapeshift.adapted"],
                   align: "left"
                 }); 
                 var _this = this;
-                this.$el.on('divAdded', _this.addSegment);
-                this.$el.on('divRemoved', _this.removeSegment);
-                this.$el.on('divPositionChanged', _this.changePosition);
+                this.$el.on('divAdded', function(event, div){
+                    _this.addClone(div);
+                });
+                this.$el.on('divRemoved', function(event, id){
+                    _this.removeSegment(id);
+                });
+                this.$el.on('divPositionChanged', _this.updatePositions);
                 return this;
             },
             
-            addSegment: function(event, div){
-                var id = div.attr('id');
-                console.log(id);
+            addClone: function(div){
+                var id = div.attr('id');  
+                var _this = this;
+                this.resources.each(function(segment){
+                    if (id === segment.id){
+                        var clone = segment.clone();
+                        _this.collection.addSegment(clone);
+                        clone.setUniqueID();
+                        return div.attr('id', clone.id);
+                    }
+                });
             },
             
-            removeSegment: function(event, div){
-                var id = div.attr('id');
-                console.log(id);                
+            removeSegment: function(id){           
+                this.collection.removeID(id);
             },
             
-            changePosition: function(event, div){
-                var id = div.attr('id');
-                console.log(id);                
-            },
-            
-            getSegmentByID: function(id){
-                
-            }
-            
+            updatePositions: function(event, div){
+                //check order of children of div here, set pos of models in collection by passing ids to collection
+            }            
 
         });
 

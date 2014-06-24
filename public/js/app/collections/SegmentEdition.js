@@ -9,9 +9,21 @@ define(["jquery","backbone","models/SegmentModel"],
     // Creates a new Backbone Collection class object
     var SegmentEdition = Backbone.Collection.extend({
 
-      // Tells the Backbone Collection that all of it's models will be of type Model (listed up top as a dependency)
-      model: SegmentModel
-
+        // Tells the Backbone Collection that all of it's models will be of type Model (listed up top as a dependency)
+        model: SegmentModel,
+    
+        addSegment: function(segment) {  
+            this.add(segment);
+        },
+        
+        removeID: function(id) {
+            _this = this;
+            this.each(function(segment){
+                if (id === segment.id){
+                    _this.remove(segment);
+                }
+            });
+        }
     });
 
     // Returns the Model class
