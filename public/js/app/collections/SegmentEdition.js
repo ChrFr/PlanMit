@@ -16,13 +16,35 @@ define(["jquery","backbone","models/SegmentModel"],
             this.add(segment);
         },
         
-        removeID: function(id) {
-            _this = this;
+        getSegmentByID: function(id) {
             this.each(function(segment){
                 if (id === segment.id){
-                    _this.remove(segment);
+                    return segment;
                 }
             });
+            return null;
+        },
+        
+        removeID: function(id) {
+            var segment = this.getSegmentByID(id);
+            if (segment)
+                this.remove(segment);
+        },
+        
+        updatePositions: function(ids){
+            this.each(function(segment){
+                segment.pos = ids.indexOf(segment.id);
+            });
+        },
+        
+        resizeID: function(id, size) {
+            var segment = this.getSegmentByID(id);
+            if (segment)
+                segment.size = size;
+        },
+        
+        toJSON: function(){
+            console.log(this);
         }
     });
 

@@ -1,8 +1,9 @@
 // SourceView.js
 // -------
-define(["jquery", "backbone", "edittool/js/jquery.shapeshift.adapted"],
+define(["jquery", "backbone", "views/segmentView", 
+        "edittool/js/jquery.shapeshift.adapted"],
 
-    function($, Backbone, shapeshift){
+    function($, Backbone, SegmentView, shapeshift){
 
         var SourceView = Backbone.View.extend({
 
@@ -25,23 +26,10 @@ define(["jquery", "backbone", "edittool/js/jquery.shapeshift.adapted"],
             
             // Renders the view's template to the UI
             render: function() {                
-                var parent = this.$el;
+                var _this = this;
                 this.collection.each(function(segment){
-                    var div = $(document.createElement('div'));
-                    $(div).attr('data-ss-colspan', "100");
-                    segment.loadImage("front", function(image_data){
-                        $(div).html(image_data); 
-                        $(div).attr('width', 100);
-                        $(div).attr('height', 100);
-                        $(div).find('svg')[0].setAttribute("viewBox", "0 0 2000 1050");
-                        $(div).find('svg')[0].setAttribute("width", "100%");
-                        $(div).find('svg')[0].setAttribute("height", "100%");
-                        //$(div).find('svg')[0].setAttribute("preserveAspectRatio","none");
-                        $(div).find('svg')[0].setAttribute("preserveAspectRatio","xMidYMid slice");
-                    });
-                    parent.append(div);
-                    //"connect" the div with its segment
-                    $(div).attr('id', segment.id);
+                    var segmentView = new SegmentView({'parent': _this.$el,
+                                                       'segment': segment})
                 });             
                 
                 this.loadBorder($('#left_border'), 'left');
@@ -53,7 +41,7 @@ define(["jquery", "backbone", "edittool/js/jquery.shapeshift.adapted"],
                   enableTrash: true
                 });
                 //register the container with it's childs to shapeshift
-                parent.shapeshift({
+                this.$el.shapeshift({
                     dragClone: true,
                     colWidth: 1,
                     gutterX: 0,

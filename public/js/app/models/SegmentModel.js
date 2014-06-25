@@ -18,7 +18,9 @@ define(["jquery", "backbone"],
                 max_width: 0,
                 min_width: 0,
                 image_data: 0,    
-                rules: null
+                rules: null,
+                pos: 0,
+                current_width: 0
             },
 
             validate: function(attrs) {

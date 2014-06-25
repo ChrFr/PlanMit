@@ -79,6 +79,13 @@
         this.setGlobals();
         this.setIdentifier();
         this.setActiveChildren();
+        if (this.options.editTool.enabled)
+            for (i = _j = 0, _ref = this.parsedChildren.length; 0 <= _ref ? _j < _ref : _j > _ref; i = 0 <= _ref ? ++_j : --_j) {
+              var child = this.parsedChildren[i].el;
+              //console.log(child.attr('class'));
+              //child.removeClass('ui-resizable');
+              this.makeResizable(child);          
+            }
         this.enableFeatures();
         this.gridInit();
         this.render();
@@ -165,7 +172,9 @@
       //ADDED: Resize Handles
       Plugin.prototype.makeResizable = function(c) {
           var _this = this;
-          if (!(c.hasClass("ui-resizable"))){
+          if (!(c.find("#lefthandle").length) && !(c.find("#righthandle").length)){
+            
+                console.log(c);
             c.addClass('resizable');
             c.append('<div class="ui-resizable-handle ui-resizable-w" id="lefthandle"></div>');
             c.append('<div class="ui-resizable-handle ui-resizable-e" id="righthandle"></div>');
@@ -206,6 +215,7 @@
                         _this.options.editTool.fixedWidth) 
                     setMaxResize(); 
                 widthToColspan();
+                _this.$container.trigger('divResized', c);
             });
             if (_this.options.editTool.enabled && 
                     _this.options.editTool.fixedWidth){
@@ -550,17 +560,22 @@
             },
             drop: function(e, selected) {
               var $current_container, $original_container, $previous_container;
+              //ADDED: trigger events
+              $selected = $(selected.helper);
+              var id = $selected.attr('id');
+              $original_container = $("." + original_container_class);
+              $current_container = $("." + current_container_class);
+              $previous_container = $("." + previous_container_class);
+              $current_container.trigger("ss-trashed", $selected);
               if (_this.options.enableTrash) {
-                $original_container = $("." + original_container_class);
-                $current_container = $("." + current_container_class);
-                $previous_container = $("." + previous_container_class);
-                $selected = $(selected.helper);
-                $original_container.trigger('divRemoved', [$selected.attr('id')]);
-                $current_container.trigger("ss-trashed", $selected);
                 $selected.remove();
                 $original_container.trigger("ss-rearrange").removeClass(original_container_class);
                 $current_container.trigger("ss-rearrange").removeClass(current_container_class);
-                return $previous_container.trigger("ss-arrange").removeClass(previous_container_class);
+                $previous_container.trigger("ss-arrange").removeClass(previous_container_class);
+                return $original_container.trigger('divRemoved', id);
+              }
+              else {  
+                return $current_container.trigger('divAdded', $selected);
               }
             }
           });
@@ -592,14 +607,13 @@
                             this.$container.addClass(options.originalContainerClass);
                         }
                     else {                        
-                        //console.log(options.minHeight);
-                        $selected.height(options.minHeight);//(this.$container.height());
+                        //WARNING seems to add 8 pixels on top, don't know why
+                        $selected.height(this.$container.height()-8);//(this.$container.height());
                         //console.log($selected.height());
-                        $("." + placeholder_class).height(options.minHeight);//(this.$container.height());
+                        $("." + placeholder_class).height(this.$container.height());//(this.$container.height());
                         //ADDED: calling the resize handles if not already resizable
                         if (options.editTool.enableWidgetResize)
                             this.makeResizable($selected);  
-                        this.$container.trigger('divAdded', [$selected]);
                     }                    
                 }
         }
