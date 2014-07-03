@@ -43,7 +43,6 @@ define(["jquery", "backbone", "text!templates/editMain.html",
                 
                 // Dynamically updates the UI with the view's template
                 this.$el.html(this.template); 
-                
                 // Maintains chainability
                 return this;
 

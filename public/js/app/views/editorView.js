@@ -12,8 +12,11 @@ define(["jquery", "backbone", "views/segmentView",
 
             // View constructor
             initialize: function(options) {
-                this.resources = options.resources;
+                this.resources = options.resources;                
+                _.bindAll(this, 'registerShapeshift'); 
+                this.setupProject();
                 this.render();
+                console.log(this.$el);
             },            
 
             // View Event Handlers
@@ -25,16 +28,55 @@ define(["jquery", "backbone", "views/segmentView",
 
             // Renders the view's template to the UI
             render: function() {   
-                var _this = this;
+                var _this = this;  
+                           
+                this.loadBorder($('#left_border'), 'left');
+                this.loadBorder($('#right_border'), 'right');  
+                
+                if (this.collection.length === 0)
+                    this.registerShapeshift();
+                var shapeshift = _.after(this.collection.length, this.registerShapeshift);
                 this.collection.each(function(segment){
                     var segmentView = new SegmentView({'parent': _this.$el,
                                                        'segment': segment,
                                                        'height': _this.$el.height()}); 
-                });       
+                    segmentView.render(shapeshift);
+                });                
+                
+                var _this = this;                
+                var txtarea = $("#log");
+                this.$el.on('divAdded', function(event, div){
+                    _this.addClone(div);    
+                    txtarea.val(txtarea.val() + '\n' + div.id + " added");
+                    $('#elementspx').val(_this.childrenTotalWidth());
+                });
+                this.$el.on('divRemoved', function(event, id){
+                    _this.collection.removeID(id);
+                    txtarea.val(txtarea.val() + '\n' + id + " removed");
+                    $('#elementspx').val(_this.childrenTotalWidth());
+                });
+                this.$el.on('divResized', function(event, div){
+                    _this.collection.resizeID($(div).attr('id'), parseInt($(div).css('width')));
+                    txtarea.val(txtarea.val() + '\n' + div.id + " resized");
+                    $('#elementspx').val(_this.childrenTotalWidth());
+                });
+                this.$el.on('divPositionChanged', function(event, div){
+                    _this.updatePositions;
+                    txtarea.val(txtarea.val() + '\n' + 
+                                div.id + " position changed");
+                    $('#elementspx').val(_this.childrenTotalWidth());
+                });
+                
+                $('#streetpx').val(parseInt($('#edition').css('width')));
+                return this;
+            },
+            
+            registerShapeshift: function(){       
+                console.log(this.$el);
                 this.$el.shapeshift({
                     colWidth: 1,
                     gutterX: 0,
-                    minColumns: this.$el.width(),
+                    minColumns: parseInt(this.$el.css('width')),
                     editTool: {
                         enabled: true
                     },
@@ -43,19 +85,38 @@ define(["jquery", "backbone", "views/segmentView",
                     paddingX: 0,
                     paddingY: 0,
                 }); 
-                var _this = this;
-                this.$el.on('divAdded', function(event, div){
-                    _this.addClone(div);
+                
+                
+                $(".trash").shapeshift({
+                  autoHeight: false,
+                  colWidth: 1,
+                  enableTrash: true
                 });
-                this.$el.on('divRemoved', function(event, id){
-                    _this.collection.removeID(id);
-                });
-                this.$el.on('divResized', function(event, div){
-                    _this.collection.resizeID($(div).attr('id'), $(div).width());
-                });
-                this.$el.on('divPositionChanged', _this.updatePositions);
-                return this;
             },
+            
+            setupProject: function(){   
+                var id = this.collection.project_id;
+                var xmlhttp = new XMLHttpRequest();
+                xmlhttp.onreadystatechange = function(){
+                    if (xmlhttp.readyState==4 && xmlhttp.status==200){
+                        var projectDetails = JSON.parse(xmlhttp.responseText);
+                        var width = projectDetails.width;
+                        $('#streetm').val(width);
+                    }
+                };                
+                xmlhttp.open("GET","db/projects/" + id, true);
+                xmlhttp.send();
+            },
+            
+            childrenTotalWidth: function(){
+                var width = 0;
+                _.each(this.$el.find('.ss-active-child'), (function(div){
+                    width += parseInt($(div).css('width'));
+                }));
+                return width;
+                
+                //check order of children of div here, set pos of models in collection by passing ids to collection
+            },            
             
             addClone: function(div){
                 var id = $(div).attr('id');  
@@ -80,7 +141,40 @@ define(["jquery", "backbone", "views/segmentView",
                 this.collection.updatePositions(ids);
                 
                 //check order of children of div here, set pos of models in collection by passing ids to collection
-            }            
+            },    
+                    
+            loadBorder: function(container, side){
+                var imageID, aspectRatio;
+                switch (side){
+                    case "left": 
+                        imageID = 1;
+                        aspectRatio = "xMidYMax slice";
+                        break;
+                    case "right": 
+                        imageID = 2;
+                        aspectRatio = "xMidYMax slice";
+                        break;
+                    default: 
+                        imageID = 1;
+                        break;
+                }
+                    
+                var xmlhttp = new XMLHttpRequest();
+                xmlhttp.onreadystatechange = function(){
+                    if (xmlhttp.readyState==4 && xmlhttp.status==200){
+                        var image_data = JSON.parse(xmlhttp.responseText).img_svg;
+                        container.html(image_data); 
+                        container.attr('width', 100);
+                        container.attr('height', 100);
+                        container.find('svg')[0].setAttribute("viewBox", "0 0 750 1050");
+                        container.find('svg')[0].setAttribute("width", "100%");
+                        container.find('svg')[0].setAttribute("height", "100%");
+                        container.find('svg')[0].setAttribute("preserveAspectRatio", aspectRatio);
+                    }
+                };                
+                xmlhttp.open("GET","db/images/" + imageID, true);
+                xmlhttp.send();
+            }
 
         });
 

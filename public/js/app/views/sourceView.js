@@ -29,60 +29,22 @@ define(["jquery", "backbone", "views/segmentView",
                 var _this = this;
                 this.collection.each(function(segment){
                     var segmentView = new SegmentView({'parent': _this.$el,
-                                                       'segment': segment})
-                });             
+                                                       'segment': segment});
+                    segmentView.render();
+                });          
                 
-                this.loadBorder($('#left_border'), 'left');
-                this.loadBorder($('#right_border'), 'right');
-                
-                $(".trash").shapeshift({
-                  autoHeight: false,
-                  colWidth: 1,
-                  enableTrash: true
-                });
                 //register the container with it's childs to shapeshift
                 this.$el.shapeshift({
                     dragClone: true,
                     colWidth: 1,
                     gutterX: 0,
+                    minColumns: 100,
                     enableCrossDrop: false
                 });
                 return this;
 
-            },
-                        
-            loadBorder: function(container, side){
-                var imageID, aspectRatio;
-                switch (side){
-                    case "left": 
-                        imageID = 1;
-                        aspectRatio = "xMidYMax slice";
-                        break;
-                    case "right": 
-                        imageID = 2;
-                        aspectRatio = "xMidYMax slice";
-                        break;
-                    default: 
-                        imageID = 1;
-                        break;
-                }
-                    
-                var xmlhttp = new XMLHttpRequest();
-                xmlhttp.onreadystatechange = function(){
-                    if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                        var image_data = JSON.parse(xmlhttp.responseText).img_svg;
-                        container.html(image_data); 
-                        container.attr('width', 100);
-                        container.attr('height', 100);
-                        container.find('svg')[0].setAttribute("viewBox", "0 0 750 1050");
-                        container.find('svg')[0].setAttribute("width", "100%");
-                        container.find('svg')[0].setAttribute("height", "100%");
-                        container.find('svg')[0].setAttribute("preserveAspectRatio", aspectRatio);
-                    }
-                };                
-                xmlhttp.open("GET","db/images/" + imageID, true);
-                xmlhttp.send();
             }
+                
         });
 
         // Returns the View class

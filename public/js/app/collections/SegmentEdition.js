@@ -11,6 +11,10 @@ define(["jquery","backbone","models/SegmentModel"],
 
         // Tells the Backbone Collection that all of it's models will be of type Model (listed up top as a dependency)
         model: SegmentModel,
+        
+        initialize: function(project_id){
+            this.project_id = project_id || 1;    
+        },
     
         addSegment: function(segment) {  
             this.add(segment);

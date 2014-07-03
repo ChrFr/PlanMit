@@ -79,17 +79,21 @@
         this.setGlobals();
         this.setIdentifier();
         this.setActiveChildren();
+        this.enableFeatures();
+        this.gridInit();
+        this.render();
+        this.afterInit();
+        
+        console.log('shapeshifted');
         if (this.options.editTool.enabled)
             for (i = _j = 0, _ref = this.parsedChildren.length; 0 <= _ref ? _j < _ref : _j > _ref; i = 0 <= _ref ? ++_j : --_j) {
               var child = this.parsedChildren[i].el;
               //console.log(child.attr('class'));
               //child.removeClass('ui-resizable');
-              this.makeResizable(child);          
-            }
-        this.enableFeatures();
-        this.gridInit();
-        this.render();
-        return this.afterInit();
+              //console.log(child.height());
+              this.makeEditable(child);          
+            };
+        return;
       };
 
       Plugin.prototype.createEvents = function() {
@@ -141,6 +145,7 @@
         if (this.options.enableDrag || this.options.enableCrossDrop) {
           return this.enableDragNDrop();
         }
+        
       };
 
       Plugin.prototype.setActiveChildren = function() {
@@ -170,12 +175,9 @@
       };
       
       //ADDED: Resize Handles
-      Plugin.prototype.makeResizable = function(c) {
+      Plugin.prototype.makeEditable = function(c) {
           var _this = this;
           if (!(c.find("#lefthandle").length) && !(c.find("#righthandle").length)){
-            
-                console.log(c);
-            c.addClass('resizable');
             c.append('<div class="ui-resizable-handle ui-resizable-w" id="lefthandle"></div>');
             c.append('<div class="ui-resizable-handle ui-resizable-e" id="righthandle"></div>');
             c.resizable({
@@ -184,7 +186,7 @@
                   'e': '#righthandle'
               }
             }); 
-            c.find('.ui-resizable-handle').hide();
+            //c.find('.ui-resizable-handle').hide();
             $(c).on({
                 mouseenter: function () {
                     $('.ui-resizable-handle').hide();
@@ -574,12 +576,20 @@
                 $previous_container.trigger("ss-arrange").removeClass(previous_container_class);
                 return $original_container.trigger('divRemoved', id);
               }
-              else {  
+              //ADDED trigger event
+              else if ($original_container[0] !== $current_container[0]){  
                 return $current_container.trigger('divAdded', $selected);
               }
             }
-          });
+          });       
         }
+        /*
+        if (options.editTool.enabled && options.editTool.enableWidgetResize){
+            console.log(this);
+          _.each($container.children("." + active_class), function(child){
+                _this.makeEditable($(child));
+         }); 
+        }    */   
       };
 
       Plugin.prototype.setTargetPosition = function() {
@@ -613,7 +623,7 @@
                         $("." + placeholder_class).height(this.$container.height());//(this.$container.height());
                         //ADDED: calling the resize handles if not already resizable
                         if (options.editTool.enableWidgetResize)
-                            this.makeResizable($selected);  
+                            this.makeEditable($selected);  
                     }                    
                 }
         }

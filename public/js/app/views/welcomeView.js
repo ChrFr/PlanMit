@@ -9,7 +9,7 @@ define(["jquery", "backbone", "text!templates/welcome.html"],
             // View constructor
             initialize: function() {         
                 // Calls the view's render method
-                this.render();       
+                this.render();  
             },
 
             // View Event Handlers
