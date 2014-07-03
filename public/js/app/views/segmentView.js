@@ -35,14 +35,15 @@ define(["jquery", "backbone", "edittool/js/jquery.shapeshift.adapted"],
                         $(div).find('svg')[0].setAttribute("height", "100%");
                         //$(div).find('svg')[0].setAttribute("preserveAspectRatio","none");
                         $(div).find('svg')[0].setAttribute("preserveAspectRatio","xMidYMid slice");
+                        if (callback)
+                            callback();
+                    
                     });
                     
                     this.parent.append(div);
                     //"connect" the div with its segment
                     //this.segment.setUniqueID();
                     $(div).attr('id', this.segment.id); 
-                    if (callback)
-                        callback();
                 }
                 return this;
 

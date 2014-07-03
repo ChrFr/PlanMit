@@ -83,16 +83,13 @@
         this.gridInit();
         this.render();
         this.afterInit();
-        
-        console.log('shapeshifted');
-        if (this.options.editTool.enabled)
-            for (i = _j = 0, _ref = this.parsedChildren.length; 0 <= _ref ? _j < _ref : _j > _ref; i = 0 <= _ref ? ++_j : --_j) {
-              var child = this.parsedChildren[i].el;
-              //console.log(child.attr('class'));
-              //child.removeClass('ui-resizable');
-              //console.log(child.height());
-              this.makeEditable(child);          
-            };
+        if (this.options.editTool.enabled){
+            var _this = this;
+            _.each(this.$container.find('.ss-active-child'), (function(div){
+                    _this.makeEditable($(div));
+                }));  
+            $('.ui-resizable-handle').hide();
+        };
         return;
       };
 
@@ -178,8 +175,11 @@
       Plugin.prototype.makeEditable = function(c) {
           var _this = this;
           if (!(c.find("#lefthandle").length) && !(c.find("#righthandle").length)){
-            c.append('<div class="ui-resizable-handle ui-resizable-w" id="lefthandle"></div>');
-            c.append('<div class="ui-resizable-handle ui-resizable-e" id="righthandle"></div>');
+              console.log(c);
+            c.css("z-index", "auto");
+            c.css("position", "absolute");
+            c.append('<div class="ui-resizable-handle ui-resizable-w" id="lefthandle" style="z-index: 9999"></div>');
+            c.append('<div class="ui-resizable-handle ui-resizable-e" id="righthandle" style="z-index: 9999">></div>');
             c.resizable({
               handles: {
                   'w': '#lefthandle',
@@ -224,6 +224,7 @@
                c.on("resizestart", function(){setMaxResize();});
             }
         }
+        console.log($('#lefthandle'));
       }
       
       Plugin.prototype.setParsedChildren = function() {

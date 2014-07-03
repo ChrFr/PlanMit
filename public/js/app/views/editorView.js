@@ -16,7 +16,6 @@ define(["jquery", "backbone", "views/segmentView",
                 _.bindAll(this, 'registerShapeshift'); 
                 this.setupProject();
                 this.render();
-                console.log(this.$el);
             },            
 
             // View Event Handlers
@@ -71,8 +70,7 @@ define(["jquery", "backbone", "views/segmentView",
                 return this;
             },
             
-            registerShapeshift: function(){       
-                console.log(this.$el);
+            registerShapeshift: function(){    
                 this.$el.shapeshift({
                     colWidth: 1,
                     gutterX: 0,
