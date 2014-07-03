@@ -38,7 +38,9 @@ define(["jquery", "backbone", "views/segmentView",
                 this.collection.each(function(segment){
                     var segmentView = new SegmentView({'parent': _this.$el,
                                                        'segment': segment,
-                                                       'height': _this.$el.height()}); 
+                                                       'height': _this.$el.height(),
+                                                       'width': segment.size
+                                                      }); 
                     segmentView.render(shapeshift);
                 });                
                 
@@ -59,10 +61,9 @@ define(["jquery", "backbone", "views/segmentView",
                     txtarea.val(txtarea.val() + '\n' + div.id + " resized");
                     $('#elementspx').val(_this.childrenTotalWidth());
                 });
-                this.$el.on('divPositionChanged', function(event, div){
+                this.$el.on('divPositionChanged', function(event){
                     _this.updatePositions;
-                    txtarea.val(txtarea.val() + '\n' + 
-                                div.id + " position changed");
+                    txtarea.val(txtarea.val() + '\n positions changed');
                     $('#elementspx').val(_this.childrenTotalWidth());
                 });
                 
@@ -128,7 +129,6 @@ define(["jquery", "backbone", "views/segmentView",
                     }
                 });
                 this.updatePositions();
-                //console.log(this.collection);
             },
                         
             updatePositions: function(){

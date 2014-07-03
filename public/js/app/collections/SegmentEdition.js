@@ -15,18 +15,24 @@ define(["jquery","backbone","models/SegmentModel"],
         initialize: function(project_id){
             this.project_id = project_id || 1;    
         },
+        /*
+        comparator: function(model) {
+            return model.get("pos");
+        },*/
     
         addSegment: function(segment) {  
             this.add(segment);
         },
         
         getSegmentByID: function(id) {
-            this.each(function(segment){
-                if (id === segment.id){
-                    return segment;
+            var segment = null;
+            this.each(function(seg){
+                if (id === seg.id){
+                    segment = seg;
+                    return false;
                 }
             });
-            return null;
+            return segment;
         },
         
         removeID: function(id) {
@@ -42,7 +48,8 @@ define(["jquery","backbone","models/SegmentModel"],
         },
         
         resizeID: function(id, size) {
-            var segment = this.getSegmentByID(id);
+            var segment = this.getSegmentByID(id);            
+            console.log(segment);
             if (segment)
                 segment.size = size;
         },

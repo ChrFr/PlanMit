@@ -175,7 +175,6 @@
       Plugin.prototype.makeEditable = function(c) {
           var _this = this;
           if (!(c.find("#lefthandle").length) && !(c.find("#righthandle").length)){
-              console.log(c);
             c.css("z-index", "auto");
             c.css("position", "absolute");
             c.append('<div class="ui-resizable-handle ui-resizable-w" id="lefthandle" style="z-index: 9999"></div>');
@@ -224,7 +223,6 @@
                c.on("resizestart", function(){setMaxResize();});
             }
         }
-        console.log($('#lefthandle'));
       }
       
       Plugin.prototype.setParsedChildren = function() {
@@ -348,6 +346,8 @@
             $container.trigger("ss-drop-complete");
           }
         }
+        //ADDED event
+        $container.trigger('divPositionChanged');
         $container.trigger("ss-arranged");
         if (options.autoHeight) {
           container_height = globals.container_height;
@@ -584,13 +584,6 @@
             }
           });       
         }
-        /*
-        if (options.editTool.enabled && options.editTool.enableWidgetResize){
-            console.log(this);
-          _.each($container.children("." + active_class), function(child){
-                _this.makeEditable($(child));
-         }); 
-        }    */   
       };
 
       Plugin.prototype.setTargetPosition = function() {
@@ -620,7 +613,6 @@
                     else {                        
                         //WARNING seems to add 8 pixels on top, don't know why
                         $selected.height(this.$container.height()-8);//(this.$container.height());
-                        //console.log($selected.height());
                         $("." + placeholder_class).height(this.$container.height());//(this.$container.height());
                         //ADDED: calling the resize handles if not already resizable
                         if (options.editTool.enableWidgetResize)
