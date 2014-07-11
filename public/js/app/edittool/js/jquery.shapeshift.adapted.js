@@ -346,8 +346,6 @@
             $container.trigger("ss-drop-complete");
           }
         }
-        //ADDED event
-        $container.trigger('divPositionChanged');
         $container.trigger("ss-arranged");
         if (options.autoHeight) {
           container_height = globals.container_height;
@@ -537,9 +535,16 @@
                     $clone.removeClass(clone_class);
                     $original_container.shapeshift($original_container.data("plugin_shapeshift").options);
                     $current_container.shapeshift($current_container.data("plugin_shapeshift").options);
+              //ADDED: trigger add event after cloning and reshaping
+                    if ($original_container[0] !== $current_container[0]){  
+                        $current_container.trigger('divAdded', $selected);
+                    };
                 }
               }              
               if ($original_container[0] === $current_container[0]) {
+                  //ADDED: trigger event that position of a div  has changed 
+                  //inside the container
+                $current_container.trigger('divPositionChanged', $selected);
                 $current_container.trigger("ss-rearranged", $selected);
               } else {
                 $original_container.trigger("ss-removed", $selected);
@@ -556,15 +561,15 @@
           return $container.droppable({
             accept: options.crossDropWhitelist,
             tolerance: 'intersect',
-            over: function(e) {
+            over: function(e, selected) {
               $("." + previous_container_class).removeClass(previous_container_class);
               $("." + current_container_class).removeClass(current_container_class).addClass(previous_container_class);
-              return $(e.target).addClass(current_container_class);
+              $(e.target).addClass(current_container_class);          
+              return;
             },
             drop: function(e, selected) {
               var $current_container, $original_container, $previous_container;
-              //ADDED: trigger events
-              $selected = $(selected.helper);
+              $selected = $(selected.helper);              
               var id = $selected.attr('id');
               $original_container = $("." + original_container_class);
               $current_container = $("." + current_container_class);
@@ -576,10 +581,6 @@
                 $current_container.trigger("ss-rearrange").removeClass(current_container_class);
                 $previous_container.trigger("ss-arrange").removeClass(previous_container_class);
                 return $original_container.trigger('divRemoved', id);
-              }
-              //ADDED trigger event
-              else if ($original_container[0] !== $current_container[0]){  
-                return $current_container.trigger('divAdded', $selected);
               }
             }
           });       

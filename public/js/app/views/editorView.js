@@ -62,7 +62,8 @@ define(["jquery", "backbone", "views/segmentView",
                     $('#elementspx').val(_this.childrenTotalWidth());
                 });
                 this.$el.on('divPositionChanged', function(event){
-                    _this.updatePositions;
+                    _this.updatePositions();                    
+                    _this.collection.sort();
                     txtarea.val(txtarea.val() + '\n positions changed');
                     $('#elementspx').val(_this.childrenTotalWidth());
                 });
@@ -123,12 +124,26 @@ define(["jquery", "backbone", "views/segmentView",
                 this.resources.each(function(segment){
                     if (id === segment.id){
                         var clone = segment.clone();
-                        _this.collection.addSegment(clone);
                         clone.setUniqueID();
+                        clone.pos = _this.getDivPosition(id);                        
+                        _this.updatePositions();
+                        _this.collection.addSegment(clone);
                         return $(div).attr('id', clone.id);
                     }
                 });
-                this.updatePositions();
+            },
+            
+            getDivPosition: function(id){
+                var pos = 0;
+                var i = 0;
+                _.each(this.$el.find('.ss-active-child'), (function(div){
+                    if ($(div).attr('id') === id){
+                        pos = i;
+                        return;
+                    };
+                    i++;
+                }));
+                return pos;
             },
                         
             updatePositions: function(){
