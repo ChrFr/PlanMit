@@ -13,9 +13,8 @@ define(["jquery", "backbone", "views/segmentView",
             // View constructor
             initialize: function(options) {
                 this.resources = options.resources;                
-                _.bindAll(this, 'registerShapeshift'); 
-                this.setupProject();
-                this.render();
+                _.bindAll(this, 'registerShapeshift', 'setupProject'); 
+                this.collection.bind("ready", this.setupProject);
             },            
 
             // View Event Handlers
@@ -27,8 +26,7 @@ define(["jquery", "backbone", "views/segmentView",
 
             // Renders the view's template to the UI
             render: function() {   
-                var _this = this;  
-                           
+                var _this = this;     
                 this.loadBorder($('#left_border'), 'left');
                 this.loadBorder($('#right_border'), 'right');  
                 
@@ -49,26 +47,31 @@ define(["jquery", "backbone", "views/segmentView",
                 this.$el.on('divAdded', function(event, div){
                     _this.addClone(div);    
                     txtarea.val(txtarea.val() + '\n' + div.id + " added");
-                    $('#elementspx').val(_this.childrenTotalWidth());
+                    var segmentPixelWidth = _this.childrenTotalWidth();
+                    $('#elementspx').val(segmentPixelWidth);
+                    $('#elementsm').val(segmentPixelWidth / _this.pixelRatio());
                 });
                 this.$el.on('divRemoved', function(event, id){
                     _this.collection.removeID(id);
                     txtarea.val(txtarea.val() + '\n' + id + " removed");
-                    $('#elementspx').val(_this.childrenTotalWidth());
+                    var segmentPixelWidth = _this.childrenTotalWidth();
+                    $('#elementspx').val(segmentPixelWidth);
+                    $('#elementsm').val(segmentPixelWidth / _this.pixelRatio());
                 });
                 this.$el.on('divResized', function(event, div){
                     _this.collection.resizeID($(div).attr('id'), parseInt($(div).css('width')));
                     txtarea.val(txtarea.val() + '\n' + div.id + " resized");
-                    $('#elementspx').val(_this.childrenTotalWidth());
+                    var segmentPixelWidth = _this.childrenTotalWidth();
+                    $('#elementspx').val(segmentPixelWidth);
+                    $('#elementsm').val(segmentPixelWidth / _this.pixelRatio());
                 });
                 this.$el.on('divPositionChanged', function(event){
                     _this.updatePositions();                    
                     _this.collection.sort();
                     txtarea.val(txtarea.val() + '\n positions changed');
-                    $('#elementspx').val(_this.childrenTotalWidth());
                 });
                 
-                $('#streetpx').val(parseInt($('#edition').css('width')));
+                $('#streetpx').val(parseInt($(this.$el[0]).css('width')));
                 return this;
             },
             
@@ -94,18 +97,16 @@ define(["jquery", "backbone", "views/segmentView",
                 });
             },
             
-            setupProject: function(){   
-                var id = this.collection.project_id;
-                var xmlhttp = new XMLHttpRequest();
-                xmlhttp.onreadystatechange = function(){
-                    if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                        var projectDetails = JSON.parse(xmlhttp.responseText);
-                        var width = projectDetails.width;
-                        $('#streetm').val(width);
-                    }
-                };                
-                xmlhttp.open("GET","db/projects/" + id, true);
-                xmlhttp.send();
+            pixelRatio: function(){
+                return parseInt($(this.$el[0]).css('width')) / 
+                           this.collection.width;
+            },
+            
+            setupProject: function(){       
+                var width = this.collection.width;
+                $('#streetm').val(width);     
+                console.log(this.pixelRatio());
+                this.render();
             },
             
             childrenTotalWidth: function(){
@@ -170,7 +171,7 @@ define(["jquery", "backbone", "views/segmentView",
                     default: 
                         imageID = 1;
                         break;
-                }
+                };
                     
                 var xmlhttp = new XMLHttpRequest();
                 xmlhttp.onreadystatechange = function(){

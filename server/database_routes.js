@@ -56,7 +56,9 @@ module.exports = function(){
             var _pg = pgQuery;
             pgQuery('SELECT * FROM projects WHERE id=' + req.params.pid, 
             function(result){
-                //merge the project object with the borders from db
+                //merge the project object with the borders from db                
+                if (result.length === 0)
+                    return res.send(404);
                 var resProj = result[0];
                 var left = resProj.left_border;
                 var right = resProj.right_border;

@@ -12,6 +12,7 @@ define(["jquery","backbone","models/SegmentModel"],
         
         initialize: function(project_id){
             this.project_id = project_id || 1;    
+            this.url = 'db/projects/' + this.project_id + '/segments/';
         },
         /*
         sync: function(method, model, options) {

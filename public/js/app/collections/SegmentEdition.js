@@ -11,9 +11,11 @@ define(["jquery","backbone","models/SegmentModel"],
 
         // Tells the Backbone Collection that all of it's models will be of type Model (listed up top as a dependency)
         model: SegmentModel,
+        url: 'db/projects/1',
         
         initialize: function(project_id){
-            this.project_id = project_id || 1;    
+            this.projectID = project_id || 1;   
+            this.url = 'db/projects/' + this.projectID;
         },
         
         comparator: function(model) {
@@ -34,6 +36,21 @@ define(["jquery","backbone","models/SegmentModel"],
             });
             return segment;
         },
+        
+        fetch : function(options) {
+            var _this = this;
+            $.ajax({
+                type: 'GET',
+                url: this.url,
+                success: function(data) {
+                    _this.width = data.width;
+                    _this.name = data.name;
+                    _this.description = data.description;
+                    _this.trigger('ready');
+                }
+            });
+        },
+    
         
         removeID: function(id) {
             var segment = this.getSegmentByID(id);
