@@ -10,9 +10,15 @@ define(["jquery","backbone","models/SegmentModel"],
         model: SegmentModel,
         url: 'db/projects/1/segments/',
         
-        initialize: function(project_id){
-            this.project_id = project_id || 1;    
-            this.url = 'db/projects/' + this.project_id + '/segments/';
+        initialize: function(options){
+            var project_id, url;            
+            if (options){
+                project_id = options.project_id;   
+                if (options.showAll)
+                    url = 'db/segments/';
+            };
+            this.project_id = project_id || 1;
+            this.url = url || 'db/projects/' + this.project_id + '/segments/';
         },
         /*
         sync: function(method, model, options) {

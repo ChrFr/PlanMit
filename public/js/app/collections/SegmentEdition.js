@@ -37,11 +37,11 @@ define(["jquery","backbone","models/SegmentModel"],
             return segment;
         },
         
-        fetch : function(options) {
+        fetch: function(options) {
             var _this = this;
             $.ajax({
                 type: 'GET',
-                url: this.url,
+                url: _this.url,
                 success: function(data) {
                     _this.width = data.width;
                     _this.name = data.name;
@@ -49,8 +49,31 @@ define(["jquery","backbone","models/SegmentModel"],
                     _this.trigger('ready');
                 }
             });
-        },
-    
+        },       
+        
+        save: function() {
+            var _this = this;
+            $.ajax({
+                type: 'POST',
+                url: _this.url,
+                data: _this.toJSON(),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+            });
+        },  
+        
+        toJSON: function(){
+            var edition = [];
+            var i = 0;
+            this.each(function(segment){
+                edition[i] = {id: segment.attributes.id,
+                              pos: segment.pos,
+                              size: segment.size
+                };
+                i++;
+            });
+            return JSON.stringify({'template': edition});
+        },    
         
         removeID: function(id) {
             var segment = this.getSegmentByID(id);
@@ -70,9 +93,6 @@ define(["jquery","backbone","models/SegmentModel"],
                 segment.size = size;
         },
         
-        toJSON: function(){
-            console.log(this);
-        }
     });
 
     // Returns the Model class

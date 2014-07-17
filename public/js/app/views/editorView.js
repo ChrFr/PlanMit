@@ -5,7 +5,7 @@ define(["jquery", "backbone", "views/segmentView",
 
     function($, Backbone, SegmentView, shapeshift){
 
-        var SourceView = Backbone.View.extend({
+        var EditorView = Backbone.View.extend({
 
             // The DOM Element associated with this view
             el: ".sink",
@@ -13,8 +13,8 @@ define(["jquery", "backbone", "views/segmentView",
             // View constructor
             initialize: function(options) {
                 this.resources = options.resources;                
-                _.bindAll(this, 'registerShapeshift', 'setupProject'); 
-                this.collection.bind("ready", this.setupProject);
+                _.bindAll(this, 'registerShapeshift', 'render'); 
+                this.collection.bind("ready", this.render);
             },            
 
             // View Event Handlers
@@ -26,18 +26,17 @@ define(["jquery", "backbone", "views/segmentView",
 
             // Renders the view's template to the UI
             render: function() {   
-                var _this = this;     
-                this.loadBorder($('#left_border'), 'left');
-                this.loadBorder($('#right_border'), 'right');  
+                var _this = this; 
                 
                 if (this.collection.length === 0)
                     this.registerShapeshift();
                 var shapeshift = _.after(this.collection.length, this.registerShapeshift);
                 this.collection.each(function(segment){
+                    var width = segment.size * _this.pixelRatio();
                     var segmentView = new SegmentView({'parent': _this.$el,
                                                        'segment': segment,
                                                        'height': _this.$el.height(),
-                                                       'width': segment.size
+                                                       'width': width
                                                       }); 
                     segmentView.render(shapeshift);
                 });                
@@ -46,33 +45,38 @@ define(["jquery", "backbone", "views/segmentView",
                 var txtarea = $("#log");
                 this.$el.on('divAdded', function(event, div){
                     _this.addClone(div);    
+                    _this.collection.resizeID($(div).attr('id'), 
+                        parseInt($(div).css('width')) / _this.pixelRatio());
                     txtarea.val(txtarea.val() + '\n' + div.id + " added");
-                    var segmentPixelWidth = _this.childrenTotalWidth();
-                    $('#elementspx').val(segmentPixelWidth);
-                    $('#elementsm').val(segmentPixelWidth / _this.pixelRatio());
+                    _this.updateAttributeLog();
                 });
                 this.$el.on('divRemoved', function(event, id){
                     _this.collection.removeID(id);
                     txtarea.val(txtarea.val() + '\n' + id + " removed");
-                    var segmentPixelWidth = _this.childrenTotalWidth();
-                    $('#elementspx').val(segmentPixelWidth);
-                    $('#elementsm').val(segmentPixelWidth / _this.pixelRatio());
+                    _this.updateAttributeLog();
                 });
-                this.$el.on('divResized', function(event, div){
-                    _this.collection.resizeID($(div).attr('id'), parseInt($(div).css('width')));
+                this.$el.on('divResized', function(event, div){    
+                    _this.collection.resizeID($(div).attr('id'), 
+                        parseInt($(div).css('width')) / _this.pixelRatio());
                     txtarea.val(txtarea.val() + '\n' + div.id + " resized");
-                    var segmentPixelWidth = _this.childrenTotalWidth();
-                    $('#elementspx').val(segmentPixelWidth);
-                    $('#elementsm').val(segmentPixelWidth / _this.pixelRatio());
+                    _this.updateAttributeLog();
                 });
                 this.$el.on('divPositionChanged', function(event){
                     _this.updatePositions();                    
                     _this.collection.sort();
                     txtarea.val(txtarea.val() + '\n positions changed');
+                    _this.updateAttributeLog();
                 });
                 
-                $('#streetpx').val(parseInt($(this.$el[0]).css('width')));
+                this.updateAttributeLog();
                 return this;
+            },
+            
+            updateAttributeLog: function(){                
+                $('#elementspx').val(this.allChildrenWidth() * this.pixelRatio());
+                $('#elementsm').val(this.allChildrenWidth());
+                $('#streetpx').val(this.streetProfileWidth() * this.pixelRatio());                    
+                $('#streetm').val(this.streetProfileWidth());
             },
             
             registerShapeshift: function(){    
@@ -101,23 +105,29 @@ define(["jquery", "backbone", "views/segmentView",
                 return parseInt($(this.$el[0]).css('width')) / 
                            this.collection.width;
             },
-            
-            setupProject: function(){       
-                var width = this.collection.width;
-                $('#streetm').val(width);     
-                console.log(this.pixelRatio());
-                this.render();
-            },
-            
-            childrenTotalWidth: function(){
+                        
+            allChildrenWidth: function(){
                 var width = 0;
-                _.each(this.$el.find('.ss-active-child'), (function(div){
-                    width += parseInt($(div).css('width'));
+                this.collection.each((function(child){
+                    width += child.size;
                 }));
                 return width;
                 
                 //check order of children of div here, set pos of models in collection by passing ids to collection
-            },            
+            },      
+            
+            streetProfileWidth: function(){
+                var width = parseInt($(this.$el[0]).css('width')) / this.pixelRatio();
+                this.collection.each((function(child){
+                    //category 1 (borders like buildings etc.) don't belong
+                    //to the profile of the street
+                    if (child.attributes.category === 1)
+                        width -= child.size;
+                }));
+                return width;
+                
+                //check order of children of div here, set pos of models in collection by passing ids to collection
+            },    
             
             addClone: function(div){
                 var id = $(div).attr('id');  
@@ -156,44 +166,11 @@ define(["jquery", "backbone", "views/segmentView",
                 
                 //check order of children of div here, set pos of models in collection by passing ids to collection
             },    
-                    
-            loadBorder: function(container, side){
-                var imageID, aspectRatio;
-                switch (side){
-                    case "left": 
-                        imageID = 1;
-                        aspectRatio = "xMidYMax slice";
-                        break;
-                    case "right": 
-                        imageID = 2;
-                        aspectRatio = "xMidYMax slice";
-                        break;
-                    default: 
-                        imageID = 1;
-                        break;
-                };
-                    
-                var xmlhttp = new XMLHttpRequest();
-                xmlhttp.onreadystatechange = function(){
-                    if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                        var image_data = JSON.parse(xmlhttp.responseText).img_svg;
-                        container.html(image_data); 
-                        container.attr('width', 100);
-                        container.attr('height', 100);
-                        container.find('svg')[0].setAttribute("viewBox", "0 0 750 1050");
-                        container.find('svg')[0].setAttribute("width", "100%");
-                        container.find('svg')[0].setAttribute("height", "100%");
-                        container.find('svg')[0].setAttribute("preserveAspectRatio", aspectRatio);
-                    }
-                };                
-                xmlhttp.open("GET","db/images/" + imageID, true);
-                xmlhttp.send();
-            }
 
         });
 
         // Returns the View class
-        return SourceView;
+        return EditorView;
 
     }
 

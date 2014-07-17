@@ -1,14 +1,14 @@
 // editView.js
 // edit Window containing view on resources and the editor
 // -------
-define(["jquery", "backbone", "text!templates/editMain.html", 
+define(["jquery", "backbone", "text!templates/admin.html", 
     "edittool/js/jquery.shapeshift.adapted", "collections/SegmentSource",
     "views/sourceView", "views/editorView"],
 
     function($, Backbone, template, shapeshift, SegmentSource, SourceView,
              EditorView){
 
-        var EditMainView = Backbone.View.extend({
+        var AdminView = Backbone.View.extend({
 
             // The DOM Element associated with this view
             el: "#mainFrame",
@@ -22,6 +22,7 @@ define(["jquery", "backbone", "text!templates/editMain.html",
                 this.render();         
                 
                 this.resourcesView = new SourceView({collection: resources,
+                                                     showAll: true,
                                                      el: '#resources'});
                 this.editorView = new EditorView({collection: this.edition,
                                                   el: '#edition',
@@ -40,10 +41,13 @@ define(["jquery", "backbone", "text!templates/editMain.html",
             render: function() {     
                  
                 // Setting the view's template property using the Underscore template method
-                this.template = _.template(template, {});
-                
+                this.template = _.template(template, {});                
                 // Dynamically updates the UI with the view's template
                 this.$el.html(this.template); 
+                var _this = this;
+                $('#uploadButton').click(function() {
+                    _this.edition.save();
+                })
                 // Maintains chainability
                 return this;
 
@@ -52,7 +56,7 @@ define(["jquery", "backbone", "text!templates/editMain.html",
         });
 
         // Returns the View class
-        return EditMainView;
+        return AdminView;
 
     }
 

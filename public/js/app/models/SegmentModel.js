@@ -19,7 +19,6 @@ define(["jquery", "backbone"],
                 min_width: 0,
                 image_data: 0,    
                 rules: null,
-                pos: 0,
                 current_width: 0
             },
 

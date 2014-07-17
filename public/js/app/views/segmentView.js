@@ -4,7 +4,7 @@ define(["jquery", "backbone", "edittool/js/jquery.shapeshift.adapted"],
 
     function($, Backbone, shapeshift){
 
-        var SourceView = Backbone.View.extend({
+        var SegmentView = Backbone.View.extend({
 
             // View constructor
             initialize: function(options) {
@@ -52,7 +52,7 @@ define(["jquery", "backbone", "edittool/js/jquery.shapeshift.adapted"],
         });
 
         // Returns the View class
-        return SourceView;
+        return SegmentView;
 
     }
 

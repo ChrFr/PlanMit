@@ -200,9 +200,14 @@
                 _this.render(true);
             }
             function setMaxResize(){
-                _this.setParsedChildren();
-                var maxResize = _this.globals.columns - _this.globals.childrenWidth - 1;
-                maxWidth = c.width() + maxResize;
+                //_this.setParsedChildren();
+                var childrenWidth = 0;
+                _.each(_this.$container.find('.ss-active-child'), (function(div){
+                    childrenWidth += parseInt($(div).css('width'));
+                })); 
+                console.log()
+                var maxResize = parseInt(_this.$container.css('width')) - childrenWidth;
+                var maxWidth = parseInt(c.css('width')) + maxResize;
                 c.resizable('option', 'maxWidth', maxWidth);
             }
             var TO = false;
