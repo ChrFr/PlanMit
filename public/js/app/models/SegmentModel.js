@@ -6,11 +6,14 @@ define(["jquery", "backbone"],
     function($, Backbone) {
 
         var SegmentModel = Backbone.Model.extend({
+            
+            url: 'db/segments/',
 
-            initialize: function() {
+            initialize: function(dbID) {
                 this.setUniqueID();
+                this.url += dbID || 1;
             },
-
+/*
             defaults: {
                 id: 0,
                 start_width: 0,
@@ -20,7 +23,7 @@ define(["jquery", "backbone"],
                 image_data: 0,    
                 rules: null,
                 current_width: 0
-            },
+            },*/
 
             validate: function(attrs) {
                 console.log('validation');

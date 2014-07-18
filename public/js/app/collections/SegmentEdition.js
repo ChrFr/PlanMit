@@ -43,13 +43,34 @@ define(["jquery","backbone","models/SegmentModel"],
                 type: 'GET',
                 url: _this.url,
                 success: function(data) {
-                    _this.width = data.width;
-                    _this.name = data.name;
-                    _this.description = data.description;
-                    _this.trigger('ready');
+                    _this.fromJSON(data[0]);
+                    _this.trigger('reset');
                 }
             });
-        },       
+        },    
+        
+        //models are load seperately (not as whole collection), because only
+        //the ids, positions and sizes are stored in the db (to minimize 
+        //amount of data)
+        fromJSON: function(json) {  
+            var _this = this;
+            this.width = json.width;
+            this.name = json.name;
+            this.description = json.description;
+            var deferreds = [];
+            _.each(json.default_template, function(dbSegment){
+                var segment = new SegmentModel(dbSegment.id);
+                segment.pos = dbSegment.pos;
+                segment.size = dbSegment.size;
+                segment.fixed = dbSegment.fixed;
+                deferreds.push(segment.fetch({success: function(){
+                        segment.setUniqueID();
+                        _this.addSegment(segment);}}));
+            });
+            $.when.apply($, deferreds).done(function() {
+              _this.trigger('reset');  
+            });
+        },
         
         save: function() {
             var _this = this;
@@ -66,9 +87,14 @@ define(["jquery","backbone","models/SegmentModel"],
             var edition = [];
             var i = 0;
             this.each(function(segment){
+                var fixed = false;
+                console.log(segment)
+                if (segment.attributes.category !== 0)
+                    fixed = true;
                 edition[i] = {id: segment.attributes.id,
                               pos: segment.pos,
-                              size: segment.size
+                              size: segment.size,
+                              fixed: fixed
                 };
                 i++;
             });

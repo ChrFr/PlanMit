@@ -25,11 +25,10 @@ define(["jquery", "backbone", "text!templates/admin.html",
                                                      showAll: true,
                                                      el: '#resources'});
                 this.editorView = new EditorView({collection: this.edition,
-                                                  el: '#edition',
-                                                  resources: this.resources});
+                                                  el: '#editor',
+                                                  resources: this.resources,
+                                                  isAdminView: true});
                 this.resources.fetch({reset: true});
-                this.edition.fetch();
-
             },
 
             // View Event Handlers
@@ -47,7 +46,7 @@ define(["jquery", "backbone", "text!templates/admin.html",
                 var _this = this;
                 $('#uploadButton').click(function() {
                     _this.edition.save();
-                })
+                });
                 // Maintains chainability
                 return this;
 
