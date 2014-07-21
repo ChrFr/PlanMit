@@ -12,6 +12,7 @@ define(["jquery", "backbone", "edittool/js/jquery.shapeshift.adapted"],
                 this.segment = options.segment;
                 this.width = options.width || 100;
                 this.height = options.height || 100;
+                this.offset = options.offset;
                 //this.render();
             },            
 
@@ -28,6 +29,8 @@ define(["jquery", "backbone", "edittool/js/jquery.shapeshift.adapted"],
                     $(div).attr('data-ss-colspan', _this.width);
                     $(div).css('width', _this.width);
                     $(div).css('height', _this.height);
+                    $(div).offset(this.offset);
+                    $(div).addClass('segment');
                     this.segment.loadImage("front", function(image_data){
                         $(div).html(image_data); 
                         $(div).find('svg')[0].setAttribute("viewBox", "0 0 2000 1050");

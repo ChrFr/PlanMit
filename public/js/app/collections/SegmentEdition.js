@@ -22,10 +22,18 @@ define(["jquery","backbone","models/SegmentModel"],
             return model.pos;
         },
     
-        addSegment: function(segment) { 
-            this.add(segment);
+        addSegment: function(segment, hiddenPlaceholders) { 
+            this.add(segment);      /*      
+            if (hiddenPlaceholders){
+                var size = segment.size;
+                var pos = segment.pos;
+                var next = this.at(pos+1);
+                if (next && next.attributes.category === 0){
+                    next.size -= size;
+                };
+            };*/
         },
-        
+                
         getSegmentByID: function(id) {
             var segment = null;
             this.each(function(seg){
@@ -44,7 +52,8 @@ define(["jquery","backbone","models/SegmentModel"],
                 url: _this.url,
                 success: function(data) {
                     _this.fromJSON(data[0]);
-                    _this.trigger('reset');
+                    if (options.reset)
+                        _this.trigger('reset');
                 }
             });
         },    
@@ -62,6 +71,7 @@ define(["jquery","backbone","models/SegmentModel"],
                 var segment = new SegmentModel(dbSegment.id);
                 segment.pos = dbSegment.pos;
                 segment.size = dbSegment.size;
+                segment.offset = dbSegment.offset;
                 segment.fixed = dbSegment.fixed;
                 deferreds.push(segment.fetch({success: function(){
                         segment.setUniqueID();
@@ -88,12 +98,12 @@ define(["jquery","backbone","models/SegmentModel"],
             var i = 0;
             this.each(function(segment){
                 var fixed = false;
-                console.log(segment)
                 if (segment.attributes.category !== 0)
                     fixed = true;
                 edition[i] = {id: segment.attributes.id,
                               pos: segment.pos,
                               size: segment.size,
+                              offset: segment.offset,
                               fixed: fixed
                 };
                 i++;
@@ -107,9 +117,19 @@ define(["jquery","backbone","models/SegmentModel"],
                 this.remove(segment);
         },        
         
-        updatePositions: function(ids){
+        updatePositions: function(ids, offset){
+            /*
+            for (var i = 0; i < ids.length; i++){
+                segment = this.segment
+                ids[i]
+            }*/
+               
             this.each(function(segment){
-                segment.pos = ids.indexOf(segment.id);
+                var pos = ids.indexOf(segment.id);
+                segment.pos = pos;
+                segment.offset = offset[pos];
+                //if (hiddenPlaceholders && segment.attributes.category === 0)
+                  //  pC++;
             });
         },
         

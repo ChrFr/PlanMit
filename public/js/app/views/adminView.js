@@ -27,7 +27,7 @@ define(["jquery", "backbone", "text!templates/admin.html",
                 this.editorView = new EditorView({collection: this.edition,
                                                   el: '#editor',
                                                   resources: this.resources,
-                                                  isAdminView: true});
+                                                  creationMode: true});
                 this.resources.fetch({reset: true});
             },
 
@@ -44,7 +44,8 @@ define(["jquery", "backbone", "text!templates/admin.html",
                 // Dynamically updates the UI with the view's template
                 this.$el.html(this.template); 
                 var _this = this;
-                $('#uploadButton').click(function() {
+                $('#uploadButton').click(function() {                    
+                    _this.editorView.updatePositions();
                     _this.edition.save();
                 });
                 // Maintains chainability
