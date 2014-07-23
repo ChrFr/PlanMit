@@ -127,7 +127,8 @@ define(["jquery", "backbone", "views/segmentView",
                     var width = current.size * _this.pixelRatio();                    
                     divWidth += width;
                     totalWidth += width;
-                    $(curDiv).css('width', divWidth);
+                    if (!this.creationMode)
+                        $(curDiv).css('width', divWidth);
                     var segmentView = new SegmentView({
                         'parent': curDiv,
                         'segment': current,
