@@ -1,9 +1,8 @@
 // SourceView.js
 // -------
-define(["jquery", "backbone", "views/segmentView", 
-        "edittool/js/jquery.shapeshift.adapted"],
+define(["jquery", "backbone", "views/segmentView"],
 
-    function($, Backbone, SegmentView, shapeshift){
+    function($, Backbone, SegmentView){
 
         var SourceView = Backbone.View.extend({
 
@@ -11,12 +10,12 @@ define(["jquery", "backbone", "views/segmentView",
             el: ".source",
 
             // View constructor
-            initialize: function() {
+            initialize: function(options) {
                 
                 //if collection changes, view will be rendered
                 _.bindAll(this, "render");
                 this.collection.bind("reset", this.render);
-
+                //this.target = options.target;
             },            
 
             // View Event Handlers
@@ -29,18 +28,12 @@ define(["jquery", "backbone", "views/segmentView",
                 var _this = this;
                 this.collection.each(function(segment){
                     var segmentView = new SegmentView({'parent': _this.$el,
-                                                       'segment': segment});
+                                                       'segment': segment,
+                                                       'cloneable': true});
+                                                       //'target': this.target
                     segmentView.render();
                 });          
                 
-                //register the container with it's childs to shapeshift
-                this.$el.shapeshift({
-                    dragClone: true,
-                    colWidth: 1,
-                    gutterX: 0,
-                    minColumns: 100,
-                    enableCrossDrop: false
-                });
                 return this;
 
             }

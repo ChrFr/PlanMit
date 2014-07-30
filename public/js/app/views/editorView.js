@@ -1,9 +1,8 @@
 // SourceView.js
 // -------
-define(["jquery", "backbone", "views/segmentView",
-        "edittool/js/jquery.shapeshift.adapted"],
+define(["jquery", "backbone", "views/segmentView"],
 
-    function($, Backbone, SegmentView, shapeshift){
+    function($, Backbone, SegmentView){
 
         var EditorView = Backbone.View.extend({
 
@@ -14,33 +13,70 @@ define(["jquery", "backbone", "views/segmentView",
             initialize: function(options) {
                 this.resources = options.resources; 
                 this.creationMode = options.creationMode || false
-                _.bindAll(this, 'registerShapeshift', 'render', 'partitionEditDiv');                 
+                _.bindAll(this, 'render', 'partitionEditDiv');                 
                 this.collection.bind("reset", this.render);
                 
                 //only fetch the edition from db (incl. overwrite), 
                 //if no models are overwritten (meaning it is not already load)
-                if (this.collection.models.length === 0){
-                    this.collection.fetch({reset: true});}
+                //if (this.collection.models.length === 0){
+                //    this.collection.fetch({reset: true});}
                 //else only render (and show modified edition rather than reset
-                else
-                    this.render();
+                //else
+                this.render();      
+                var _this = this;
+                
+                this.placeholder = {
+                    active: false,
+                    left: 0,
+                    div: null,                    
+
+                    updatePos: function(left){
+                        if (this.active){
+                            var minLeft = _this.$el.offset().left;
+                            var maxLeft = minLeft + 
+                                          parseInt(_this.$el.css('width')) -
+                                          parseInt($(this.div).css('width'));
+                            if (left <= minLeft)
+                                left = minLeft;                                
+                            else if (left >= maxLeft)
+                                left = maxLeft;
+                            this.left = left;
+                            $(this.div).css('left', left);
+                            
+                        }
+                    },
+                    setActive: function(active, clone){
+                        this.active = active;
+                        if (!active)
+                            $(this.div).remove();
+                        else if (clone){
+                            var left = clone.position().left;
+                            var width = clone.css('width');
+                            this.div = $(document.createElement('div'));
+                            $(this.div).css('width', width);
+                            $(this.div).css('height', _this.$el.css('height'));
+                            $(this.div).addClass('placeholder');
+                            _this.$el.append(this.div);
+                            this.updatePos(left);
+                        }
+                    }
+                };
                 
             },            
 
             // View Event Handlers
             events: {
 
-            },
-            
-            //add
+            },        
 
             // Renders the view's template to the UI
             render: function() {   
                 var _this = this; 
-                
+
+                this.makeDroppable();
                 if (this.collection.length > 0)
                     this.partitionEditDiv(); 
-                
+               
                 var _this = this;                
                 var txtarea = $("#log");
                 this.$el.on('divAdded', function(event, div){
@@ -72,6 +108,37 @@ define(["jquery", "backbone", "views/segmentView",
                 return this;
             },
             
+            makeDroppable: function(){
+                var _this = this;
+                this.$el.droppable({
+                    over: function(e, dragged) {
+                        var clone = $(dragged.helper);          
+                        clone.animate({height: _this.$el.css('height')}, 250);
+                        _this.placeholder.setActive(true, clone);
+                        dragged.draggable.on( "drag", function( event, ui ) {
+                            _this.placeholder.updatePos(event.clientX);} );
+                        return;
+                    },
+                    drop: function(e, dropped) {
+                        console.log(_this.placeholder.div.css('height'));
+                        var id = $(dropped.draggable).attr('id');
+                        var segment = _this.resources.getSegmentByID(id);
+                        dropped.helper.remove();
+                        var segmentView = new SegmentView({'parent': _this.$el,
+                                                           'segment': segment,
+                                                           'left': _this.placeholder.left,
+                                                           'height': parseInt(_this.placeholder.div.css('height'))});
+                        segmentView.render();
+                        _this.placeholder.setActive(false);
+                    },
+                    out: function(e, dragged){
+                        var clone = $(dragged.helper);  
+                        clone.animate({height: dragged.draggable.css('height')}, 100);
+                        _this.placeholder.setActive(false);
+                    }
+                });
+            },
+            
             updateAttributeLog: function(){                
                 $('#elementspx').val(this.allChildrenWidth() * this.pixelRatio());
                 $('#elementsm').val(this.allChildrenWidth());
@@ -98,10 +165,7 @@ define(["jquery", "backbone", "views/segmentView",
                     _.each(placeholders, function(placeholder){
                        _this.collection.remove(placeholder); 
                     });
-                                
-                var p = _.after(this.collection.length, 
-                    function(){_this.registerShapeshift()});
-                            
+                                                            
                 function addDiv(height, width, editable){
                     var curDiv = $(document.createElement('div'));
                     $(curDiv).css('height', height + 'px');
@@ -136,7 +200,7 @@ define(["jquery", "backbone", "views/segmentView",
                         'yOffset': 0,
                         'width': width
                     });         
-                    segmentView.render(p);  
+                    segmentView.render();  
                     
                     if (!this.creationMode && next && (next.fixed || next.fixed !== current.fixed)){ 
                         //reset div width to start counting for next one
@@ -158,32 +222,6 @@ define(["jquery", "backbone", "views/segmentView",
                         
                 };
                 
-            },
-                                    
-            registerShapeshift: function(){  
-                _.each(this.$el.find('.container.droparea'), function(div){ 
-                    var columns = parseInt($(div).css('width'));
-                    $(div).shapeshift({
-                        colWidth: 1,
-                        gutterX: 0,
-                        minColumns: columns,
-                        editTool: {
-                            enabled: true
-                        },
-                        autoHeight: false,
-                        align: "left",
-                        paddingX: 0,
-                        paddingY: 0,
-                    }); 
-
-
-                    $(".trash").shapeshift({
-                      autoHeight: false,
-                      colWidth: 1,
-                      enableTrash: true
-                    });
-                });
-                this.updatePositions();
             },
             
             pixelRatio: function(){

@@ -41,31 +41,24 @@ and open the template in the editor.
 }
 
 .editor > div {
+    position: absolute;
+}
+
+.source{
+  height: 100px;
+  width: 300px;
+  overflow:auto;
+  
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.source > div {
     float: left;
 }
 
-.editor > div > div{
-    float: left;
-}
-
-.border {
-  width: 10%;
-  height: 100%;
-  border: 1px dotted #ffff00;
-  float: left;
-}
-
-#source{
-}
-
-#edition{
-  width: 70%;
-  height: 100%;
-  float: left;
-}
-
-
-.container > .ss-placeholder-child {
+.editor > .placeholder {
   background: #009999;
   border: 1px dotted white;
   cursor: move;
@@ -89,14 +82,4 @@ and open the template in the editor.
     position: absolute;
     right:1px;
     top: 0px;
-}
-.trash {
-  border: 1px dashed red;
-  height: 200px;
-  width: 600px;
-  //right: 5%;
-  //margin-top: 50px;
-  //padding: 20px;
-  text-align: center;
-  position: relative;
 }

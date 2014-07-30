@@ -1,11 +1,10 @@
 // editView.js
 // edit Window containing view on resources and the editor
 // -------
-define(["jquery", "backbone", "text!templates/editMain.html", 
-    "edittool/js/jquery.shapeshift.adapted", "collections/SegmentSource",
-    "views/sourceView", "views/editorView"],
+define(["jquery", "backbone", "text!templates/editMain.html",
+    "collections/SegmentSource", "views/sourceView", "views/editorView"],
 
-    function($, Backbone, template, shapeshift, SegmentSource, SourceView,
+    function($, Backbone, template, SegmentSource, SourceView,
              EditorView){
 
         var EditMainView = Backbone.View.extend({
@@ -19,13 +18,14 @@ define(["jquery", "backbone", "text!templates/editMain.html",
                 this.resources = resources;  
                 this.edition = edition;
                 // Calls the view's render method
-                this.render();         
+                this.render();    
                 
-                this.resourcesView = new SourceView({collection: resources,
-                                                     el: '#resources'});
                 this.editorView = new EditorView({collection: this.edition,
                                                   el: '#editor',
                                                   resources: this.resources});
+                this.resourcesView = new SourceView({collection: resources,
+                                                     el: '#resources'});
+                                                     //target: '#editor'
                 this.resources.fetch({reset: true});
 
             },
