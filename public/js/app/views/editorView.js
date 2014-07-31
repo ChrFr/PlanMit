@@ -28,10 +28,16 @@ define(["jquery", "backbone", "views/segmentView"],
                 this.placeholder = {
                     active: false,
                     left: 0,
-                    div: null,                    
+                    div: null,   
+                    id: null,
+                    snapTolerance: 20,
+                    offsetX: -20, 
+                    droppable: true,
+                    divPositions: _this.getDivPositions(),
 
                     updatePos: function(left){
                         if (this.active){
+                            left += this.offsetX;
                             var minLeft = _this.$el.offset().left;
                             var maxLeft = minLeft + 
                                           parseInt(_this.$el.css('width')) -
@@ -42,23 +48,75 @@ define(["jquery", "backbone", "views/segmentView"],
                                 left = maxLeft;
                             this.left = left;
                             $(this.div).css('left', left);
-                            
+                            var neighbours = this.checkNeighbours();
+                            if (neighbours.collision){
+                                this.droppable = false;
+                                $(this.div).addClass('blocked');
+                            }
+                            else {
+                                this.droppable = true;
+                                this.left += neighbours.snap;
+                                $(this.div).css('left', this.left);
+                                $(this.div).removeClass('blocked');
+                            }
                         }
                     },
+                    
                     setActive: function(active, clone){
                         this.active = active;
+                        //remove placeholder if deactivated
                         if (!active)
                             $(this.div).remove();
+                        //create placeholder on position of given div with offset
                         else if (clone){
+                            //update the positions of the other divs
+                            this.id = clone.attr('id');
+                            this.divPositions = _this.getDivPositions(this.id);
                             var left = clone.position().left;
                             var width = clone.css('width');
                             this.div = $(document.createElement('div'));
                             $(this.div).css('width', width);
                             $(this.div).css('height', _this.$el.css('height'));
                             $(this.div).addClass('placeholder');
+                            $(this.div).zIndex(9999);
                             _this.$el.append(this.div);
                             this.updatePos(left);
                         }
+                    },
+                    
+                    /*
+                     * check for neighbours of the placeholder 
+                     * return {collision: true} if collision detected
+                     * return {snap: 0} if no neighbour is within snap range
+                     * return {snap: pixels} if a neighbour is within snap range
+                     */
+                    checkNeighbours: function(){
+                        var left = $(this.div).position().left;
+                        var right = left + parseInt($(this.div).css('width'));
+                        var ret = {collision: false,
+                                   snap: 0};
+                        var _this = this;
+                        _.each(this.divPositions, (function(divPos){
+                            var divRight = divPos.left + divPos.width;
+                            if ((left >= divPos.left && 
+                                 left <= divRight) ||
+                                (right >= divPos.left &&
+                                 right <= divRight)){
+                                ret.collision = true;
+                                return;
+                            }
+                            else {
+                                var leftDistance = left - divRight;
+                                var distance = leftDistance > 0? -leftDistance: 0;
+                                var rightDistance = divPos.left - right;
+                                if (rightDistance < Math.abs(distance))
+                                    distance = rightDistance;
+                                var distance = leftDistance > rightDistance ? -leftDistance: rightDistance;
+                                if (Math.abs(distance) < _this.snapTolerance)
+                                    ret.snap = distance;
+                            }
+                        }));
+                        return ret;
                     }
                 };
                 
@@ -111,25 +169,39 @@ define(["jquery", "backbone", "views/segmentView"],
             makeDroppable: function(){
                 var _this = this;
                 this.$el.droppable({
+                    tolerance: "touch",
+                    cursor: 'auto',
                     over: function(e, dragged) {
-                        var clone = $(dragged.helper);          
-                        clone.animate({height: _this.$el.css('height')}, 250);
+                        var clone = $(dragged.helper);        
+                        clone.animate({height: _this.$el.css('height')}, 250);    
                         _this.placeholder.setActive(true, clone);
                         dragged.draggable.on( "drag", function( event, ui ) {
                             _this.placeholder.updatePos(event.clientX);} );
                         return;
                     },
                     drop: function(e, dropped) {
-                        console.log(_this.placeholder.div.css('height'));
-                        var id = $(dropped.draggable).attr('id');
-                        var segment = _this.resources.getSegmentByID(id);
-                        dropped.helper.remove();
-                        var segmentView = new SegmentView({'parent': _this.$el,
-                                                           'segment': segment,
-                                                           'left': _this.placeholder.left,
-                                                           'height': parseInt(_this.placeholder.div.css('height'))});
-                        segmentView.render();
-                        _this.placeholder.setActive(false);
+                        //if the origin of the dropped segment is not this container
+                        //clone the segment and make a new view
+                        var draggedDiv = dropped.draggable;
+                        var placeholder = _this.placeholder;
+                        if (_this.el != draggedDiv.parent()[0]){
+                            var clone = _this.addClone(draggedDiv);
+                            dropped.helper.remove();
+                            if (placeholder.droppable){
+                                var segmentView = new SegmentView({'parent': _this.$el,
+                                                                   'segment': clone,
+                                                                   'left': placeholder.left,
+                                                                   'height': parseInt(placeholder.div.css('height'))});
+                                segmentView.render();
+                            }
+                        }
+                        //else move the existing element to the position of the
+                        //placeholder
+                        else if (placeholder.droppable){
+                            draggedDiv.css('top', _this.$el.css('top'));
+                            draggedDiv.css('left', placeholder.left);
+                        }
+                        placeholder.setActive(false);
                     },
                     out: function(e, dragged){
                         var clone = $(dragged.helper);  
@@ -214,8 +286,6 @@ define(["jquery", "backbone", "views/segmentView"],
                         if (next.fixed && !current.fixed && gap){
                             curDiv.css('width', parseInt(curDiv.css('width')) + gap * this.pixelRatio());
                         }
-                        console.log (current.fixed);
-                        console.log(!(current.fixed))
                         curDiv = addDiv(height, 0, !(next.fixed));
                         this.$el.append(curDiv);
                     }
@@ -255,17 +325,37 @@ define(["jquery", "backbone", "views/segmentView"],
             addClone: function(div){
                 var id = $(div).attr('id');  
                 var _this = this;
+                var clone = null;
                 this.resources.each(function(segment){
                     if (id === segment.id){
-                        var clone = segment.clone();
+                        clone = segment.clone();
                         clone.setUniqueID();
                         clone.pos = _this.getDivPosition(id);
                         clone.offset = ($(div).offset().left - _this.$el.offset().left) / _this.pixelRatio()
                         _this.updatePositions();
                         _this.collection.addSegment(clone, !(_this.creationMode));
-                        return $(div).attr('id', clone.id);
+                        
+                        return;
                     }
                 });
+                return clone;
+            },
+            
+            getDivPositions: function(ignoreID){
+                var divPos = new Array();
+                _.each(this.$el.find('.segment'), (function(div){
+                    var id = $(div).attr('id');
+                    if (ignoreID != id){
+                        var left = parseInt($(div).css('left'));
+                        var width = parseInt($(div).css('width'));
+                        divPos.push({
+                            id: id,
+                            left: left,
+                            width: width
+                        });
+                    }
+                }));
+                return divPos;
             },
             
             getDivPosition: function(id){
@@ -282,7 +372,6 @@ define(["jquery", "backbone", "views/segmentView"],
             },
                         
             updatePositions: function(){
-                console.log(this.collection);
                 var ids = [];
                 var offset = [];
                 var _this = this;
@@ -291,7 +380,6 @@ define(["jquery", "backbone", "views/segmentView"],
                     offset.push(($(div).offset().left - _this.$el.offset().left) / _this.pixelRatio())
                 }));
                 this.collection.updatePositions(ids, offset);
-                console.log(this.collection);
                 
                 //check order of children of div here, set pos of models in collection by passing ids to collection
             },    

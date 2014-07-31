@@ -59,15 +59,28 @@ define(["jquery", "backbone"],
                 if (this.cloneable)
                     $(this.div).draggable({
                         helper: 'clone',
-                        //containment: _this.target,
-                        //When first dragged
-
-                        drag: function (ev, ui) {
-                        }
+                        cursor: "move", 
+                        cursorAt: { top: 0, left: 0 },
+                        start: function (e, dragged) {    
+                            var clone = $(dragged.helper);
+                            clone.addClass('dragged');
+                            //class is for css style only
+                            //$(div).attr('id', this.segment.id); 
+                            //addClass('segment')
+                        } 
                     });
                 else 
                      $(this.div).draggable({
-                        drag: function (ev, ui) {
+                        cursor: "move", 
+                        cursorAt: { top: 0, left: 0 },
+                        drag: function (e, dragged) { 
+                            var dragged = $(dragged.helper);
+                            dragged.addClass('dragged');
+                        },
+                        
+                        stop: function (e, dragged){
+                            var dragged = $(dragged.helper);
+                            dragged.removeClass('dragged');
                         }
                     });
             },
