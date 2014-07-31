@@ -25,6 +25,28 @@ define(["jquery", "backbone", "views/segmentView"],
                 this.render();      
                 var _this = this;
                 
+                //sorted list of all views on segments inside the editor
+                this.segmentViews = {
+                    list: new Array(),
+                    at: function(pos){
+                        return this.list[pos];
+                    },
+                    insert: function(segmentView){
+                        var pos = 0;
+                        _.each(this.list, function(existingView){
+                            if ($(segmentView.div).offset().left 
+                                    < $(existingView.div).offset().left)
+                                return;
+                            else
+                                pos += 1;
+                        });
+                        this.list.splice(pos, 0, segmentView);
+                    },
+                    remove: function(segmentView){
+                        
+                    }
+                };
+                
                 this.placeholder = {
                     active: false,
                     left: 0,
@@ -49,10 +71,14 @@ define(["jquery", "backbone", "views/segmentView"],
                             this.left = left;
                             $(this.div).css('left', left);
                             var neighbours = this.checkNeighbours();
+                            //flag as not droppable if collision to neighbours 
+                            //is detected
                             if (neighbours.collision){
                                 this.droppable = false;
                                 $(this.div).addClass('blocked');
                             }
+                            //flag as droppable, 
+                            //snap the placeholder to other segments
                             else {
                                 this.droppable = true;
                                 this.left += neighbours.snap;
@@ -106,6 +132,9 @@ define(["jquery", "backbone", "views/segmentView"],
                                 return;
                             }
                             else {
+                                //get distances to neighbours (left: negative 
+                                //right: positive), 
+                                //get the smaller distance to snap
                                 var leftDistance = left - divRight;
                                 var distance = leftDistance > 0? -leftDistance: 0;
                                 var rightDistance = divPos.left - right;
@@ -188,11 +217,12 @@ define(["jquery", "backbone", "views/segmentView"],
                             var clone = _this.addClone(draggedDiv);
                             dropped.helper.remove();
                             if (placeholder.droppable){
-                                var segmentView = new SegmentView({'parent': _this.$el,
+                                var segmentView = new SegmentView({'el': _this.el,
                                                                    'segment': clone,
                                                                    'left': placeholder.left,
                                                                    'height': parseInt(placeholder.div.css('height'))});
                                 segmentView.render();
+                                _this.segmentViews.insert(segmentView);
                             }
                         }
                         //else move the existing element to the position of the
@@ -210,7 +240,7 @@ define(["jquery", "backbone", "views/segmentView"],
                     }
                 });
             },
-            
+                        
             updateAttributeLog: function(){                
                 $('#elementspx').val(this.allChildrenWidth() * this.pixelRatio());
                 $('#elementsm').val(this.allChildrenWidth());

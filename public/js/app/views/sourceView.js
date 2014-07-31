@@ -27,7 +27,7 @@ define(["jquery", "backbone", "views/segmentView"],
             render: function() {                
                 var _this = this;
                 this.collection.each(function(segment){
-                    var segmentView = new SegmentView({'parent': _this.$el,
+                    var segmentView = new SegmentView({'el': _this.el,
                                                        'segment': segment,
                                                        'cloneable': true});
                                                        //'target': this.target
