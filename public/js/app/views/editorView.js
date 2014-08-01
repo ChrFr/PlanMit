@@ -50,8 +50,11 @@ define(["jquery", "backbone", "views/segmentView"],
                         segmentView.on("moved", function(){                            
                             segmentViews.relocate(this);
                         });
+                        segmentView.on("delete", function(){                            
+                            segmentViews.remove(this, true);
+                        });
                     },
-                    remove: function(segmentView){
+                    remove: function(segmentView, doDelete){
                         var pos = 0;   
                         //bend pointers
                         var prev = segmentView.prev;
@@ -71,8 +74,10 @@ define(["jquery", "backbone", "views/segmentView"],
                             pos += 1;
                         });
                         this.list.splice(pos, 1);
-                        
-                        //segmentView.remove();
+                        //ToDo: remove view, segmentView.remove() the whole 
+                        //editor (most likely because the parent el is the editor)
+                        /*if (doDelete)
+                            segmentView.remove();*/
                     },
                     //replace a single view to maintain sort order
                     relocate: function(segmentView){
@@ -263,10 +268,16 @@ define(["jquery", "backbone", "views/segmentView"],
                         }
                         //else move the existing element to the position of the
                         //placeholder
-                        else if (placeholder.droppable){
+                        else if (placeholder.droppable){                                
+                            //place the div on the position of the
+                            //placeholder and prevent moving back
                             draggedDiv.css('top', _this.$el.css('top'));
                             draggedDiv.css('left', placeholder.left);
+                            draggedDiv.draggable( "option", "revert", false );
                         }
+                        else
+                            //move the div back to its former position
+                            draggedDiv.draggable( "option", "revert", true );
                         placeholder.setActive(false);
                     },
                     out: function(e, dragged){

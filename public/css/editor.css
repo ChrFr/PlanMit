@@ -22,22 +22,32 @@ body {
   cursor: pointer;
 }
 
-.segment:hover {
-    box-shadow: -0px -4px 8px #fecf1d,
+.editor > .segment:hover {
+    box-shadow: -0px -6px 8px #fecf1d,
                  0px -0px 0px #fecf1d,
                 -0px  0px 0px #fecf1d,
-                 0px  4px 8px #fecf1d;
+                 0px  6px 8px #fecf1d;
+}
+
+.source > .segment:hover {
+    background: #fefefe;  
+    border-radius: 15px;
+    border: solid #fecf1d;
 }
 
 .editor {
-  background-color: #ddf1f1;
-  margin-top: 1em;
-  height: 300px;
-  width: 1300px;
-  display: block;
-  margin-left: auto;
-  margin-right: auto;  
-  cursor: auto;
+    background-color: #fefefe;
+    margin-top: 1em;
+    height: 300px;
+    width: 1300px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;  
+    cursor: auto;
+    box-shadow: -1px -1px 2px #fecf1d,
+                 1px -1px 2px #fecf1d,
+                -1px  1px 2px #fecf1d,
+                 1px  1px 2px #fecf1d;
 }
 
 .editor > div {
@@ -60,12 +70,19 @@ body {
 
 .editor > .placeholder {
   background: #5be12a;
-  cursor: move;
-  opacity: .3;
+  box-shadow: -0px -6px 8px #0e8401,
+                0px -0px 0px #0e8401,
+               -0px  0px 0px #0e8401,
+                0px  6px 8px #0e8401;
+  opacity: .7;
 }
 
 .editor > .blocked{
   background: #ff1400; 
+  box-shadow: -0px -6px 8px #840401,
+                0px -0px 0px #840401,
+               -0px  0px 0px #840401,
+                0px  6px 8px #840401;
 }
 
 .dragged{

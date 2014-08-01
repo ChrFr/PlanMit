@@ -63,9 +63,10 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 return this;
 
             },
-            
+                        
             makeDraggable: function(){
                 var _this = this;
+                var outside = true;
                 if (this.cloneable)
                     $(this.div).draggable({
                         helper: 'clone',
@@ -83,6 +84,15 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                      $(this.div).draggable({
                         cursor: "move", 
                         cursorAt: { top: 0, left: 0 },
+                        start: function (e,dragged){
+                            //keep track if div is pulled in or out to delete
+                            _this.$el.on("dropout", function(e, ui) {
+                                outside = true;
+                            });
+                            _this.$el.on("drop", function(e, ui) {
+                                outside = false;
+                            });
+                        },
                         drag: function (e, dragged) { 
                             var dragged = $(dragged.helper);
                             dragged.addClass('dragged');
@@ -90,10 +100,14 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         
                         stop: function (e, dragged){
                             var dragged = $(dragged.helper);
-                            dragged.removeClass('dragged');
-                            _this.posX = dragged.offset().left - _this.$el.offset().left;
-                            _this.segment.startPos = _this.posX / _this.pixelRatio;
-                            _this.trigger("moved");
+                            if (outside)
+                                _this.div.remove();
+                            else {
+                                dragged.removeClass('dragged');
+                                _this.posX = dragged.offset().left - _this.$el.offset().left;
+                                _this.segment.startPos = _this.posX / _this.pixelRatio;
+                                _this.trigger("moved");
+                            };
                         }
                     });
             },
