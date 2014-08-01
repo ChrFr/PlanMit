@@ -19,7 +19,7 @@ define(["jquery","backbone","models/SegmentModel"],
         },
         
         comparator: function(model) {
-            return model.pos;
+            return model.startPos;
         },
     
         addSegment: function(segment, hiddenPlaceholders) { 
@@ -69,9 +69,8 @@ define(["jquery","backbone","models/SegmentModel"],
             var deferreds = [];
             _.each(json.default_template, function(dbSegment){
                 var segment = new SegmentModel(dbSegment.id);
-                segment.pos = dbSegment.pos;
+                segment.startPos = dbSegment.start_pos;
                 segment.size = dbSegment.size;
-                segment.offset = dbSegment.offset;
                 segment.fixed = dbSegment.fixed;
                 deferreds.push(segment.fetch({success: function(){
                         segment.setUniqueID();
@@ -101,9 +100,8 @@ define(["jquery","backbone","models/SegmentModel"],
                 if (segment.attributes.category !== 0)
                     fixed = true;
                 edition[i] = {id: segment.attributes.id,
-                              pos: segment.pos,
+                              start_pos: segment.startPos,
                               size: segment.size,
-                              offset: segment.offset,
                               fixed: fixed
                 };
                 i++;

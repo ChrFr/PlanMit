@@ -33,17 +33,52 @@ define(["jquery", "backbone", "views/segmentView"],
                     },
                     insert: function(segmentView){
                         var pos = 0;
-                        _.each(this.list, function(existingView){
-                            if ($(segmentView.div).offset().left 
-                                    < $(existingView.div).offset().left)
-                                return;
-                            else
-                                pos += 1;
+                        $.each(this.list, function( index, existingView ){
+                            if (segmentView.posX <= existingView.posX){
+                                return false;               
+                            }
+                            pos += 1;
                         });
                         this.list.splice(pos, 0, segmentView);
+                        segmentView.prev = (pos > 0) ? this.at(pos-1) : null;
+                        segmentView.next = (pos < this.list.length - 1) ? this.at(pos+1) : null;
+                        if (segmentView.prev)
+                            segmentView.prev.next = segmentView;
+                        if (segmentView.next)
+                            segmentView.next.prev = segmentView;
+                        var segmentViews = this;
+                        segmentView.on("moved", function(){                            
+                            segmentViews.relocate(this);
+                        });
                     },
                     remove: function(segmentView){
+                        var pos = 0;   
+                        //bend pointers
+                        var prev = segmentView.prev;
+                        var next = segmentView.next;
+                        if (prev){
+                            prev.next = (next) ? next: null;
+                        }
+                        if (next){
+                            next.prev = (prev) ? prev: null;
+                        }
+                        $.each(this.list, function( index, existingView ){
+                            //return false breaks the loop (has to be false
+                            //for whatever reason)
+                            if (segmentView == existingView){
+                                return false;               
+                            }
+                            pos += 1;
+                        });
+                        this.list.splice(pos, 1);
                         
+                        //segmentView.remove();
+                    },
+                    //replace a single view to maintain sort order
+                    relocate: function(segmentView){
+                        this.remove(segmentView);
+                        segmentView.off("moved");
+                        this.insert(segmentView);                        
                     }
                 };
                 
@@ -219,8 +254,9 @@ define(["jquery", "backbone", "views/segmentView"],
                             if (placeholder.droppable){
                                 var segmentView = new SegmentView({'el': _this.el,
                                                                    'segment': clone,
-                                                                   'left': placeholder.left,
-                                                                   'height': parseInt(placeholder.div.css('height'))});
+                                                                   'leftOffset': placeholder.left,
+                                                                   'height': parseInt(placeholder.div.css('height')),
+                                                                   'pixelRatio': _this.pixelRatio()});
                                 segmentView.render();
                                 _this.segmentViews.insert(segmentView);
                             }

@@ -8,14 +8,20 @@ define(["jquery", "backbone", "text!templates/segment.html"],
 
             // View constructor
             initialize: function(options) {
+                //options
                 this.cloneable = options.cloneable || false;
                 this.segment = options.segment;
-                this.left = options.left;
+                this.leftOffset = options.leftOffset;
+                this.pixelRatio = options.pixelRatio || 1;
                 this.width = options.width || 100;
                 this.height = options.height || 100;
                 this.offset = options.offset;
-                this.div = null;
                 this.insertSorted = options.insertSorted || false
+                //processed attributes
+                this.posX = 0;
+                this.div = null;
+                this.next = null;
+                this.prev = null;
                 //this.render();
             },            
 
@@ -34,10 +40,12 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 this.$el.append(div);
                 $(div).css('width', this.width);
                 $(div).css('height', this.height);
-                $(div).offset(this.offset);
                 $(div).addClass('segment');
-                if (this.left)
-                    $(div).css('left', this.left);
+                if (this.leftOffset){
+                    $(div).css('left', this.leftOffset);
+                    this.posX = this.leftOffset - this.$el.offset().left;
+                    this.segment.startPos = this.posX / this.pixelRatio;
+                };
                 var image = $(div).find('.image');
                 this.segment.loadImage("front", function(image_data){
                     image.html(image_data); 
@@ -57,6 +65,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
             },
             
             makeDraggable: function(){
+                var _this = this;
                 if (this.cloneable)
                     $(this.div).draggable({
                         helper: 'clone',
@@ -82,13 +91,17 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         stop: function (e, dragged){
                             var dragged = $(dragged.helper);
                             dragged.removeClass('dragged');
+                            _this.posX = dragged.offset().left - _this.$el.offset().left;
+                            _this.segment.startPos = _this.posX / _this.pixelRatio;
+                            _this.trigger("moved");
                         }
                     });
             },
             
             makeResizable: function(){
                 var _this = this;
-                var div = this.div;
+                var div = this.div;                
+                var maxWidth = 0;
                 $(div).resizable({
                     autoHide: true,
                     handles: {
@@ -96,48 +109,41 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                       'e': '#righthandle'
                     },
                     start: function(e, ui){
-                        var maxWidth = 0;
                         //prevent showing the handles of neighbours while resizing
                         $('.ui-resizable-handle').css('visibility', 'hidden');
                         $(div).find('.ui-resizable-handle').css('visibility', 'visible');
                         //max width for resizing to the left
-                        console.log(_this.$el.children())
                         if ($(e.toElement).attr('id') === 'lefthandle'){
-                            var leftNeighbour = $(div).prev();
                             //is there a segment to the left?
-                            if (leftNeighbour.length > 0) {
-                                var space = $(div).offset().left - 
-                                        (leftNeighbour.offset().left + 
-                                        parseInt(leftNeighbour.css('width')));                  
+                            if (_this.prev) {
+                                var space = _this.posX - (_this.prev.posX + _this.prev.width);                  
                             }   
                             //no segment infront? take the border of the editor
                             else {
-                                var space = $(div).offset().left - 
-                                        _this.$el.offset().left; 
+                                var space = _this.posX; 
                             }
-                            maxWidth = space + parseInt($(div).css('width'));                 
+                            maxWidth = space + _this.width;                 
                         }
                         //max width for resizing to the right
                         else if ($(e.toElement).attr('id') === 'righthandle'){
-                            var rightNeighbour = $(div).next();
-                            //is there a segment to the left?
-                            if (rightNeighbour.length > 0) {
-                                var space = rightNeighbour.offset().left -
-                                        ($(div).offset().left +
-                                        parseInt($(div).css('width')));
+                            //is there a segment to the right?
+                            if (_this.next) {
+                                var space = _this.next.posX - (_this.posX + _this.width);
                             }          
                             //no segment behind? take the border of the editor
                             else {
-                                var space = (_this.$el.offset().left + 
-                                        parseInt(_this.$el.css('width'))) -
-                                        ($(div).offset().left +
-                                        parseInt($(div).css('width'))); 
+                                var space = parseInt(_this.$el.css('width'))-
+                                        (_this.posX + _this.width); 
                             }  
-                            maxWidth = space + parseInt($(div).css('width'));  
+                            maxWidth = space + _this.width;  
                         }
                         $(div).resizable( "option", "maxWidth", maxWidth );
                     },
                     stop: function(e, ui){  
+                        _this.width = parseInt($(div).css('width'));
+                        _this.posX = $(div).offset().left - _this.$el.offset().left;
+                        console.log(maxWidth);
+                        console.log(_this.width);
                         //make all other handles visible again (while hovering)
                         $('.ui-resizable-handle').css('visibility', 'visible');
                     }

@@ -23,7 +23,10 @@ body {
 }
 
 .segment:hover {
-    border: 4px dotted #72c0c0;
+    box-shadow: -0px -4px 8px #fecf1d,
+                 0px -0px 0px #fecf1d,
+                -0px  0px 0px #fecf1d,
+                 0px  4px 8px #fecf1d;
 }
 
 .editor {
@@ -66,15 +69,17 @@ body {
 }
 
 .dragged{
-    background: #dbdbdb;  
+    background: #fefefe;  
+    border-radius: 15px;
+    border: solid #fecf1d;
     opacity: .7;
 }
 
 #lefthandle, #righthandle {
     width: 20px;
     height: 100%;
-    background-color: #c8bebe;
-    opacity: .5;
+    background-color: #fecf1d;
+    opacity: .3;
     z-index: 9999;
     display: none;
     position: absolute;

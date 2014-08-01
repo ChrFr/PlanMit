@@ -12,6 +12,7 @@ define(["jquery", "backbone"],
             initialize: function(dbID) {
                 this.setUniqueID();
                 this.url += dbID || 1;
+                this.startPos = 0;
             },
 /*
             defaults: {
@@ -32,7 +33,7 @@ define(["jquery", "backbone"],
             loadImage: function(pointOfView, callback){
                 var pos = pointOfView || 'front';
                 //ToDo: switch top and front img
-                _this = this;
+                var _this = this;
                 var xmlhttp = new XMLHttpRequest();
                 xmlhttp.onreadystatechange = function(){
                     if (xmlhttp.readyState==4 && xmlhttp.status==200){
