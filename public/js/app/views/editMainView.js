@@ -1,10 +1,10 @@
 // editView.js
 // edit Window containing view on resources and the editor
 // -------
-define(["jquery", "backbone", "text!templates/editMain.html",
-    "collections/SegmentSource", "views/sourceView", "views/editorView"],
+define(["jquery", "backbone", "text!templates/editMain.html", 
+    "views/sourceView", "views/editorView"],
 
-    function($, Backbone, template, SegmentSource, SourceView,
+    function($, Backbone, template, SourceView,
              EditorView){
 
         var EditMainView = Backbone.View.extend({

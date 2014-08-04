@@ -1,19 +1,19 @@
 // DesktopRouter.js
 // ----------------
 define(["jquery", "backbone", "views/navbarView",
-    "views/welcomeView", "views/editMainView", "views/adminView", 
-    "collections/SegmentSource", "collections/SegmentEdition"],
+    "views/welcomeView", "views/editMainView", "views/adminView",
+    "collections/SegmentCollection"],
 
-    function($, Backbone, Navbar, Welcome, Edit, Admin, SegmentSource, SegmentEdition) {
+    function($, Backbone, Navbar, Welcome, Edit, Admin, SegmentCollection) {
 
         var DesktopRouter = Backbone.Router.extend({
             
             initialize: function() {
                 //load a project
-                this.resources = new SegmentSource();
-                this.edition = new SegmentEdition();
-                this.adminResources = new SegmentSource({showAll: true});
-                this.adminEdition = new SegmentEdition();
+                this.resources = new SegmentCollection();
+                this.edition = new SegmentCollection();
+                this.adminResources = new SegmentCollection({showAll: true});
+                this.adminEdition = new SegmentCollection();
                 //navbar is always seen
                 this.navbar = new Navbar();
                 // Tells Backbone to start watching for hashchange events

@@ -30,11 +30,59 @@ define(["jquery", "backbone", "views/segmentView"],
                     list: new Array(),
                     at: function(pos){
                         return this.list[pos];
+                    },           
+                    
+                    doesFit: function(div){
+                        var left = $(div).offset().left - _this.$el.offset().left;
+                        var width = parseInt($(div).css('width'));
+                        var right = left + width;
+                        var editorWidth = parseInt(_this.$el.css('width'));
+                        var gap = {fits: false,
+                                   left: 0,
+                                   right: 0};
+                        //insert placeholder element infront of the list to check
+                        //gap between left border of editor and first element
+                        this.list.unshift({left: 0, width: 0, cid: null, next: this.list[0]});
+                        $.each(this.list, function(index, segmentView){
+                            //ignore dragged segmentView in list
+                            console.log(div.data('segmentViewID'));
+                            if (segmentView.cid === div.data('segmentViewID'))
+                                return true;
+                            var segLeft = segmentView.left;
+                            var segRight = segLeft + segmentView.width; 
+                            var nextSegment = segmentView.next;
+                            //take editor border, if there is no next segment
+                            var nextLeft = editorWidth;
+                            if (nextSegment){                                
+                                //ignore dragged segmentView in list
+                                if (segmentView.next.cid === div.data('segmentViewID'))
+                                    nextSegment = segmentView.next.next;
+                                if (nextSegment)
+                                    nextLeft = nextSegment.left;
+                            };
+                            
+                            //2 segments found, where div is in between
+                            if (left >= segRight && left <= nextLeft){
+                                //enough room for the div?
+                                if (right <= nextLeft){                                
+                                    gap.left = left - segRight;
+                                    gap.right = nextLeft - right;
+                                    gap.fits = true;
+                                }
+                                //break loop, because list is sorted 
+                                return false;
+                                
+                            }
+                        });
+                        //remove placeholder
+                        this.list.shift();
+                        return gap;
                     },
+                    
                     insert: function(segmentView){
                         var pos = 0;
                         $.each(this.list, function( index, existingView ){
-                            if (segmentView.posX <= existingView.posX){
+                            if (segmentView.left <= existingView.left){
                                 return false;               
                             }
                             pos += 1;
@@ -54,6 +102,7 @@ define(["jquery", "backbone", "views/segmentView"],
                             segmentViews.remove(this, true);
                         });
                     },
+                    
                     remove: function(segmentView, doDelete){
                         var pos = 0;   
                         //bend pointers
@@ -91,11 +140,11 @@ define(["jquery", "backbone", "views/segmentView"],
                     active: false,
                     left: 0,
                     div: null,   
-                    id: null,
+                    cid: null,
+                    segmentView: null,
                     snapTolerance: 20,
                     offsetX: -20, 
                     droppable: true,
-                    divPositions: _this.getDivPositions(),
 
                     updatePos: function(left){
                         if (this.active){
@@ -110,10 +159,10 @@ define(["jquery", "backbone", "views/segmentView"],
                                 left = maxLeft;
                             this.left = left;
                             $(this.div).css('left', left);
-                            var neighbours = this.checkNeighbours();
+                            var gap = _this.segmentViews.doesFit(this.div);
                             //flag as not droppable if collision to neighbours 
                             //is detected
-                            if (neighbours.collision){
+                            if (!gap.fits){
                                 this.droppable = false;
                                 $(this.div).addClass('blocked');
                             }
@@ -121,8 +170,14 @@ define(["jquery", "backbone", "views/segmentView"],
                             //snap the placeholder to other segments
                             else {
                                 this.droppable = true;
-                                this.left += neighbours.snap;
-                                $(this.div).css('left', this.left);
+                                //take shortest distance to next segment
+                                var snap = (gap.left < gap.right) ? -gap.left: gap.right;
+                                //shift the placeholder, if distance is shorter 
+                                //than the defined snap tolerance
+                                if (Math.abs(snap) < this.snapTolerance){
+                                    this.left += snap;
+                                    $(this.div).css('left', this.left);
+                                };
                                 $(this.div).removeClass('blocked');
                             }
                         }
@@ -136,7 +191,7 @@ define(["jquery", "backbone", "views/segmentView"],
                         //create placeholder on position of given div with offset
                         else if (clone){
                             //update the positions of the other divs
-                            this.id = clone.attr('id');
+                            this.cid = clone.data('segmentViewID');
                             this.divPositions = _this.getDivPositions(this.id);
                             var left = clone.position().left;
                             var width = clone.css('width');
@@ -144,6 +199,7 @@ define(["jquery", "backbone", "views/segmentView"],
                             $(this.div).css('width', width);
                             $(this.div).css('height', _this.$el.css('height'));
                             $(this.div).addClass('placeholder');
+                            $(this.div).data('segmentViewID', this.cid);
                             $(this.div).zIndex(9999);
                             _this.$el.append(this.div);
                             this.updatePos(left);
@@ -156,37 +212,6 @@ define(["jquery", "backbone", "views/segmentView"],
                      * return {snap: 0} if no neighbour is within snap range
                      * return {snap: pixels} if a neighbour is within snap range
                      */
-                    checkNeighbours: function(){
-                        var left = $(this.div).position().left;
-                        var right = left + parseInt($(this.div).css('width'));
-                        var ret = {collision: false,
-                                   snap: 0};
-                        var _this = this;
-                        _.each(this.divPositions, (function(divPos){
-                            var divRight = divPos.left + divPos.width;
-                            if ((left >= divPos.left && 
-                                 left <= divRight) ||
-                                (right >= divPos.left &&
-                                 right <= divRight)){
-                                ret.collision = true;
-                                return;
-                            }
-                            else {
-                                //get distances to neighbours (left: negative 
-                                //right: positive), 
-                                //get the smaller distance to snap
-                                var leftDistance = left - divRight;
-                                var distance = leftDistance > 0? -leftDistance: 0;
-                                var rightDistance = divPos.left - right;
-                                if (rightDistance < Math.abs(distance))
-                                    distance = rightDistance;
-                                var distance = leftDistance > rightDistance ? -leftDistance: rightDistance;
-                                if (Math.abs(distance) < _this.snapTolerance)
-                                    ret.snap = distance;
-                            }
-                        }));
-                        return ret;
-                    }
                 };
                 
             },            
@@ -254,15 +279,17 @@ define(["jquery", "backbone", "views/segmentView"],
                         var draggedDiv = dropped.draggable;
                         var placeholder = _this.placeholder;
                         if (_this.el != draggedDiv.parent()[0]){
-                            var clone = _this.addClone(draggedDiv);
                             dropped.helper.remove();
                             if (placeholder.droppable){
+                                var segment = _this.resources.getSegmentByID(draggedDiv.data('segmentID')); 
+                                var clone = segment.clone();
                                 var segmentView = new SegmentView({'el': _this.el,
                                                                    'segment': clone,
                                                                    'leftOffset': placeholder.left,
                                                                    'height': parseInt(placeholder.div.css('height')),
                                                                    'pixelRatio': _this.pixelRatio()});
                                 segmentView.render();
+                                _this.collection.addSegment(clone, !(_this.creationMode))
                                 _this.segmentViews.insert(segmentView);
                             }
                         }
@@ -397,26 +424,7 @@ define(["jquery", "backbone", "views/segmentView"],
                 return width;
                 
                 //check order of children of div here, set pos of models in collection by passing ids to collection
-            },    
-            
-            addClone: function(div){
-                var id = $(div).attr('id');  
-                var _this = this;
-                var clone = null;
-                this.resources.each(function(segment){
-                    if (id === segment.id){
-                        clone = segment.clone();
-                        clone.setUniqueID();
-                        clone.pos = _this.getDivPosition(id);
-                        clone.offset = ($(div).offset().left - _this.$el.offset().left) / _this.pixelRatio()
-                        _this.updatePositions();
-                        _this.collection.addSegment(clone, !(_this.creationMode));
-                        
-                        return;
-                    }
-                });
-                return clone;
-            },
+            },               
             
             getDivPositions: function(ignoreID){
                 var divPos = new Array();

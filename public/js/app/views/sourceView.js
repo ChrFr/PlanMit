@@ -30,7 +30,6 @@ define(["jquery", "backbone", "views/segmentView"],
                     var segmentView = new SegmentView({'el': _this.el,
                                                        'segment': segment,
                                                        'cloneable': true});
-                                                       //'target': this.target
                     segmentView.render();
                 });          
                 

@@ -2,10 +2,10 @@
 // edit Window containing view on resources and the editor
 // -------
 define(["jquery", "backbone", "text!templates/admin.html", 
-    "edittool/js/jquery.shapeshift.adapted", "collections/SegmentSource",
+    "edittool/js/jquery.shapeshift.adapted", 
     "views/sourceView", "views/editorView"],
 
-    function($, Backbone, template, shapeshift, SegmentSource, SourceView,
+    function($, Backbone, template, shapeshift, SourceView,
              EditorView){
 
         var AdminView = Backbone.View.extend({

@@ -22,22 +22,14 @@ define(["jquery","backbone","models/SegmentModel"],
             return model.startPos;
         },
     
-        addSegment: function(segment, hiddenPlaceholders) { 
-            this.add(segment);      /*      
-            if (hiddenPlaceholders){
-                var size = segment.size;
-                var pos = segment.pos;
-                var next = this.at(pos+1);
-                if (next && next.attributes.category === 0){
-                    next.size -= size;
-                };
-            };*/
+        addSegment: function(segment) { 
+            this.add(segment);   
         },
                 
         getSegmentByID: function(id) {
             var segment = null;
             this.each(function(seg){
-                if (id === seg.id){
+                if (id === seg.attributes.id){
                     segment = seg;
                     return false;
                 }
@@ -73,7 +65,6 @@ define(["jquery","backbone","models/SegmentModel"],
                 segment.size = dbSegment.size;
                 segment.fixed = dbSegment.fixed;
                 deferreds.push(segment.fetch({success: function(){
-                        segment.setUniqueID();
                         _this.addSegment(segment);}}));
             });
             $.when.apply($, deferreds).done(function() {
@@ -114,23 +105,7 @@ define(["jquery","backbone","models/SegmentModel"],
             if (segment)
                 this.remove(segment);
         },        
-        
-        updatePositions: function(ids, offset){
-            /*
-            for (var i = 0; i < ids.length; i++){
-                segment = this.segment
-                ids[i]
-            }*/
-               
-            this.each(function(segment){
-                var pos = ids.indexOf(segment.id);
-                segment.pos = pos;
-                segment.offset = offset[pos];
-                //if (hiddenPlaceholders && segment.attributes.category === 0)
-                  //  pC++;
-            });
-        },
-        
+                
         resizeID: function(id, size) {
             var segment = this.getSegmentByID(id);      
             if (segment)

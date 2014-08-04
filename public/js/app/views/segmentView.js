@@ -18,7 +18,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 this.offset = options.offset;
                 this.insertSorted = options.insertSorted || false
                 //processed attributes
-                this.posX = 0;
+                this.left = 0;
                 this.div = null;
                 this.next = null;
                 this.prev = null;
@@ -43,8 +43,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 $(div).addClass('segment');
                 if (this.leftOffset){
                     $(div).css('left', this.leftOffset);
-                    this.posX = this.leftOffset - this.$el.offset().left;
-                    this.segment.startPos = this.posX / this.pixelRatio;
+                    this.left = this.leftOffset - this.$el.offset().left;
+                    this.segment.startPos = this.left / this.pixelRatio;
                 };
                 var image = $(div).find('.image');
                 this.segment.loadImage("front", function(image_data){
@@ -55,8 +55,9 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     image.find('svg')[0].setAttribute("preserveAspectRatio","xMidYMid slice");   
                 });
 
-                //"connect" the div with its segment
-                $(div).attr('id', this.segment.id); 
+                //give the div information about the segment it is viewing
+                $(div).data('segmentID', this.segment.attributes.id); 
+                $(div).data('segmentViewID', this.cid); 
                 this.makeDraggable();
                 if (!this.cloneable)
                     this.makeResizable();
@@ -78,13 +79,17 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             //class is for css style only
                             //$(div).attr('id', this.segment.id); 
                             //addClass('segment')
-                        } 
+                        }, 
                     });
                 else 
                      $(this.div).draggable({
                         cursor: "move", 
-                        cursorAt: { top: 0, left: 0 },
-                        start: function (e,dragged){
+                        cursorAt: { 
+                            top: parseInt($(_this.div).css('height'))/2, 
+                            left: -20
+                        },
+                        start: function (e, dragged){
+                            console.log(parseInt($(_this.div).css('height'))/2);
                             //keep track if div is pulled in or out to delete
                             _this.$el.on("dropout", function(e, ui) {
                                 outside = true;
@@ -92,20 +97,20 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             _this.$el.on("drop", function(e, ui) {
                                 outside = false;
                             });
-                        },
-                        drag: function (e, dragged) { 
                             var dragged = $(dragged.helper);
                             dragged.addClass('dragged');
                         },
                         
                         stop: function (e, dragged){
                             var dragged = $(dragged.helper);
-                            if (outside)
+                            if (outside){
                                 _this.div.remove();
+                                _this.trigger('delete');
+                            }
                             else {
                                 dragged.removeClass('dragged');
-                                _this.posX = dragged.offset().left - _this.$el.offset().left;
-                                _this.segment.startPos = _this.posX / _this.pixelRatio;
+                                _this.left = dragged.offset().left - _this.$el.offset().left;
+                                _this.segment.startPos = _this.left / _this.pixelRatio;
                                 _this.trigger("moved");
                             };
                         }
@@ -130,11 +135,11 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         if ($(e.toElement).attr('id') === 'lefthandle'){
                             //is there a segment to the left?
                             if (_this.prev) {
-                                var space = _this.posX - (_this.prev.posX + _this.prev.width);                  
+                                var space = _this.left - (_this.prev.left + _this.prev.width);                  
                             }   
                             //no segment infront? take the border of the editor
                             else {
-                                var space = _this.posX; 
+                                var space = _this.left; 
                             }
                             maxWidth = space + _this.width;                 
                         }
@@ -142,12 +147,12 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         else if ($(e.toElement).attr('id') === 'righthandle'){
                             //is there a segment to the right?
                             if (_this.next) {
-                                var space = _this.next.posX - (_this.posX + _this.width);
+                                var space = _this.next.left - (_this.left + _this.width);
                             }          
                             //no segment behind? take the border of the editor
                             else {
                                 var space = parseInt(_this.$el.css('width'))-
-                                        (_this.posX + _this.width); 
+                                        (_this.left + _this.width); 
                             }  
                             maxWidth = space + _this.width;  
                         }
@@ -155,7 +160,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     },
                     stop: function(e, ui){  
                         _this.width = parseInt($(div).css('width'));
-                        _this.posX = $(div).offset().left - _this.$el.offset().left;
+                        _this.left = $(div).offset().left - _this.$el.offset().left;
                         console.log(maxWidth);
                         console.log(_this.width);
                         //make all other handles visible again (while hovering)
