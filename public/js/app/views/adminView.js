@@ -22,12 +22,10 @@ define(["jquery", "backbone", "text!templates/admin.html",
                 this.render();         
                 
                 this.resourcesView = new SourceView({collection: resources,
-                                                     showAll: true,
                                                      el: '#resources'});
                 this.editorView = new EditorView({collection: this.edition,
                                                   el: '#editor',
-                                                  resources: this.resources,
-                                                  creationMode: true});
+                                                  resources: this.resources});
                 this.resources.fetch({reset: true});
             },
 
@@ -44,9 +42,11 @@ define(["jquery", "backbone", "text!templates/admin.html",
                 // Dynamically updates the UI with the view's template
                 this.$el.html(this.template); 
                 var _this = this;
-                $('#uploadButton').click(function() {                    
-                    _this.editorView.updatePositions();
+                $('#uploadButton').click(function() {       
                     _this.edition.save();
+                });
+                $('#resetButton').click(function() {       
+                    _this.editorView.clear();
                 });
                 // Maintains chainability
                 return this;

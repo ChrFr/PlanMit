@@ -15,7 +15,6 @@ define(["jquery","backbone","models/SegmentModel"],
         
         initialize: function(project_id){
             this.projectID = project_id || 1;   
-            this.url = 'db/projects/' + this.projectID;
         },
         
         comparator: function(model) {
@@ -37,7 +36,8 @@ define(["jquery","backbone","models/SegmentModel"],
             return segment;
         },
         
-        fetch: function(options) {
+        fetch: function(options) {            
+            this.url = 'db/projects/' + this.projectID;
             var _this = this;
             $.ajax({
                 type: 'GET',
@@ -98,19 +98,7 @@ define(["jquery","backbone","models/SegmentModel"],
                 i++;
             });
             return JSON.stringify({'template': edition});
-        },    
-        
-        removeID: function(id) {
-            var segment = this.getSegmentByID(id);
-            if (segment)
-                this.remove(segment);
-        },        
-                
-        resizeID: function(id, size) {
-            var segment = this.getSegmentByID(id);      
-            if (segment)
-                segment.size = size;
-        },
+        }
         
     });
 

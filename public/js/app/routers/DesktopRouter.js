@@ -2,17 +2,18 @@
 // ----------------
 define(["jquery", "backbone", "views/navbarView",
     "views/welcomeView", "views/editMainView", "views/adminView",
-    "collections/SegmentCollection"],
+    "collections/SegmentCollection", "collections/SegmentSource"],
 
-    function($, Backbone, Navbar, Welcome, Edit, Admin, SegmentCollection) {
+    function($, Backbone, Navbar, Welcome, Edit, Admin, SegmentCollection,
+                SegmentSource) {
 
         var DesktopRouter = Backbone.Router.extend({
             
             initialize: function() {
                 //load a project
-                this.resources = new SegmentCollection();
+                this.resources = new SegmentSource();
                 this.edition = new SegmentCollection();
-                this.adminResources = new SegmentCollection({showAll: true});
+                this.adminResources = new SegmentSource({showAll: true});
                 this.adminEdition = new SegmentCollection();
                 //navbar is always seen
                 this.navbar = new Navbar();

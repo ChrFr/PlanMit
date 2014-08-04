@@ -12,17 +12,10 @@ define(["jquery", "backbone", "views/segmentView"],
             // View constructor
             initialize: function(options) {
                 this.resources = options.resources; 
-                this.creationMode = options.creationMode || false
-                _.bindAll(this, 'render', 'partitionEditDiv');                 
-                this.collection.bind("reset", this.render);
-                
-                //only fetch the edition from db (incl. overwrite), 
-                //if no models are overwritten (meaning it is not already load)
-                //if (this.collection.models.length === 0){
-                //    this.collection.fetch({reset: true});}
-                //else only render (and show modified edition rather than reset
-                //else
-                this.render();      
+                this.fixElements = options.fixElements || false
+                _.bindAll(this, 'render', 'loadEdition');                 
+                this.collection.bind("reset", this.render);                
+                     
                 var _this = this;
                 
                 //sorted list of all views on segments inside the editor
@@ -45,8 +38,7 @@ define(["jquery", "backbone", "views/segmentView"],
                         this.list.unshift({left: 0, width: 0, cid: null, next: this.list[0]});
                         $.each(this.list, function(index, segmentView){
                             //ignore dragged segmentView in list
-                            console.log(div.data('segmentViewID'));
-                            if (segmentView.cid === div.data('segmentViewID'))
+                            if (div.data('segmentViewID') && segmentView.cid === div.data('segmentViewID'))
                                 return true;
                             var segLeft = segmentView.left;
                             var segRight = segLeft + segmentView.width; 
@@ -128,12 +120,24 @@ define(["jquery", "backbone", "views/segmentView"],
                         /*if (doDelete)
                             segmentView.remove();*/
                     },
+                    
+                    clear: function(){
+                        console.log('blubb');
+                        $.each(this.list, function( index, segmentView ){
+                            segmentView.off("delete");                          
+                            segmentView.delete();
+                            console.log('bla')
+                        });
+                        this.list = new Array();
+                    },
+                    
                     //replace a single view to maintain sort order
                     relocate: function(segmentView){
                         this.remove(segmentView);
                         segmentView.off("moved");
                         this.insert(segmentView);                        
-                    }
+                    },
+                    
                 };
                 
                 this.placeholder = {
@@ -192,7 +196,6 @@ define(["jquery", "backbone", "views/segmentView"],
                         else if (clone){
                             //update the positions of the other divs
                             this.cid = clone.data('segmentViewID');
-                            this.divPositions = _this.getDivPositions(this.id);
                             var left = clone.position().left;
                             var width = clone.css('width');
                             this.div = $(document.createElement('div'));
@@ -206,13 +209,15 @@ define(["jquery", "backbone", "views/segmentView"],
                         }
                     },
                     
-                    /*
-                     * check for neighbours of the placeholder 
-                     * return {collision: true} if collision detected
-                     * return {snap: 0} if no neighbour is within snap range
-                     * return {snap: pixels} if a neighbour is within snap range
-                     */
                 };
+                
+                 //only fetch the edition from db (incl. overwrite), 
+                //if no models are overwritten (meaning it is not already load)
+                if (this.collection.models.length === 0){
+                    this.collection.fetch({reset: true});}
+                //else only render (and show modified edition rather than reset
+                else
+                    this.render();
                 
             },            
 
@@ -227,7 +232,7 @@ define(["jquery", "backbone", "views/segmentView"],
 
                 this.makeDroppable();
                 if (this.collection.length > 0)
-                    this.partitionEditDiv(); 
+                    this.loadEdition(); 
                
                 var _this = this;                
                 var txtarea = $("#log");
@@ -250,7 +255,6 @@ define(["jquery", "backbone", "views/segmentView"],
                     _this.updateAttributeLog();
                 });
                 this.$el.on('divPositionChanged', function(event){
-                    _this.updatePositions();                    
                     _this.collection.sort();
                     txtarea.val(txtarea.val() + '\n positions changed');
                     _this.updateAttributeLog();
@@ -289,7 +293,7 @@ define(["jquery", "backbone", "views/segmentView"],
                                                                    'height': parseInt(placeholder.div.css('height')),
                                                                    'pixelRatio': _this.pixelRatio()});
                                 segmentView.render();
-                                _this.collection.addSegment(clone, !(_this.creationMode))
+                                _this.collection.addSegment(clone);
                                 _this.segmentViews.insert(segmentView);
                             }
                         }
@@ -322,10 +326,32 @@ define(["jquery", "backbone", "views/segmentView"],
                 $('#streetm').val(this.streetProfileWidth());
             },
             
+            clear: function(){
+                 this.segmentViews.clear();
+                 this.collection.reset();
+            },
+            
             //divide the edit view into no editable divs and editable divs 
             //(last ones are registered to shapeshift) depending on the
             //the fixed attribute of each segment model in the collection
-            partitionEditDiv: function(){
+            loadEdition: function(){
+                var _this = this;
+                var height = parseInt(this.$el.css('height'));
+                var editorOffset = this.$el.offset().left
+                var ratio = this.pixelRatio();
+                this.collection.each(function(segment){
+                    var fixed = (_this.fixElements) ? segment.fixed: false;
+                    var segmentView = new SegmentView({'el': _this.el,
+                                                      'segment': segment,
+                                                      'leftOffset': segment.startPos * ratio + editorOffset,
+                                                      'height': height,
+                                                      'fixed': fixed,
+                                                      'width': segment.size * ratio,
+                                                      'pixelRatio': _this.pixelRatio()});
+                    segmentView.render();
+                    _this.segmentViews.insert(segmentView);
+                });
+                /*
                 var _this = this; 
                 var height = parseInt(this.$el.css('height'));
                 var editorWidth = parseInt(this.$el.css('width'));
@@ -394,7 +420,7 @@ define(["jquery", "backbone", "views/segmentView"],
                         this.$el.append(curDiv);
                     }
                         
-                };
+                };*/
                 
             },
             
@@ -426,49 +452,7 @@ define(["jquery", "backbone", "views/segmentView"],
                 //check order of children of div here, set pos of models in collection by passing ids to collection
             },               
             
-            getDivPositions: function(ignoreID){
-                var divPos = new Array();
-                _.each(this.$el.find('.segment'), (function(div){
-                    var id = $(div).attr('id');
-                    if (ignoreID != id){
-                        var left = parseInt($(div).css('left'));
-                        var width = parseInt($(div).css('width'));
-                        divPos.push({
-                            id: id,
-                            left: left,
-                            width: width
-                        });
-                    }
-                }));
-                return divPos;
-            },
-            
-            getDivPosition: function(id){
-                var pos = 0;
-                var i = 0;
-                _.each(this.$el.find('.segment'), (function(div){
-                    if ($(div).attr('id') === id){
-                        pos = i;
-                        return;
-                    };
-                    i++;
-                }));
-                return pos;
-            },
-                        
-            updatePositions: function(){
-                var ids = [];
-                var offset = [];
-                var _this = this;
-                _.each(this.$el.find('.segment'), (function(div){
-                    ids.push($(div).attr('id'));
-                    offset.push(($(div).offset().left - _this.$el.offset().left) / _this.pixelRatio())
-                }));
-                this.collection.updatePositions(ids, offset);
-                
-                //check order of children of div here, set pos of models in collection by passing ids to collection
-            },    
-
+                 
         });
 
         // Returns the View class

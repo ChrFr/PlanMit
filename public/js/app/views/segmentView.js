@@ -16,7 +16,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 this.width = options.width || 100;
                 this.height = options.height || 100;
                 this.offset = options.offset;
-                this.insertSorted = options.insertSorted || false
+                this.insertSorted = options.insertSorted || false;
+                this.fixed = options.fixed || false;
                 //processed attributes
                 this.left = 0;
                 this.div = null;
@@ -40,7 +41,6 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 this.$el.append(div);
                 $(div).css('width', this.width);
                 $(div).css('height', this.height);
-                $(div).addClass('segment');
                 if (this.leftOffset){
                     $(div).css('left', this.leftOffset);
                     this.left = this.leftOffset - this.$el.offset().left;
@@ -58,9 +58,12 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 //give the div information about the segment it is viewing
                 $(div).data('segmentID', this.segment.attributes.id); 
                 $(div).data('segmentViewID', this.cid); 
-                this.makeDraggable();
-                if (!this.cloneable)
-                    this.makeResizable();
+                if (!this.fixed) {
+                    $(div).addClass('segment');
+                    this.makeDraggable();
+                    if (!this.cloneable)
+                       this.makeResizable();
+                }
                 return this;
 
             },
@@ -89,7 +92,6 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             left: -20
                         },
                         start: function (e, dragged){
-                            console.log(parseInt($(_this.div).css('height'))/2);
                             //keep track if div is pulled in or out to delete
                             _this.$el.on("dropout", function(e, ui) {
                                 outside = true;
@@ -104,8 +106,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         stop: function (e, dragged){
                             var dragged = $(dragged.helper);
                             if (outside){
-                                _this.div.remove();
-                                _this.trigger('delete');
+                                _this.delete();
                             }
                             else {
                                 dragged.removeClass('dragged');
@@ -115,6 +116,11 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             };
                         }
                     });
+            },
+            
+            delete: function(){                
+                this.div.remove();
+                this.trigger('delete');
             },
             
             makeResizable: function(){
@@ -160,9 +166,9 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     },
                     stop: function(e, ui){  
                         _this.width = parseInt($(div).css('width'));
-                        _this.left = $(div).offset().left - _this.$el.offset().left;
-                        console.log(maxWidth);
-                        console.log(_this.width);
+                        _this.left = $(div).offset().left - _this.$el.offset().left;                        
+                        _this.segment.size = _this.width / _this.pixelRatio
+                        console.log(_this.segment.size);
                         //make all other handles visible again (while hovering)
                         $('.ui-resizable-handle').css('visibility', 'visible');
                     }
