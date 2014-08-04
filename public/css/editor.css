@@ -20,6 +20,8 @@ body {
   height: 100px;
   width: 100px;  
   cursor: pointer;
+  background: transparent;
+  position: absolute;
 }
 
 .editor > .segment:hover {
@@ -36,11 +38,10 @@ body {
 }
 
 .editor {
-    background-color: #fefefe;
     margin-top: 1em;
+    display: block; 
     height: 300px;
     width: 1300px;
-    display: block;
     margin-left: auto;
     margin-right: auto;  
     cursor: auto;
@@ -48,6 +49,8 @@ body {
                  1px -1px 2px #fecf1d,
                 -1px  1px 2px #fecf1d,
                  1px  1px 2px #fecf1d;
+    background: transparent;
+    z-index: 1;
 }
 
 .editor > div {

@@ -122,11 +122,9 @@ define(["jquery", "backbone", "views/segmentView"],
                     },
                     
                     clear: function(){
-                        console.log('blubb');
                         $.each(this.list, function( index, segmentView ){
                             segmentView.off("delete");                          
                             segmentView.delete();
-                            console.log('bla')
                         });
                         this.list = new Array();
                     },
@@ -209,7 +207,7 @@ define(["jquery", "backbone", "views/segmentView"],
                         }
                     },
                     
-                };
+                };              
                 
                  //only fetch the edition from db (incl. overwrite), 
                 //if no models are overwritten (meaning it is not already load)
@@ -217,7 +215,16 @@ define(["jquery", "backbone", "views/segmentView"],
                     this.collection.fetch({reset: true});}
                 //else only render (and show modified edition rather than reset
                 else
-                    this.render();
+                    this.render();                
+                
+                //put a canvas in the background                
+                var canvas = document.createElement("canvas");   
+                this.canvas = canvas;
+                $(canvas).css('position', 'absolute');
+                $(canvas).css('width', this.$el.css('width'));
+                $(canvas).css('height', this.$el.css('height'));
+                $(canvas).zIndex(0);
+                this.$el.append(canvas);
                 
             },            
 
@@ -228,8 +235,8 @@ define(["jquery", "backbone", "views/segmentView"],
 
             // Renders the view's template to the UI
             render: function() {   
-                var _this = this; 
-
+                var _this = this;                
+                
                 this.makeDroppable();
                 if (this.collection.length > 0)
                     this.loadEdition(); 
@@ -261,7 +268,16 @@ define(["jquery", "backbone", "views/segmentView"],
                 });
                 
                 this.updateAttributeLog();
+                this.drawInfo();
                 return this;
+            },
+            
+            drawInfo: function(){      
+                var ctx=this.canvas.getContext("2d");
+                ctx.beginPath();
+                ctx.moveTo(0, 2);
+                ctx.lineTo(parseInt($(this.canvas).css('width')), 2);  
+                ctx.stroke();
             },
             
             makeDroppable: function(){
@@ -351,82 +367,11 @@ define(["jquery", "backbone", "views/segmentView"],
                     segmentView.render();
                     _this.segmentViews.insert(segmentView);
                 });
-                /*
-                var _this = this; 
-                var height = parseInt(this.$el.css('height'));
-                var editorWidth = parseInt(this.$el.css('width'));
-                                   
-                var placeholders = new Array();               
-                
-                this.collection.each(function(segment){
-                    if (segment.attributes.category === 0){
-                        placeholders.push(segment);
-                    }
-                });
-                if (!this.creationMode)
-                    _.each(placeholders, function(placeholder){
-                       _this.collection.remove(placeholder); 
-                    });
-                                                            
-                function addDiv(height, width, editable){
-                    var curDiv = $(document.createElement('div'));
-                    $(curDiv).css('height', height + 'px');
-                    $(curDiv).css('width', width + 'px');
-                    _this.$el.append(curDiv);
-                    if (editable)
-                        $(curDiv).addClass('container droparea');
-                    return curDiv;
-                }
-                var divWidth = 0;
-                var totalWidth = 0;
-                
-                var editable;
-                if (!this.creationMode)
-                    editable = this.collection.at(0).fixed;
-                else
-                    editable = true;
-                var curDiv = addDiv(height, editorWidth, editable);
-                
-                for (var i = 0; i < this.collection.length; i++){
-                    var current = this.collection.at(i);
-                    var next = this.collection.at(i+1);    
-                    var width = current.size * _this.pixelRatio();                    
-                    divWidth += width;
-                    totalWidth += width;
-                    if (!this.creationMode)
-                        $(curDiv).css('width', divWidth);
-                    var segmentView = new SegmentView({
-                        'parent': curDiv,
-                        'segment': current,
-                        'height': height,
-                        'yOffset': 0,
-                        'width': width
-                    });         
-                    segmentView.render();  
-                    
-                    if (!this.creationMode && next && (next.fixed || next.fixed !== current.fixed)){ 
-                        //reset div width to start counting for next one
-                        divWidth = 0;
-                        //is there a gap between to the next fixed div? -> add a 
-                        //editable div in between
-                        var gap = next.offset - (current.offset + current.size);
-                        if (next.fixed && current.fixed && gap > 0.5){
-                            addDiv(height, gap * this.pixelRatio(), true);
-                        }
-                        if (next.fixed && !current.fixed && gap){
-                            curDiv.css('width', parseInt(curDiv.css('width')) + gap * this.pixelRatio());
-                        }
-                        curDiv = addDiv(height, 0, !(next.fixed));
-                        this.$el.append(curDiv);
-                    }
-                        
-                };*/
-                
             },
             
             pixelRatio: function(){
                 return parseInt($(this.$el[0]).css('width')) / 
-                           this.collection.width;
+                    this.collection.width;
             },
                         
             allChildrenWidth: function(){

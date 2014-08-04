@@ -87,6 +87,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 else 
                      $(this.div).draggable({
                         cursor: "move", 
+                        revertDuration: 200,
                         cursorAt: { 
                             top: parseInt($(_this.div).css('height'))/2, 
                             left: -20
@@ -168,8 +169,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         _this.width = parseInt($(div).css('width'));
                         _this.left = $(div).offset().left - _this.$el.offset().left;                        
                         _this.segment.size = _this.width / _this.pixelRatio
-                        console.log(_this.segment.size);
                         //make all other handles visible again (while hovering)
+                        $(div).find('.ui-resizable-handle').css('display', 'none');
                         $('.ui-resizable-handle').css('visibility', 'visible');
                     }
                 }); 
