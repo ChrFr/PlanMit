@@ -230,6 +230,7 @@ define(["jquery", "backbone", "views/segmentView"],
                         if (segmentView.next)
                             segmentView.next.prev = segmentView;;               
                     };
+                    
                     var _this = this;
                     segmentView.on("moved", function(){                            
                         _this.relocate(this);
@@ -344,14 +345,14 @@ define(["jquery", "backbone", "views/segmentView"],
                         //small rectangle with display of street size
                         ctx.beginPath();
                         var middle = streetEndX / 2;
-                        ctx.rect(middle - 20 , 0.5, 40, 20);
+                        ctx.rect(middle - 25 , 0.5, 50, 20);
                         ctx.fillStyle = 'white';
                         ctx.fill();
                         ctx.stroke();
                         ctx.fillStyle = 'grey';
                         ctx.textAlign = 'center';
                         var size = streetEndX / lastSegment.pixelRatio;
-                        ctx.fillText(size.toFixed(2), middle, y + 3);
+                        ctx.fillText(size.toFixed(2) + ' m', middle, y + 3);
                     };
                 };
                 
@@ -389,15 +390,15 @@ define(["jquery", "backbone", "views/segmentView"],
                         //in middle of horizontal line
                         ctx.beginPath();
                         var middle = segmentView.left + segmentView.width / 2;
-                        ctx.rect(middle - 20 , y - 10, 40, 20);
+                        ctx.rect(middle - 25 , y - 10, 50, 20);
                         ctx.fillStyle = 'white';
                         ctx.fill();
                         ctx.setLineDash([0]);
                         ctx.stroke();
                         ctx.fillStyle = 'black';
                         ctx.textAlign = 'center';
-                        var size = (segmentView.segment.size) ? segmentView.segment.size.toFixed(2) : '-'
-                        ctx.fillText(size, middle, y + 3);
+                        var size = (segmentView.segment.size) ? segmentView.segment.size.toFixed(2)  + ' m': '-'
+                        ctx.fillText(size , middle, y + 3);
                         
                         var next = segmentView.next
                         //visualize gaps between segments
@@ -406,21 +407,21 @@ define(["jquery", "backbone", "views/segmentView"],
                         if (gap > this.gapTolerance){     
                             var middle = segRight + gap / 2;
                             ctx.beginPath();
-                            ctx.setLineDash([1]);
+                            ctx.setLineDash([1, 2]);
                             ctx.strokeStyle = 'grey';
                             ctx.moveTo(segRight, y - 10);
                             ctx.lineTo(nextLeft, y - 10); 
                             ctx.moveTo(middle, y - 10);
                             ctx.lineTo(middle, y + 5); 
                             
-                            ctx.rect(middle - 20 , y + 5, 40, 20);
+                            ctx.rect(middle - 25 , y + 5, 50, 20);
                             ctx.fillStyle = 'white';
                             ctx.fill();
                             ctx.stroke();
                             ctx.fillStyle = 'grey';
                             ctx.textAlign = 'center';
                             ctx.fillText(
-                                    (gap / segmentView.pixelRatio).toFixed(2), 
+                                    (gap / segmentView.pixelRatio).toFixed(2) + ' m', 
                                     middle, y + 18);
                         };
                         segmentView = next;

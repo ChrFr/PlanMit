@@ -14,6 +14,7 @@ define(["jquery","backbone","models/SegmentModel"],
         url: 'db/projects/1',
         
         initialize: function(project_id){
+            this.count = 1;
             this.projectID = project_id || 1;   
         },
         
@@ -22,7 +23,11 @@ define(["jquery","backbone","models/SegmentModel"],
         },
     
         addSegment: function(segment) { 
+            //avoid models to have the same id (overwritten otherwise)
+            //id is not used elsewhere
+            segment.id = this.count;
             this.add(segment);   
+            this.count++;
         },
                 
         getSegmentByID: function(id) {
