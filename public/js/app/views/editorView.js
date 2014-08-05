@@ -35,40 +35,13 @@ define(["jquery", "backbone", "views/segmentView"],
             render: function() {            
                 var canvas = this.$el.find('canvas')[0];
                 this.measure = new this.MeasureDisplay(canvas, this.$el);
-                this.streetView = new this.StreetView(this.$el, this.measure);
+                this.streetView = new this.StreetView(this.$el, this.collection, this.measure);
                 this.placeholder = new this.Placeholder(this.streetView, this.$el);
                 
                 this.makeDroppable();
                 if (this.collection.length > 0)
                     this.loadEdition(); 
                
-                var _this = this;                
-                var txtarea = $("#log");
-                this.$el.on('divAdded', function(event, div){
-                    _this.addClone(div);    
-                    _this.collection.resizeID($(div).attr('id'), 
-                        parseInt($(div).css('width')) / _this.pixelRatio());
-                    txtarea.val(txtarea.val() + '\n' + div.id + " added");
-                    _this.updateAttributeLog();
-                });
-                this.$el.on('divRemoved', function(event, id){
-                    _this.collection.removeID(id);
-                    txtarea.val(txtarea.val() + '\n' + id + " removed");
-                    _this.updateAttributeLog();
-                });
-                this.$el.on('divResized', function(event, div){    
-                    _this.collection.resizeID($(div).attr('id'), 
-                        parseInt($(div).css('width')) / _this.pixelRatio());
-                    txtarea.val(txtarea.val() + '\n' + div.id + " resized");
-                    _this.updateAttributeLog();
-                });
-                this.$el.on('divPositionChanged', function(event){
-                    _this.collection.sort();
-                    txtarea.val(txtarea.val() + '\n positions changed');
-                    _this.updateAttributeLog();
-                });
-                
-                this.updateAttributeLog();
                 return this;
             },
             
@@ -127,8 +100,9 @@ define(["jquery", "backbone", "views/segmentView"],
                 });
             },
             
-            StreetView: function(parent, measureDisplay){
+            StreetView: function(parent, collection, measureDisplay){
                 this.parent = parent;
+                this.collection = collection;
                 this.first = null;
                 this.length = 0;
                 this.measureDisplay = measureDisplay;
@@ -246,7 +220,10 @@ define(["jquery", "backbone", "views/segmentView"],
                 };
 
                 this.remove = function(segmentView, doDelete){
-                    //bend pointers
+                    //bend pointers                    
+                    segmentView.off("moved");
+                    segmentView.off("delete");
+                    segmentView.off("resized");
                     var prev = segmentView.prev;
                     var next = segmentView.next;
                     if (prev){
@@ -264,8 +241,8 @@ define(["jquery", "backbone", "views/segmentView"],
                     this.measureDisplay.draw(this);
                     //ToDo: remove view, segmentView.remove() removes the whole 
                     //editor (most likely because the parent el is the editor)
-                    /*if (doDelete)
-                        segmentView.remove();*/
+                    if (doDelete)
+                        this.collection.remove(segmentView.segment);
                 };
 
                 this.clear = function(){
@@ -282,7 +259,6 @@ define(["jquery", "backbone", "views/segmentView"],
                 //replace a single view to maintain sort order
                 this.relocate = function(segmentView){
                     this.remove(segmentView);
-                    segmentView.off("moved");
                     this.insert(segmentView);  
                     this.measureDisplay.draw(this);                      
                 };
