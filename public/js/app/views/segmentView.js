@@ -19,7 +19,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 this.insertSorted = options.insertSorted || false;
                 this.fixed = options.fixed || false;
                 //processed attributes
-                this.left = 0;
+                this.left = this.leftOffset - this.$el.offset().left;
                 this.div = null;
                 this.next = null;
                 this.prev = null;

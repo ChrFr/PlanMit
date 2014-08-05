@@ -21,7 +21,6 @@ body {
   width: 100px;  
   cursor: pointer;
   background: transparent;
-  position: absolute;
 }
 
 .editor > .segment:hover {
@@ -53,6 +52,11 @@ body {
     z-index: 1;
 }
 
+#editorCanvas {
+    position: absolute;
+    z-index: 0;
+}
+
 .editor > div {
     position: absolute;
 }
@@ -60,7 +64,7 @@ body {
 .source{
   height: 100px;
   width: 300px;
-  overflow:auto;  
+  overflow: auto;  
   display: block;
   margin-left: auto;
   margin-right: auto; 

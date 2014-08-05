@@ -14,200 +14,7 @@ define(["jquery", "backbone", "views/segmentView"],
                 this.resources = options.resources; 
                 this.fixElements = options.fixElements || false
                 _.bindAll(this, 'render', 'loadEdition');                 
-                this.collection.bind("reset", this.render);                
-                     
-                var _this = this;
-                
-                //sorted list of all views on segments inside the editor
-                this.segmentViews = {
-                    list: new Array(),
-                    at: function(pos){
-                        return this.list[pos];
-                    },           
-                    
-                    doesFit: function(div){
-                        var left = $(div).offset().left - _this.$el.offset().left;
-                        var width = parseInt($(div).css('width'));
-                        var right = left + width;
-                        var editorWidth = parseInt(_this.$el.css('width'));
-                        var gap = {fits: false,
-                                   left: 0,
-                                   right: 0};
-                        //insert placeholder element infront of the list to check
-                        //gap between left border of editor and first element
-                        this.list.unshift({left: 0, width: 0, cid: null, next: this.list[0]});
-                        $.each(this.list, function(index, segmentView){
-                            //ignore dragged segmentView in list
-                            if (div.data('segmentViewID') && segmentView.cid === div.data('segmentViewID'))
-                                return true;
-                            var segLeft = segmentView.left;
-                            var segRight = segLeft + segmentView.width; 
-                            var nextSegment = segmentView.next;
-                            //take editor border, if there is no next segment
-                            var nextLeft = editorWidth;
-                            if (nextSegment){                                
-                                //ignore dragged segmentView in list
-                                if (segmentView.next.cid === div.data('segmentViewID'))
-                                    nextSegment = segmentView.next.next;
-                                if (nextSegment)
-                                    nextLeft = nextSegment.left;
-                            };
-                            
-                            //2 segments found, where div is in between
-                            if (left >= segRight && left <= nextLeft){
-                                //enough room for the div?
-                                if (right <= nextLeft){                                
-                                    gap.left = left - segRight;
-                                    gap.right = nextLeft - right;
-                                    gap.fits = true;
-                                }
-                                //break loop, because list is sorted 
-                                return false;
-                                
-                            }
-                        });
-                        //remove placeholder
-                        this.list.shift();
-                        return gap;
-                    },
-                    
-                    insert: function(segmentView){
-                        var pos = 0;
-                        $.each(this.list, function( index, existingView ){
-                            if (segmentView.left <= existingView.left){
-                                return false;               
-                            }
-                            pos += 1;
-                        });
-                        this.list.splice(pos, 0, segmentView);
-                        segmentView.prev = (pos > 0) ? this.at(pos-1) : null;
-                        segmentView.next = (pos < this.list.length - 1) ? this.at(pos+1) : null;
-                        if (segmentView.prev)
-                            segmentView.prev.next = segmentView;
-                        if (segmentView.next)
-                            segmentView.next.prev = segmentView;
-                        var segmentViews = this;
-                        segmentView.on("moved", function(){                            
-                            segmentViews.relocate(this);
-                        });
-                        segmentView.on("delete", function(){                            
-                            segmentViews.remove(this, true);
-                        });
-                    },
-                    
-                    remove: function(segmentView, doDelete){
-                        var pos = 0;   
-                        //bend pointers
-                        var prev = segmentView.prev;
-                        var next = segmentView.next;
-                        if (prev){
-                            prev.next = (next) ? next: null;
-                        }
-                        if (next){
-                            next.prev = (prev) ? prev: null;
-                        }
-                        $.each(this.list, function( index, existingView ){
-                            //return false breaks the loop (has to be false
-                            //for whatever reason)
-                            if (segmentView == existingView){
-                                return false;               
-                            }
-                            pos += 1;
-                        });
-                        this.list.splice(pos, 1);
-                        //ToDo: remove view, segmentView.remove() the whole 
-                        //editor (most likely because the parent el is the editor)
-                        /*if (doDelete)
-                            segmentView.remove();*/
-                    },
-                    
-                    clear: function(){
-                        $.each(this.list, function( index, segmentView ){
-                            segmentView.off("delete");                          
-                            segmentView.delete();
-                        });
-                        this.list = new Array();
-                    },
-                    
-                    //replace a single view to maintain sort order
-                    relocate: function(segmentView){
-                        this.remove(segmentView);
-                        segmentView.off("moved");
-                        this.insert(segmentView);                        
-                    },
-                    
-                };
-                
-                this.placeholder = {
-                    active: false,
-                    left: 0,
-                    div: null,   
-                    cid: null,
-                    segmentView: null,
-                    snapTolerance: 20,
-                    offsetX: -20, 
-                    droppable: true,
-
-                    updatePos: function(left){
-                        if (this.active){
-                            left += this.offsetX;
-                            var minLeft = _this.$el.offset().left;
-                            var maxLeft = minLeft + 
-                                          parseInt(_this.$el.css('width')) -
-                                          parseInt($(this.div).css('width'));
-                            if (left <= minLeft)
-                                left = minLeft;                                
-                            else if (left >= maxLeft)
-                                left = maxLeft;
-                            this.left = left;
-                            $(this.div).css('left', left);
-                            var gap = _this.segmentViews.doesFit(this.div);
-                            //flag as not droppable if collision to neighbours 
-                            //is detected
-                            if (!gap.fits){
-                                this.droppable = false;
-                                $(this.div).addClass('blocked');
-                            }
-                            //flag as droppable, 
-                            //snap the placeholder to other segments
-                            else {
-                                this.droppable = true;
-                                //take shortest distance to next segment
-                                var snap = (gap.left < gap.right) ? -gap.left: gap.right;
-                                //shift the placeholder, if distance is shorter 
-                                //than the defined snap tolerance
-                                if (Math.abs(snap) < this.snapTolerance){
-                                    this.left += snap;
-                                    $(this.div).css('left', this.left);
-                                };
-                                $(this.div).removeClass('blocked');
-                            }
-                        }
-                    },
-                    
-                    setActive: function(active, clone){
-                        this.active = active;
-                        //remove placeholder if deactivated
-                        if (!active)
-                            $(this.div).remove();
-                        //create placeholder on position of given div with offset
-                        else if (clone){
-                            //update the positions of the other divs
-                            this.cid = clone.data('segmentViewID');
-                            var left = clone.position().left;
-                            var width = clone.css('width');
-                            this.div = $(document.createElement('div'));
-                            $(this.div).css('width', width);
-                            $(this.div).css('height', _this.$el.css('height'));
-                            $(this.div).addClass('placeholder');
-                            $(this.div).data('segmentViewID', this.cid);
-                            $(this.div).zIndex(9999);
-                            _this.$el.append(this.div);
-                            this.updatePos(left);
-                        }
-                    },
-                    
-                };              
+                this.collection.bind("reset", this.render);  
                 
                  //only fetch the edition from db (incl. overwrite), 
                 //if no models are overwritten (meaning it is not already load)
@@ -217,15 +24,6 @@ define(["jquery", "backbone", "views/segmentView"],
                 else
                     this.render();                
                 
-                //put a canvas in the background                
-                var canvas = document.createElement("canvas");   
-                this.canvas = canvas;
-                $(canvas).css('position', 'absolute');
-                $(canvas).css('width', this.$el.css('width'));
-                $(canvas).css('height', this.$el.css('height'));
-                $(canvas).zIndex(0);
-                this.$el.append(canvas);
-                
             },            
 
             // View Event Handlers
@@ -234,8 +32,12 @@ define(["jquery", "backbone", "views/segmentView"],
             },        
 
             // Renders the view's template to the UI
-            render: function() {   
-                var _this = this;                
+            render: function() {            
+                var canvas = this.$el.find('canvas')[0];
+                this.segmentViews = new this.SegmentViewCollection(this.$el);
+                this.placeholder = new this.Placeholder(this.segmentViews, this.$el);
+                this.measure = new this.MeasureDisplay(this.segmentViews, canvas, this.$el);
+                this.measure.draw();
                 
                 this.makeDroppable();
                 if (this.collection.length > 0)
@@ -268,16 +70,7 @@ define(["jquery", "backbone", "views/segmentView"],
                 });
                 
                 this.updateAttributeLog();
-                this.drawInfo();
                 return this;
-            },
-            
-            drawInfo: function(){      
-                var ctx=this.canvas.getContext("2d");
-                ctx.beginPath();
-                ctx.moveTo(0, 2);
-                ctx.lineTo(parseInt($(this.canvas).css('width')), 2);  
-                ctx.stroke();
             },
             
             makeDroppable: function(){
@@ -333,6 +126,240 @@ define(["jquery", "backbone", "views/segmentView"],
                         _this.placeholder.setActive(false);
                     }
                 });
+            },
+            
+            SegmentViewCollection: function(parent){
+                this.parent = parent;
+                this.first = null;
+                
+                this.at = function(pos){
+                    var found = null;
+                    var next = this.first;
+                    var i = 0;
+                    while (next) {
+                        if (i === pos) {
+                            found = next;
+                            break;
+                        };
+                        next = next.next;
+                        i++;
+                    };
+                    return found;
+                };          
+
+                this.doesFit = function(div){
+                    var left = $(div).offset().left - parent.offset().left;
+                    var width = parseInt($(div).css('width'));
+                    var right = left + width;
+                    var editorWidth = parseInt(parent.css('width'));
+                    var gap = {fits: false,
+                               left: 0,
+                               right: 0};
+                    if (!this.first){
+                        if (width <= editorWidth) {
+                            gap.fits = true;
+                            gap.left = left;
+                            gap.right = editorWidth - right;
+                        }
+                        return gap;
+                    };
+                    //temporary first element is left border
+                    var tmp = {left: 0, width: 0, cid: null, next: this.first};
+                    var segmentView = tmp;
+                    while(segmentView){ 
+                        var divID = div.data('segmentViewID');                        
+                        //ignore segmentView currently dragged
+                        if (divID && segmentView.cid === divID)
+                            continue;
+                        var segLeft = segmentView.left;
+                        var segRight = segLeft + segmentView.width; 
+                        var next = segmentView.next;
+                        if (next){                
+                            //ignore segmentView currently dragged
+                            if (next.cid === divID)
+                                next = segmentView.next.next;
+                        };                        
+                        
+                        //take editor border, if there is no next segment
+                        var nextLeft = (next) ? next.left: editorWidth;
+
+                        //2 segments found, where div is in between
+                        if (left >= segRight && left <= nextLeft){
+                            //enough room for the div?
+                            if (right <= nextLeft){  
+                                gap.fits = true;
+                                gap.left = left - segRight;
+                                gap.right = nextLeft - right;
+                            }
+                            //break loop, because list is sorted 
+                            break;
+                        }
+                        segmentView = segmentView.next;
+                    };
+                    
+                    tmp.next = null;
+                    
+                    return gap;
+                };
+
+                this.insert = function(segmentView){
+                    if (!this.first){
+                        this.first = segmentView;
+                        segmentView.prev = null;
+                        segmentView.next = null;
+                    }
+                    else {
+                        var next = this.first;
+                        var prev = null;
+                        while(next){ 
+                            if (segmentView.left <= next.left)
+                                break;        
+                            prev = next;
+                            next = next.next;
+                        };
+                        segmentView.prev = (prev) ? prev : null;
+                        if (!prev){
+                            this.first = segmentView;
+                        }
+                        segmentView.next = (next) ? next : null;
+                        if (segmentView.prev)
+                            segmentView.prev.next = segmentView;
+                        if (segmentView.next)
+                            segmentView.next.prev = segmentView;;               
+                    };
+                    segmentView.on("moved", function(){                            
+                        this.relocate(this);
+                    });
+                    segmentView.on("delete", function(){                            
+                        this.remove(this, true);
+                    });
+                };
+
+                this.remove = function(segmentView, doDelete){
+                    //bend pointers
+                    var prev = segmentView.prev;
+                    var next = segmentView.next;
+                    if (prev){
+                        prev.next = (next) ? next: null;
+                    };
+                    if (next){
+                        next.prev = (prev) ? prev: null;
+                        if (!prev){
+                            this.first = next;
+                        }                            
+                    };
+                    segmentView.prev = null;
+                    segmentView.next = null;
+                    //ToDo: remove view, segmentView.remove() removes the whole 
+                    //editor (most likely because the parent el is the editor)
+                    /*if (doDelete)
+                        segmentView.remove();*/
+                };
+
+                this.clear = function(){
+                    var segmentView = this.first;
+                    while(segmentView){ 
+                        segmentView.off("delete");                          
+                        segmentView.delete();
+                        segmentView = segmentView.next;
+                    };
+                    this.first = null;
+                };
+
+                //replace a single view to maintain sort order
+                this.relocate = function(segmentView){
+                    this.remove(segmentView);
+                    segmentView.off("moved");
+                    this.insert(segmentView);                        
+                };
+            },
+            
+            MeasureDisplay: function(segmentViews, canvas, parent){
+                this.canvas = canvas;
+                this.parent = parent;
+                this.segmentViews = segmentViews;                
+                $(canvas).css('width', parent.css('width'));
+                $(canvas).css('height', parent.css('height'));     
+                
+                this.draw = function(){      
+                    var ctx=this.canvas.getContext("2d");
+                    ctx.beginPath();
+                    ctx.moveTo(0, 2);
+                    ctx.lineTo(parseInt($(this.canvas).css('width')), 2);  
+                    ctx.stroke();
+                };
+            },
+                
+            Placeholder: function(segmentViews, parent){
+                this.parent = parent;
+                this.segmentViews = segmentViews;
+                this.active = false;
+                this.left = 0;
+                this.div = null;
+                this.cid = null;
+                this.segmentView = null;
+                this.snapTolerance = 20;
+                this.offsetX = -20;
+                this.droppable = true;
+
+                this.updatePos = function(left){
+                    if (this.active){
+                        left += this.offsetX;
+                        var minLeft = parent.offset().left;
+                        var maxLeft = minLeft + 
+                                      parseInt(parent.css('width')) -
+                                      parseInt($(this.div).css('width'));
+                        if (left <= minLeft)
+                            left = minLeft;                                
+                        else if (left >= maxLeft)
+                            left = maxLeft;
+                        this.left = left;
+                        $(this.div).css('left', left);
+                        var gap = this.segmentViews.doesFit(this.div);
+                        //flag as not droppable if collision to neighbours 
+                        //is detected
+                        if (!gap.fits){
+                            this.droppable = false;
+                            $(this.div).addClass('blocked');
+                        }
+                        //flag as droppable, 
+                        //snap the placeholder to other segments
+                        else {
+                            this.droppable = true;
+                            //take shortest distance to next segment
+                            var snap = (gap.left < gap.right) ? -gap.left: gap.right;
+                            //shift the placeholder, if distance is shorter 
+                            //than the defined snap tolerance
+                            if (Math.abs(snap) < this.snapTolerance){
+                                this.left += snap;
+                                $(this.div).css('left', this.left);
+                            };
+                            $(this.div).removeClass('blocked');
+                        }
+                    }
+                };
+
+                this.setActive = function(active, clone){
+                    this.active = active;
+                    //remove placeholder if deactivated
+                    if (!active)
+                        $(this.div).remove();
+                    //create placeholder on position of given div with offset
+                    else if (clone){
+                        //update the positions of the other divs
+                        this.cid = clone.data('segmentViewID');
+                        var left = clone.position().left;
+                        var width = clone.css('width');
+                        this.div = $(document.createElement('div'));
+                        $(this.div).css('width', width);
+                        $(this.div).css('height', parent.css('height'));
+                        $(this.div).addClass('placeholder');
+                        $(this.div).data('segmentViewID', this.cid);
+                        $(this.div).zIndex(9999);
+                        parent.append(this.div);
+                        this.updatePos(left);
+                    }
+                };                               
             },
                         
             updateAttributeLog: function(){                
