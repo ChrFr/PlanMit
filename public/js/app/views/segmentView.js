@@ -165,10 +165,15 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         }
                         $(div).resizable( "option", "maxWidth", maxWidth );
                     },
-                    stop: function(e, ui){  
+                    
+                    resize: function(e, ui){   
                         _this.width = parseInt($(div).css('width'));
                         _this.left = $(div).offset().left - _this.$el.offset().left;                        
                         _this.segment.size = _this.width / _this.pixelRatio
+                        _this.trigger('resized');
+                    },
+                    
+                    stop: function(e, ui){  
                         //make all other handles visible again (while hovering)
                         $(div).find('.ui-resizable-handle').css('display', 'none');
                         $('.ui-resizable-handle').css('visibility', 'visible');

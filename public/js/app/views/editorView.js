@@ -34,10 +34,9 @@ define(["jquery", "backbone", "views/segmentView"],
             // Renders the view's template to the UI
             render: function() {            
                 var canvas = this.$el.find('canvas')[0];
-                this.segmentViews = new this.SegmentViewCollection(this.$el);
-                this.placeholder = new this.Placeholder(this.segmentViews, this.$el);
-                this.measure = new this.MeasureDisplay(this.segmentViews, canvas, this.$el);
-                this.measure.draw();
+                this.measure = new this.MeasureDisplay(canvas, this.$el);
+                this.streetView = new this.StreetView(this.$el, this.measure);
+                this.placeholder = new this.Placeholder(this.streetView, this.$el);
                 
                 this.makeDroppable();
                 if (this.collection.length > 0)
@@ -76,7 +75,7 @@ define(["jquery", "backbone", "views/segmentView"],
             makeDroppable: function(){
                 var _this = this;
                 this.$el.droppable({
-                    tolerance: "touch",
+                    tolerance: "intersect",
                     cursor: 'auto',
                     over: function(e, dragged) {
                         var clone = $(dragged.helper);        
@@ -103,7 +102,7 @@ define(["jquery", "backbone", "views/segmentView"],
                                                                    'pixelRatio': _this.pixelRatio()});
                                 segmentView.render();
                                 _this.collection.addSegment(clone);
-                                _this.segmentViews.insert(segmentView);
+                                _this.streetView.insert(segmentView);
                             }
                         }
                         //else move the existing element to the position of the
@@ -121,16 +120,18 @@ define(["jquery", "backbone", "views/segmentView"],
                         placeholder.setActive(false);
                     },
                     out: function(e, dragged){
-                        var clone = $(dragged.helper);  
+                        var clone = $(dragged.helper); 
                         clone.animate({height: dragged.draggable.css('height')}, 100);
                         _this.placeholder.setActive(false);
                     }
                 });
             },
             
-            SegmentViewCollection: function(parent){
+            StreetView: function(parent, measureDisplay){
                 this.parent = parent;
                 this.first = null;
+                this.length = 0;
+                this.measureDisplay = measureDisplay;
                 
                 this.at = function(pos){
                     var found = null;
@@ -155,6 +156,7 @@ define(["jquery", "backbone", "views/segmentView"],
                     var gap = {fits: false,
                                left: 0,
                                right: 0};
+                    var divID = div.data('segmentViewID');
                     if (!this.first){
                         if (width <= editorWidth) {
                             gap.fits = true;
@@ -166,11 +168,12 @@ define(["jquery", "backbone", "views/segmentView"],
                     //temporary first element is left border
                     var tmp = {left: 0, width: 0, cid: null, next: this.first};
                     var segmentView = tmp;
-                    while(segmentView){ 
-                        var divID = div.data('segmentViewID');                        
+                    while(segmentView){                         
                         //ignore segmentView currently dragged
-                        if (divID && segmentView.cid === divID)
+                        if (divID && segmentView.cid === divID){
+                            segmentView = segmentView.next;
                             continue;
+                        }
                         var segLeft = segmentView.left;
                         var segRight = segLeft + segmentView.width; 
                         var next = segmentView.next;
@@ -184,13 +187,13 @@ define(["jquery", "backbone", "views/segmentView"],
                         var nextLeft = (next) ? next.left: editorWidth;
 
                         //2 segments found, where div is in between
-                        if (left >= segRight && left <= nextLeft){
+                        if (left >= segRight && left < nextLeft){
                             //enough room for the div?
                             if (right <= nextLeft){  
                                 gap.fits = true;
-                                gap.left = left - segRight;
-                                gap.right = nextLeft - right;
                             }
+                            gap.left = left - segRight;
+                            gap.right = nextLeft - right;
                             //break loop, because list is sorted 
                             break;
                         }
@@ -227,12 +230,18 @@ define(["jquery", "backbone", "views/segmentView"],
                         if (segmentView.next)
                             segmentView.next.prev = segmentView;;               
                     };
+                    var _this = this;
                     segmentView.on("moved", function(){                            
-                        this.relocate(this);
+                        _this.relocate(this);
                     });
-                    segmentView.on("delete", function(){                            
-                        this.remove(this, true);
+                    segmentView.on("resized", function(){
+                        _this.measureDisplay.draw(_this);
                     });
+                    segmentView.on("delete", function(){  
+                        _this.remove(this, true);
+                    });
+                    this.length++;
+                    this.measureDisplay.draw(this);
                 };
 
                 this.remove = function(segmentView, doDelete){
@@ -244,12 +253,14 @@ define(["jquery", "backbone", "views/segmentView"],
                     };
                     if (next){
                         next.prev = (prev) ? prev: null;
-                        if (!prev){
-                            this.first = next;
-                        }                            
                     };
+                    if (!prev){
+                        this.first = next;
+                    };                            
                     segmentView.prev = null;
                     segmentView.next = null;
+                    this.length--;
+                    this.measureDisplay.draw(this);
                     //ToDo: remove view, segmentView.remove() removes the whole 
                     //editor (most likely because the parent el is the editor)
                     /*if (doDelete)
@@ -264,35 +275,164 @@ define(["jquery", "backbone", "views/segmentView"],
                         segmentView = segmentView.next;
                     };
                     this.first = null;
+                    this.measureDisplay.draw(this);
                 };
 
                 //replace a single view to maintain sort order
                 this.relocate = function(segmentView){
                     this.remove(segmentView);
                     segmentView.off("moved");
-                    this.insert(segmentView);                        
+                    this.insert(segmentView);  
+                    this.measureDisplay.draw(this);                      
                 };
             },
             
-            MeasureDisplay: function(segmentViews, canvas, parent){
+            MeasureDisplay: function(canvas, parent){
                 this.canvas = canvas;
                 this.parent = parent;
-                this.segmentViews = segmentViews;                
-                $(canvas).css('width', parent.css('width'));
-                $(canvas).css('height', parent.css('height'));     
+                this.marginTop = 30;
+                this.marginBottom = 50;
+                this.gapTolerance = 2;
                 
-                this.draw = function(){      
-                    var ctx=this.canvas.getContext("2d");
-                    ctx.beginPath();
-                    ctx.moveTo(0, 2);
-                    ctx.lineTo(parseInt($(this.canvas).css('width')), 2);  
-                    ctx.stroke();
+                /*
+                 * adapt canvas to current parent
+                 */
+                this.resize = function(){
+                    var width = parseInt(this.parent.css('width'));
+                    var height = parseInt(this.parent.css('height')) +
+                                 this.marginTop + 
+                                 this.marginBottom;
+                    $(this.canvas).css('top', this.parent.offset().top -
+                                        this.marginTop);
+                    $(this.canvas).css('width', width);
+                    $(this.canvas).css('height', height);  
+                    this.canvas.width = width;
+                    this.canvas.height = height;
                 };
+                
+                this.draw = function(streetView){  
+                    this.drawScalingLine(streetView);
+                    this.drawInfoLine(streetView);
+                };
+                
+                this.drawScalingLine = function(streetView){    
+                    var ctx = this.canvas.getContext("2d");
+                    //clear upper area
+                    ctx.clearRect(0, 0, this.canvas.width, this.marginTop);
+                    var lastSegment = streetView.at(streetView.length - 1);
+                    if(lastSegment){
+                        var streetEndX = (lastSegment) ? lastSegment.left + 
+                                lastSegment.width : this.canvas.width;
+                        var y = 10.5;
+                        ctx.strokeStyle = 'grey';
+                        ctx.setLineDash([1,2]);
+                        //horizontal line
+                        ctx.beginPath();
+                        ctx.moveTo(0, y);
+                        ctx.lineTo(streetEndX, y); 
+                        ctx.lineWidth = 1;
+                        ctx.stroke();  
+                        
+                        //vertical lines
+                        ctx.beginPath();
+                        ctx.moveTo(0, y);
+                        ctx.lineTo(0, this.marginTop); 
+                        ctx.moveTo(streetEndX, y);
+                        ctx.lineTo(streetEndX, this.marginTop); 
+                        ctx.stroke(); 
+
+                        //small rectangle with display of street size
+                        ctx.beginPath();
+                        var middle = streetEndX / 2;
+                        ctx.rect(middle - 20 , 0.5, 40, 20);
+                        ctx.fillStyle = 'white';
+                        ctx.fill();
+                        ctx.stroke();
+                        ctx.fillStyle = 'grey';
+                        ctx.textAlign = 'center';
+                        var size = streetEndX / lastSegment.pixelRatio;
+                        ctx.fillText(size.toFixed(2), middle, y + 3);
+                    };
+                };
+                
+                this.drawInfoLine = function(streetView){    
+                    var originY = this.canvas.height - this.marginBottom;
+                    var ctx = this.canvas.getContext("2d");
+                    //clear lower area
+                    ctx.clearRect(0, originY, 
+                                  this.canvas.width, this.marginBottom);
+                    var segmentView = streetView.first;
+                    while(segmentView){
+                        var y = originY + this.marginBottom - 30.5;                        
+                        ctx.lineWidth = 1;                        
+                        ctx.font = "bold 12px Arial";
+                        ctx.strokeStyle = 'black';
+                        
+                        //horizontal line
+                        ctx.beginPath();
+                        var segRight = segmentView.left + segmentView.width;
+                        ctx.setLineDash([5]);
+                        ctx.moveTo(segmentView.left, y);
+                        ctx.lineTo(segRight, y); 
+                        ctx.stroke();    
+                                                
+                        //vertical lines
+                        ctx.beginPath();
+                        ctx.setLineDash([1,2]);
+                        ctx.moveTo(segmentView.left, y);
+                        ctx.lineTo(segmentView.left, originY); 
+                        ctx.moveTo(segRight, y);
+                        ctx.lineTo(segRight, originY); 
+                        ctx.stroke();    
+                        
+                        //small rectangle with display of segmentsize inside
+                        //in middle of horizontal line
+                        ctx.beginPath();
+                        var middle = segmentView.left + segmentView.width / 2;
+                        ctx.rect(middle - 20 , y - 10, 40, 20);
+                        ctx.fillStyle = 'white';
+                        ctx.fill();
+                        ctx.setLineDash([0]);
+                        ctx.stroke();
+                        ctx.fillStyle = 'black';
+                        ctx.textAlign = 'center';
+                        var size = (segmentView.segment.size) ? segmentView.segment.size.toFixed(2) : '-'
+                        ctx.fillText(size, middle, y + 3);
+                        
+                        var next = segmentView.next
+                        //visualize gaps between segments
+                        var nextLeft = (next) ? next.left: parseInt(this.parent.css('width'));
+                        var gap = nextLeft - segRight;
+                        if (gap > this.gapTolerance){     
+                            var middle = segRight + gap / 2;
+                            ctx.beginPath();
+                            ctx.setLineDash([1]);
+                            ctx.strokeStyle = 'grey';
+                            ctx.moveTo(segRight, y - 10);
+                            ctx.lineTo(nextLeft, y - 10); 
+                            ctx.moveTo(middle, y - 10);
+                            ctx.lineTo(middle, y + 5); 
+                            
+                            ctx.rect(middle - 20 , y + 5, 40, 20);
+                            ctx.fillStyle = 'white';
+                            ctx.fill();
+                            ctx.stroke();
+                            ctx.fillStyle = 'grey';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(
+                                    (gap / segmentView.pixelRatio).toFixed(2), 
+                                    middle, y + 18);
+                        };
+                        segmentView = next;
+                    };              
+                };
+                                
+                this.resize();
             },
                 
-            Placeholder: function(segmentViews, parent){
+            Placeholder: function(streetView, parent){
                 this.parent = parent;
-                this.segmentViews = segmentViews;
+                this.streetView = streetView;
                 this.active = false;
                 this.left = 0;
                 this.div = null;
@@ -315,7 +455,7 @@ define(["jquery", "backbone", "views/segmentView"],
                             left = maxLeft;
                         this.left = left;
                         $(this.div).css('left', left);
-                        var gap = this.segmentViews.doesFit(this.div);
+                        var gap = this.streetView.doesFit(this.div);
                         //flag as not droppable if collision to neighbours 
                         //is detected
                         if (!gap.fits){
@@ -326,16 +466,16 @@ define(["jquery", "backbone", "views/segmentView"],
                         //snap the placeholder to other segments
                         else {
                             this.droppable = true;
-                            //take shortest distance to next segment
-                            var snap = (gap.left < gap.right) ? -gap.left: gap.right;
-                            //shift the placeholder, if distance is shorter 
-                            //than the defined snap tolerance
-                            if (Math.abs(snap) < this.snapTolerance){
-                                this.left += snap;
-                                $(this.div).css('left', this.left);
-                            };
                             $(this.div).removeClass('blocked');
-                        }
+                        };                        
+                        //take shortest distance to next segment
+                        var snap = (gap.left < gap.right) ? -gap.left: gap.right;
+                        //shift the placeholder, if distance is shorter 
+                        //than the defined snap tolerance
+                        if (Math.abs(snap) < this.snapTolerance){
+                            this.left += snap;
+                            $(this.div).css('left', this.left);
+                        };
                     }
                 };
 
@@ -370,7 +510,7 @@ define(["jquery", "backbone", "views/segmentView"],
             },
             
             clear: function(){
-                 this.segmentViews.clear();
+                 this.streetView.clear();
                  this.collection.reset();
             },
             
@@ -392,7 +532,7 @@ define(["jquery", "backbone", "views/segmentView"],
                                                       'width': segment.size * ratio,
                                                       'pixelRatio': _this.pixelRatio()});
                     segmentView.render();
-                    _this.segmentViews.insert(segmentView);
+                    _this.streetView.insert(segmentView);
                 });
             },
             
