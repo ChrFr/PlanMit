@@ -22,8 +22,7 @@ define(["jquery", "backbone", "text!templates/editMain.html",
                 
                 this.editorView = new EditorView({collection: this.edition,
                                                   el: '#editor',
-                                                  resources: this.resources,
-                                                  fixElements: true});
+                                                  resources: this.resources});
                 this.resourcesView = new SourceView({collection: resources,
                                                      el: '#resources'});
                                                      //target: '#editor'

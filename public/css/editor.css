@@ -23,6 +23,17 @@ body {
   background: transparent;
 }
 
+#imageContainer {
+    height: 100%;
+    width: 100%;
+}
+
+.image {
+    background: transparent;
+    position: absolute;
+    z-index: 5000;
+}
+
 .editor > .segment:hover {
     box-shadow: -0px -6px 8px #fecf1d,
                  0px -0px 0px #fecf1d,
@@ -37,13 +48,12 @@ body {
 }
 
 .editor {
+    margin-left: 30px;
+    margin-right: 30px;
     margin-top: 30px;
     margin-bottom: 50px;
-    display: block; 
     height: 600px;
     width: 1300px;
-    margin-left: auto;
-    margin-right: auto;  
     cursor: auto;
     box-shadow: -1px -1px 2px #fecf1d,
                  1px -1px 2px #fecf1d,
@@ -51,6 +61,7 @@ body {
                  1px  1px 2px #fecf1d;
     background: transparent;
     z-index: 1;
+    float: left;
 }
 
 #editorCanvas {
@@ -63,17 +74,19 @@ body {
 }
 
 .source{
-  height: 100px;
-  width: 300px;
-  overflow: auto;  
-  display: block;
-  margin-left: auto;
-  margin-right: auto; 
-  cursor: auto;
+    height: 600px;
+    width: 300px;
+    overflow: auto;  
+    margin-left: 30px;
+    margin-right: 30px; 
+    cursor: auto;
+    float: left;
 }
 
 .source > div {
-    float: left;
+    float: left;     
+    border-radius: 15px;
+    border: solid #c4edfd;
 }
 
 .editor > .placeholder {
@@ -82,6 +95,7 @@ body {
                 0px -0px 0px #0e8401,
                -0px  0px 0px #0e8401,
                 0px  6px 8px #0e8401;
+  z-index: 9500;
   opacity: .7;
 }
 
@@ -94,10 +108,17 @@ body {
 }
 
 .dragged{
-    background: #fefefe;  
+    background: transparent;  
     border-radius: 15px;
     border: solid #fecf1d;
-    opacity: .7;
+    opacity: 1;
+    z-index: 9900;
+}
+
+.dragOrigin{    
+    background: #e3e3e3; 
+    border: dotted #000;    
+    opacity: .2;
 }
 
 #lefthandle, #righthandle {
@@ -105,7 +126,7 @@ body {
     height: 100%;
     background-color: #fecf1d;
     opacity: .3;
-    z-index: 9999;
+    z-index: 9000;
     display: none;
     position: absolute;
     //border: 1px solid #000000;

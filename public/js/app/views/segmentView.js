@@ -13,16 +13,17 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 this.segment = options.segment;
                 this.leftOffset = options.leftOffset;
                 this.pixelRatio = options.pixelRatio || 1;
-                this.width = options.width || 100;
                 this.height = options.height || 100;
                 this.offset = options.offset;
                 this.insertSorted = options.insertSorted || false;
                 this.fixed = options.fixed || false;
+                this.svgUnsupported = options.svgUnsupported || false;
                 //processed attributes
                 this.left = this.leftOffset - this.$el.offset().left;
                 this.div = null;
                 this.next = null;
                 this.prev = null;
+                this.width = null;
                 //this.render();
             },            
 
@@ -38,22 +39,16 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 var div = document.createElement("div");   
                 this.div = div;
                 $(div).html(this.template);                    
-                this.$el.append(div);
-                $(div).css('width', this.width);
+                this.$el.append(div);                                             
+                this.width = this.segment.size * this.pixelRatio
+                $(div).css('width', this.width);         
                 $(div).css('height', this.height);
+                this.segment
                 if (this.leftOffset){
                     $(div).css('left', this.leftOffset);
                     this.left = this.leftOffset - this.$el.offset().left;
                     this.segment.startPos = this.left / this.pixelRatio;
                 };
-                var image = $(div).find('.image');
-                this.segment.loadImage("front", function(image_data){
-                    image.html(image_data); 
-                    image.find('svg')[0].setAttribute("viewBox", "0 0 2000 1050");
-                    image.find('svg')[0].setAttribute("width", "100%");
-                    image.find('svg')[0].setAttribute("height", "100%");
-                    image.find('svg')[0].setAttribute("preserveAspectRatio","xMidYMid slice");   
-                });
 
                 //give the div information about the segment it is viewing
                 $(div).data('segmentID', this.segment.attributes.id); 
@@ -63,14 +58,81 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     this.makeDraggable();
                     if (!this.cloneable)
                        this.makeResizable();
-                }
+                };
+                
+                if (this.cloneable)
+                    this.renderThumbnail();
+                else
+                    this.renderImage();
                 return this;
 
+            },
+            
+            renderImage: function(){
+                var imageContainer = $(this.div).find('#imageContainer');                 
+                var objectImage = document.createElement("div"); 
+                var groundImage = document.createElement("div");
+                var attr = this.segment.attributes;
+                var height = parseInt($(imageContainer).css('height'));                
+                var width = parseInt($(imageContainer).css('height'));
+                var groundHeight = height / 8;
+                
+                //render the ground on the bottom                
+                $(groundImage).css('width', '100%');
+                $(groundImage).addClass('image');
+                $(groundImage).css('height', groundHeight);
+                $(groundImage).css('bottom', 0);
+                $(imageContainer).append(groundImage);      
+                
+                //image of the object on top of the ground
+                $(objectImage).css('width', attr.base_size * this.pixelRatio);
+                $(objectImage).addClass('image');
+                $(objectImage).css('bottom', groundHeight);
+                $(objectImage).css('left', '0');
+                $(objectImage).css('right', '0');
+                $(objectImage).css('margin', '0 auto');                
+                $(imageContainer).append(objectImage);    
+                
+                this.loadImage(attr.image_id, objectImage, {adjustHeight: true});
+                this.loadImage(attr.image_ground_id, groundImage, {stretch: true});
+            },
+            
+            renderThumbnail: function(){
+                var imageContainer = $(this.div).find('#imageContainer');  
+                var attr = this.segment.attributes;
+                this.loadImage(attr.image_id, imageContainer, {thumb: true});
+                $(imageContainer).append(imageContainer);                      
+            },
+            
+            loadImage: function(imageID, div, options){
+                var options = options || {};
+                if (!this.svgUnsupported){ 
+                    this.segment.loadSvg(imageID, function(svg_data){
+                        $(div).html(svg_data);
+                        var svg = $(div).find('svg')[0]; 
+                        var width = (options.stretch) ? parseInt($(div).css('width')): parseInt($(svg).css('width'));
+                        var height = (options.stretch) ? parseInt($(div).css('height')): parseInt($(svg).css('height')); 
+                        //set viewbox to if (as a precaution, if not set while
+                        //creating image)
+                        svg.setAttribute("viewBox", "0 0 " + width + " " + height); 
+                        svg.setAttribute("width", "100%");      
+                        if (options.adjustHeight){
+                            var ratio = width / parseInt($(div).css('width'));
+                            $(div).css("height", height / ratio);                     
+                            svg.setAttribute("height", "100%");
+                        };                                        
+                        svg.setAttribute("height", "100%");
+                        if (options.stretch || options.adjustHeight)
+                            svg.setAttribute("preserveAspectRatio", 'none');
+                        svg.setAttribute("position", "absolute");
+                    });
+                };
             },
                         
             makeDraggable: function(){
                 var _this = this;
                 var outside = true;
+                var dragOriginDiv;  
                 if (this.cloneable)
                     $(this.div).draggable({
                         helper: 'clone',
@@ -78,14 +140,12 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         cursorAt: { top: 0, left: 0 },
                         start: function (e, dragged) {    
                             var clone = $(dragged.helper);
-                            clone.addClass('dragged');
-                            //class is for css style only
-                            //$(div).attr('id', this.segment.id); 
-                            //addClass('segment')
+                            clone.addClass('dragged');                            
+                            clone.data('size', _this.segment.attributes.base_size); 
                         }, 
                     });
-                else 
-                     $(this.div).draggable({
+                else {
+                    $(this.div).draggable({
                         cursor: "move", 
                         revertDuration: 200,
                         cursorAt: { 
@@ -93,6 +153,9 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             left: -20
                         },
                         start: function (e, dragged){
+                            dragOriginDiv = dragged.helper.clone();
+                            dragOriginDiv.addClass('dragOrigin');                            
+                            _this.$el.append(dragOriginDiv);
                             //keep track if div is pulled in or out to delete
                             _this.$el.on("dropout", function(e, ui) {
                                 outside = true;
@@ -100,11 +163,12 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             _this.$el.on("drop", function(e, ui) {
                                 outside = false;
                             });
-                            var dragged = $(dragged.helper);
-                            dragged.addClass('dragged');
+                            var drag = $(dragged.helper);
+                            drag.addClass('dragged');
                         },
                         
                         stop: function (e, dragged){
+                            dragOriginDiv.remove();
                             var dragged = $(dragged.helper);
                             if (outside){
                                 _this.delete();
@@ -117,6 +181,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             };
                         }
                     });
+                };
             },
             
             delete: function(){                
@@ -163,7 +228,10 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             }  
                             maxWidth = space + _this.width;  
                         }
+                        var minWidth = _this.segment.attributes.base_size *
+                                _this.pixelRatio;
                         $(div).resizable( "option", "maxWidth", maxWidth );
+                        $(div).resizable( "option", "minWidth", minWidth );
                     },
                     
                     resize: function(e, ui){   

@@ -13,24 +13,12 @@ define(["jquery", "backbone"],
                 this.url += dbID || 1;
                 this.startPos = 0;
             },
-/*
-            defaults: {
-                id: 0,
-                start_width: 0,
-                image_id: null,
-                max_width: 0,
-                min_width: 0,
-                image_data: 0,    
-                rules: null,
-                current_width: 0
-            },*/
 
             validate: function(attrs) {
                 console.log('validation');
             },
                         
-            loadImage: function(pointOfView, callback){
-                var pos = pointOfView || 'front';
+            loadSvg: function(id, callback){
                 //ToDo: switch top and front img
                 var _this = this;
                 var xmlhttp = new XMLHttpRequest();
@@ -39,7 +27,7 @@ define(["jquery", "backbone"],
                         callback(JSON.parse(xmlhttp.responseText).img_svg);
                     }
                 };                
-                xmlhttp.open("GET","db/images/" + _this.attributes.image_id, 
+                xmlhttp.open("GET","db/images/" + id, 
                              true);
                 xmlhttp.send();                
             }            

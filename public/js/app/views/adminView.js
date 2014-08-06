@@ -24,7 +24,8 @@ define(["jquery", "backbone", "text!templates/admin.html",
                                                      el: '#resources'});
                 this.editorView = new EditorView({collection: this.edition,
                                                   el: '#editor',
-                                                  resources: this.resources});
+                                                  resources: this.resources,
+                                                  creationMode: true});
                 this.resources.fetch({reset: true});
             },
 

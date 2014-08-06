@@ -12,7 +12,8 @@ define(["jquery", "backbone", "views/segmentView"],
             // View constructor
             initialize: function(options) {
                 this.resources = options.resources; 
-                this.fixElements = options.fixElements || false
+                this.creationMode = options.creationMode || false;
+                this.fixElements = !this.creationMode;
                 _.bindAll(this, 'render', 'loadEdition');                 
                 this.collection.bind("reset", this.render);  
                 
@@ -34,7 +35,7 @@ define(["jquery", "backbone", "views/segmentView"],
             // Renders the view's template to the UI
             render: function() {            
                 var canvas = this.$el.find('canvas')[0];
-                this.measure = new this.MeasureDisplay(canvas, this.$el);
+                this.measure = new this.MeasureDisplay(canvas, this.$el, this.creationMode);
                 this.streetView = new this.StreetView(this.$el, this.collection, this.measure);
                 this.placeholder = new this.Placeholder(this.streetView, this.$el);
                 
@@ -51,9 +52,11 @@ define(["jquery", "backbone", "views/segmentView"],
                     tolerance: "intersect",
                     cursor: 'auto',
                     over: function(e, dragged) {
-                        var clone = $(dragged.helper);        
-                        clone.animate({height: _this.$el.css('height')}, 250);    
-                        _this.placeholder.setActive(true, clone);
+                        var clone = $(dragged.helper);  
+                        var width = clone.data('size') * _this.pixelRatio();
+                        clone.animate({height: _this.$el.css('height'),
+                                       width: width}, 250);                                      
+                        _this.placeholder.setActive(true, clone, width);
                         dragged.draggable.on( "drag", function( event, ui ) {
                             _this.placeholder.updatePos(event.clientX);} );
                         return;
@@ -64,19 +67,20 @@ define(["jquery", "backbone", "views/segmentView"],
                         var draggedDiv = dropped.draggable;
                         var placeholder = _this.placeholder;
                         if (_this.el != draggedDiv.parent()[0]){
-                            dropped.helper.remove();
                             if (placeholder.droppable){
                                 var segment = _this.resources.getSegmentByID(draggedDiv.data('segmentID')); 
-                                var clone = segment.clone();
+                                var clonedSegment = segment.clone();
+                                clonedSegment.size = dropped.helper.data('size');
                                 var segmentView = new SegmentView({'el': _this.el,
-                                                                   'segment': clone,
+                                                                   'segment': clonedSegment,
                                                                    'leftOffset': placeholder.left,
                                                                    'height': parseInt(placeholder.div.css('height')),
                                                                    'pixelRatio': _this.pixelRatio()});
                                 segmentView.render();
-                                _this.collection.addSegment(clone);
+                                _this.collection.addSegment(clonedSegment);
                                 _this.streetView.insert(segmentView);
-                            }
+                            };                            
+                            dropped.helper.remove();
                         }
                         //else move the existing element to the position of the
                         //placeholder
@@ -95,6 +99,7 @@ define(["jquery", "backbone", "views/segmentView"],
                     out: function(e, dragged){
                         var clone = $(dragged.helper); 
                         clone.animate({height: dragged.draggable.css('height')}, 100);
+                        clone.animate({height: dragged.draggable.css('width')}, 100);
                         _this.placeholder.setActive(false);
                     }
                 });
@@ -264,12 +269,13 @@ define(["jquery", "backbone", "views/segmentView"],
                 };
             },
             
-            MeasureDisplay: function(canvas, parent){
+            MeasureDisplay: function(canvas, parent, showRaster){
                 this.canvas = canvas;
                 this.parent = parent;
                 this.marginTop = 30;
                 this.marginBottom = 50;
                 this.gapTolerance = 2;
+                this.showRaster = showRaster || false;
                 
                 /*
                  * adapt canvas to current parent
@@ -294,15 +300,18 @@ define(["jquery", "backbone", "views/segmentView"],
                 
                 this.drawScalingLine = function(streetView){    
                     var ctx = this.canvas.getContext("2d");
+                    var w = (this.showRaster) ? this.canvas.height - this.marginBottom : this.marginTop;
                     //clear upper area
-                    ctx.clearRect(0, 0, this.canvas.width, this.marginTop);
+                    ctx.clearRect(0, 0, this.canvas.width, w);
                     var lastSegment = streetView.at(streetView.length - 1);
                     if(lastSegment){
                         var streetEndX = (lastSegment) ? lastSegment.left + 
-                                lastSegment.width : this.canvas.width;
-                        var y = 10.5;
+                                lastSegment.width : this.canvas.width;                        
+                        var size = streetEndX / lastSegment.pixelRatio;                        
+                        var middle = streetEndX / 2;
+                        var y = 12.5;
                         ctx.strokeStyle = 'grey';
-                        ctx.setLineDash([1,2]);
+                        ctx.setLineDash([0]);
                         //horizontal line
                         ctx.beginPath();
                         ctx.moveTo(0, y);
@@ -310,25 +319,44 @@ define(["jquery", "backbone", "views/segmentView"],
                         ctx.lineWidth = 1;
                         ctx.stroke();  
                         
-                        //vertical lines
-                        ctx.beginPath();
-                        ctx.moveTo(0, y);
-                        ctx.lineTo(0, this.marginTop); 
-                        ctx.moveTo(streetEndX, y);
-                        ctx.lineTo(streetEndX, this.marginTop); 
-                        ctx.stroke(); 
+                        //vertical lines and raster                            
+                        ctx.font = "8px Arial";                            
+                        ctx.fillStyle = 'grey';
+                        ctx.textAlign = 'left';
+                        //draw a small line every meter
+                        for(var step = 0; step <= size*10; step ++){ 
+                            var bigStep = step % 10 === 0;
+                            ctx.beginPath();     
+                            ctx.strokeStyle = 'grey';
+                            ctx.setLineDash([0]);
+                            var length = 4;
+                            var x = step * lastSegment.pixelRatio /10;
+                            if (bigStep){
+                                length = 8;    
+                                ctx.fillText(step /10, x, y + 13);
+                            }
+                            ctx.moveTo(x, y);
+                            ctx.lineTo(x, y + length); 
+                            ctx.stroke();
+                            if (this.showRaster) {
+                                ctx.beginPath();  
+                                if (bigStep)
+                                    ctx.setLineDash([1,2]);
+                                else {
+                                    ctx.setLineDash([1,4]);
+                                    ctx.strokeStyle = 'lightgrey';
+                                }
+                                ctx.moveTo(x, y);
+                                ctx.lineTo(x, this.canvas.height - this.marginBottom); 
+                                ctx.stroke();
+                            }
+                        }; 
 
                         //small rectangle with display of street size
-                        ctx.beginPath();
-                        var middle = streetEndX / 2;
-                        ctx.rect(middle - 25 , 0.5, 50, 20);
-                        ctx.fillStyle = 'white';
-                        ctx.fill();
-                        ctx.stroke();
+                        ctx.font = "12px Arial";
                         ctx.fillStyle = 'grey';
                         ctx.textAlign = 'center';
-                        var size = streetEndX / lastSegment.pixelRatio;
-                        ctx.fillText(size.toFixed(2) + ' m', middle, y + 3);
+                        ctx.fillText(size.toFixed(2) + ' m', middle, y - 2);
                     };
                 };
                 
@@ -456,7 +484,7 @@ define(["jquery", "backbone", "views/segmentView"],
                     }
                 };
 
-                this.setActive = function(active, clone){
+                this.setActive = function(active, clone, width){
                     this.active = active;
                     //remove placeholder if deactivated
                     if (!active)
@@ -466,13 +494,12 @@ define(["jquery", "backbone", "views/segmentView"],
                         //update the positions of the other divs
                         this.cid = clone.data('segmentViewID');
                         var left = clone.position().left;
-                        var width = clone.css('width');
+                        var width = (width) ? width: clone.css('width');
                         this.div = $(document.createElement('div'));
                         $(this.div).css('width', width);
                         $(this.div).css('height', parent.css('height'));
                         $(this.div).addClass('placeholder');
                         $(this.div).data('segmentViewID', this.cid);
-                        $(this.div).zIndex(9999);
                         parent.append(this.div);
                         this.updatePos(left);
                     }
