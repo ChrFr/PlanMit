@@ -11,19 +11,17 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 //options
                 this.cloneable = options.cloneable || false;
                 this.segment = options.segment;
-                this.leftOffset = options.leftOffset;
                 this.pixelRatio = options.pixelRatio || 1;
                 this.height = options.height || 100;
-                this.offset = options.offset;
                 this.insertSorted = options.insertSorted || false;
                 this.fixed = options.fixed || false;
                 this.svgUnsupported = options.svgUnsupported || false;
                 //processed attributes
-                this.left = this.leftOffset - this.$el.offset().left;
+                this.left = options.left || this.segment.startPos * this.pixelRatio;
                 this.div = null;
                 this.next = null;
                 this.prev = null;
-                this.width = null;
+                this.width = options.width || this.segment.size * this.pixelRatio;
                 //this.render();
             },            
 
@@ -33,7 +31,9 @@ define(["jquery", "backbone", "text!templates/segment.html"],
             },
                         
             // Renders the view's template to the UI
-            render: function() {  
+            render: function() {                  
+                if (this.div)
+                    this.div.remove();
                 if (!(this.segment)) return this;
                 this.template = _.template(template, {}); 
                 var div = document.createElement("div");   
@@ -43,12 +43,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 this.width = this.segment.size * this.pixelRatio
                 $(div).css('width', this.width);         
                 $(div).css('height', this.height);
-                this.segment
-                if (this.leftOffset){
-                    $(div).css('left', this.leftOffset);
-                    this.left = this.leftOffset - this.$el.offset().left;
-                    this.segment.startPos = this.left / this.pixelRatio;
-                };
+                $(div).css('left', this.left + this.$el.offset().left)
 
                 //give the div information about the segment it is viewing
                 $(div).data('segmentID', this.segment.attributes.id); 
@@ -66,6 +61,16 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     this.renderImage();
                 return this;
 
+            },
+            
+            setWidth: function(width){
+                this.width = width;
+                this.segment.size = this.width / this.pixelRatio
+            },
+            
+            setLeft: function(left){
+                this.left = left;
+                this.segment.startPos = this.left / this.pixelRatio;
             },
             
             renderImage: function(){
@@ -93,7 +98,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 $(objectImage).css('margin', '0 auto');                
                 $(imageContainer).append(objectImage);    
                 
-                this.loadImage(attr.image_id, objectImage, {adjustHeight: true});
+                this.loadImage(attr.image_id, objectImage, {adjustHeight: true,
+                                                            maxHeight: height - groundHeight});
                 this.loadImage(attr.image_ground_id, groundImage, {stretch: true});
             },
             
@@ -110,19 +116,31 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     this.segment.loadSvg(imageID, function(svg_data){
                         $(div).html(svg_data);
                         var svg = $(div).find('svg')[0]; 
-                        var width = (options.stretch) ? parseInt($(div).css('width')): parseInt($(svg).css('width'));
-                        var height = (options.stretch) ? parseInt($(div).css('height')): parseInt($(svg).css('height')); 
+                        var divWidth = parseInt($(div).css('width'));
+                        var divHeight = parseInt($(div).css('height'));
+                        var svgWidth = parseInt($(svg).css('width'));
+                        var svgHeight = parseInt($(svg).css('height'));
+                        var width = (options.stretch) ? divWidth: svgWidth;
+                        var height = (options.stretch) ? divHeight: svgHeight; 
                         //set viewbox to if (as a precaution, if not set while
                         //creating image)
                         svg.setAttribute("viewBox", "0 0 " + width + " " + height); 
-                        svg.setAttribute("width", "100%");      
+                        svg.setAttribute("width", "100%");                                     
+                        svg.setAttribute("height", "100%");    
                         if (options.adjustHeight){
                             var ratio = width / parseInt($(div).css('width'));
-                            $(div).css("height", height / ratio);                     
-                            svg.setAttribute("height", "100%");
-                        };                                        
-                        svg.setAttribute("height", "100%");
-                        if (options.stretch || options.adjustHeight)
+                            var maxHeight = options.maxHeight;
+                            if (maxHeight && divHeight > maxHeight){
+                                $(div).css("height", maxHeight);
+                                //svg.setAttribute("width", divWidth);
+                                svg.setAttribute("height", maxHeight);                                 
+                                svg.setAttribute("viewBox", "0 " + (height - maxHeight) + " " + width + " " + options.maxHeight); 
+                                svg.setAttribute("preserveAspectRatio", 'xMidYMax');
+                            }
+                            else                                
+                                $(div).css("height", height / ratio);
+                        };     
+                        if (options.stretch)
                             svg.setAttribute("preserveAspectRatio", 'none');
                         svg.setAttribute("position", "absolute");
                     });
@@ -175,8 +193,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             }
                             else {
                                 dragged.removeClass('dragged');
-                                _this.left = dragged.offset().left - _this.$el.offset().left;
-                                _this.segment.startPos = _this.left / _this.pixelRatio;
+                                var left = dragged.offset().left - _this.$el.offset().left;
+                                _this.setLeft(left);
                                 _this.trigger("moved");
                             };
                         }
@@ -235,9 +253,10 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     },
                     
                     resize: function(e, ui){   
-                        _this.width = parseInt($(div).css('width'));
-                        _this.left = $(div).offset().left - _this.$el.offset().left;                        
-                        _this.segment.size = _this.width / _this.pixelRatio
+                        var width = parseInt($(div).css('width'));                      
+                        _this.setWidth(width);
+                        var left = $(div).offset().left - _this.$el.offset().left;
+                        _this.setLeft(left);
                         _this.trigger('resized');
                     },
                     

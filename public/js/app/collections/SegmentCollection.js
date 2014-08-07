@@ -85,7 +85,7 @@ define(["jquery","backbone","models/SegmentModel"],
                 data: _this.toJSON(),
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
-            });
+            });            
         },  
         
         toJSON: function(){
@@ -103,6 +103,12 @@ define(["jquery","backbone","models/SegmentModel"],
                 i++;
             });
             return JSON.stringify({'template': edition});
+        },
+        
+        getStreetSize: function(){
+            var lastSegment = this.at(this.length - 1);
+            var size = (lastSegment) ? lastSegment.size + lastSegment.startPos: null;
+            return size;
         }
         
     });
