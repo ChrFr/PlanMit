@@ -43,11 +43,13 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 this.width = this.segment.size * this.pixelRatio
                 $(div).css('width', this.width);         
                 $(div).css('height', this.height);
-                $(div).css('left', this.left + this.$el.offset().left)
+                $(div).css('left', this.left + this.$el.offset().left);
 
                 //give the div information about the segment it is viewing
                 $(div).data('segmentID', this.segment.attributes.id); 
                 $(div).data('segmentViewID', this.cid); 
+                if (this.fixed)
+                    $(div).addClass('fixed');
                 if (!this.fixed) {
                     $(div).addClass('segment');
                     this.makeDraggable();
@@ -58,9 +60,37 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 if (this.cloneable)
                     this.renderThumbnail();
                 else
-                    this.renderImage();
+                    this.renderImage();                
+                this.OSD.render(this);
                 return this;
 
+            },
+            
+            OSD: {
+                view: null,
+        
+                render: function(view){
+                    this.view = view;
+                    if (view.cloneable)
+                        $(view.div).find('.OSD').hide();
+                    else
+                        $(view.div).hover(
+                            function() {
+                                $(view.div).find('.OSD').show(); 
+                            }, 
+                            function() {
+                                $(view.div).find('.OSD').hide();
+                        });
+                    if (view.fixed){
+                        $(view.div).find('#lockedSymbol').css('visibility', 'visible');
+                        $(view.div).find('#lefthandle').hide();                    
+                        $(view.div).find('#righthandle').hide();
+                    }
+                    else{  
+                        $(view.div).find('#unlockedSymbol').css('visibility', 'visible');
+                        $(view.div).find('#fixedSymbol').hide();
+                    }
+                },    
             },
             
             setWidth: function(width){
@@ -95,12 +125,15 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 $(objectImage).css('bottom', groundHeight);
                 $(objectImage).css('left', '0');
                 $(objectImage).css('right', '0');
-                $(objectImage).css('margin', '0 auto');                
+                $(objectImage).css('margin', '0 auto');  
                 $(imageContainer).append(objectImage);    
                 
                 this.loadImage(attr.image_id, objectImage, {adjustHeight: true,
                                                             maxHeight: height - groundHeight});
                 this.loadImage(attr.image_ground_id, groundImage, {stretch: true});
+                    
+                $(imageContainer).zIndex(1);
+                $(objectImage).zIndex(1);    
             },
             
             renderThumbnail: function(){
@@ -219,8 +252,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     },
                     start: function(e, ui){
                         //prevent showing the handles of neighbours while resizing
-                        $('.ui-resizable-handle').css('visibility', 'hidden');
-                        $(div).find('.ui-resizable-handle').css('visibility', 'visible');
+                        $('.OSD').css('visibility', 'hidden');
+                        $(div).find('.OSD').css('visibility', 'visible');
                         //max width for resizing to the left
                         if ($(e.toElement).attr('id') === 'lefthandle'){
                             //is there a segment to the left?
@@ -262,8 +295,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     
                     stop: function(e, ui){  
                         //make all other handles visible again (while hovering)
-                        $(div).find('.ui-resizable-handle').css('display', 'none');
-                        $('.ui-resizable-handle').css('visibility', 'visible');
+                        //$(div).find('.OSD').css('display', 'none');
+                        $('.OSD').css('visibility', 'visible');
                     }
                 }); 
             }                        

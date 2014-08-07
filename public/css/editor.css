@@ -15,23 +15,84 @@ body {
     cursor: auto;
 }
 
+.OSD {
+    position:absolute;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 9000;
+    display: none;
+}
+
+.OSDSymbol{
+    position: absolute;
+    width: 40px;
+    height: 40px;    
+    left: 0px;
+    top: 0px;
+    visibility: hidden;
+}
+
+#lockedSymbol{
+    background-size: auto 100%;
+    background-repeat: no-repeat;
+    background-image: url("/img/icons-png/locked.png"); 
+    left: 5px;
+    top: 10px;
+}
+
+#unlockedSymbol{
+    background-size: auto 100%;
+    background-repeat: no-repeat;
+    background-image: url("/img/icons-png/unlocked.png"); 
+    left: 5px;
+    top: 10px;
+}
+
+#lefthandle, #righthandle {
+    width: 30px;
+    height: 15%;
+    background-color: #fecf1d;
+    opacity: .3;
+    position: absolute;
+    top: 45%;
+    background-size: 80% 80%;
+    background-repeat: no-repeat;
+}
+#lefthandle:hover, #righthandle:hover{    
+    opacity: 1;
+}
+
+#lefthandle{
+    left: 0px;
+    background-image: url("/img/icons-png/triangle-white-left.png");
+    background-position: center 50%;
+    border-radius: 0px 5px 5px 0px;
+}
+#righthandle{
+    right: 0px;
+    background-image: url("/img/icons-png/triangle-white-right.png");
+    background-position: center 50%;
+    border-radius: 5px 0px 0px 5px;
+}
+
 .segment {
-  //background: mintcream;
-  height: 100px;
-  width: 100px;  
-  cursor: pointer;
-  background: transparent;
+    //background: mintcream;
+    height: 100px;
+    width: 100px;  
+    cursor: pointer;
+    background: transparent;
 }
 
 #imageContainer {
     height: 100%;
     width: 100%;
+    z-index: 0;
 }
 
 .image {
     background: transparent;
     position: absolute;
-    z-index: 5000;
 }
 
 .editor > .segment:hover {
@@ -45,6 +106,11 @@ body {
     background: #fefefe;  
     border-radius: 15px;
     border: solid #fecf1d;
+}
+
+.source > .segment >.OSD {
+    display:  None;    
+    visibility:  hidden;
 }
 
 .editor {
@@ -107,6 +173,13 @@ body {
                 0px  6px 8px #840401;
 }
 
+.editor > .fixed:hover{ 
+  box-shadow: -0px -6px 8px #d9d9d9,
+                0px -0px 0px #d9d9d9,
+               -0px  0px 0px #d9d9d9,
+                0px  6px 8px #d9d9d9;
+}
+
 .dragged{
     background: transparent;  
     border-radius: 15px;
@@ -119,24 +192,4 @@ body {
     background: #e3e3e3; 
     border: dotted #000;    
     opacity: .2;
-}
-
-#lefthandle, #righthandle {
-    width: 20px;
-    height: 100%;
-    background-color: #fecf1d;
-    opacity: .3;
-    z-index: 9000;
-    display: none;
-    position: absolute;
-    //border: 1px solid #000000;
-}
-
-#lefthandle{
-    //left:-5px;
-    top: 0px;
-}
-#righthandle{
-    right:1px;
-    top: 0px;
 }

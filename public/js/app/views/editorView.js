@@ -19,7 +19,6 @@ define(["jquery", "backbone", "views/segmentView"],
                 _.bindAll(this, 'render', 'loadEdition');                 
                 this.collection.bind("reset", function(){                                 
                     _this.streetSize = options.startSize || this.getStreetSize() || 10;
-                    console.log(_this.streetSize);
                     _this.render();
                     
                 });  
@@ -99,7 +98,7 @@ define(["jquery", "backbone", "views/segmentView"],
                                 clonedSegment.size = dropped.helper.data('size');
                                 var segmentView = new SegmentView({'el': _this.el,
                                                                    'segment': clonedSegment,
-                                                                   'left': placeholder.left,
+                                                                   'left': placeholder.left - _this.$el.offset().left,
                                                                    'height': parseInt(placeholder.div.css('height')),
                                                                    'pixelRatio': _this.pixelRatio()});
                                 segmentView.render();
@@ -355,16 +354,6 @@ define(["jquery", "backbone", "views/segmentView"],
                         firstSegment.left + firstSegment.width: 0; 
                     var streetEndX = (lastSegment && lastSegment.segment.fixed) ?
                         lastSegment.left: this.canvas.width;  
-                    //draw the measure line between first and last element
-                    /*
-                    if (firstSegment) 
-                        streetStartX = (firstSegment.segment.fixed) ? 
-                            firstSegment.left + firstSegment.width: 
-                                    firstSegment.left;                    
-                    if (lastSegment)
-                        streetEndX = (lastSegment.fixed) ? lastSegment.left: 
-                            lastSegment.left + lastSegment.width; 
-                            */
                     var width = streetEndX - streetStartX;
                     var size = width / ratio;                        
                     var middle = width / 2 + streetStartX;
