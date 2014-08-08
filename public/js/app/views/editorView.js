@@ -109,7 +109,7 @@ define(["jquery", "backbone", "views/segmentView"],
                                                                    'steps': _this.steps,
                                                                    'creationMode': _this.creationMode,
                                                                    'left': left,
-                                                                   'height': parseInt(placeholder.div.css('height')),
+                                                                   'height': parseFloat(placeholder.div.css('height')),
                                                                    'pixelRatio': _this.pixelRatio()});
                                 segmentView.render();
                                 segmentView.setLeft(left);
@@ -183,9 +183,9 @@ define(["jquery", "backbone", "views/segmentView"],
 
                 this.doesFit = function(div){
                     var left = $(div).offset().left - parent.offset().left;
-                    var width = parseInt($(div).css('width'));
+                    var width = parseFloat($(div).css('width'));
                     var right = left + width;
-                    var editorWidth = parseInt(parent.css('width'));
+                    var editorWidth = parseFloat(parent.css('width'));
                     var gap = {fits: false,
                                left: 0,
                                right: 0};
@@ -280,8 +280,8 @@ define(["jquery", "backbone", "views/segmentView"],
                             segmentView.segment.startPos = Math.floor((prev.segment.startPos 
                                     + prev.segment.size) * 100) / 100; 
                             $(segmentView.div).css('left', 
-                                parseInt($(prev.div).css('left')) + 
-                                        parseInt($(prev.div).css('width')));
+                                parseFloat($(prev.div).css('left')) + 
+                                        parseFloat($(prev.div).css('width')));
                         }
                         var distRight = (next) ? next.segment.startPos 
                                 - (segmentView.segment.startPos + segmentView.segment.size): this.streetSize;
@@ -290,8 +290,8 @@ define(["jquery", "backbone", "views/segmentView"],
                             segmentView.segment.size = Math.floor((next.segment.startPos 
                                 - segmentView.segment.startPos) * 100) / 100; 
                             $(segmentView.div).css('width', 
-                                parseInt($(next.div).css('left')) -  
-                                        parseInt($(segmentView.div).css('left')));
+                                parseFloat($(next.div).css('left')) -  
+                                        parseFloat($(segmentView.div).css('left')));
                         }*/
                         _this.measureDisplay.draw(_this);
                     });
@@ -365,8 +365,8 @@ define(["jquery", "backbone", "views/segmentView"],
                  * adapt canvas to current parent
                  */
                 this.resize = function(){
-                    var width = parseInt(this.parent.css('width'));
-                    var height = parseInt(this.parent.css('height')) +
+                    var width = parseFloat(this.parent.css('width'));
+                    var height = parseFloat(this.parent.css('height')) +
                                  this.marginTop + 
                                  this.marginBottom;
                     $(this.canvas).css('top', this.parent.offset().top -
@@ -501,7 +501,7 @@ define(["jquery", "backbone", "views/segmentView"],
                         
                         var next = segmentView.next
                         //visualize gaps between segments
-                        var nextLeft = (next) ? next.left: parseInt(this.parent.css('width'));
+                        var nextLeft = (next) ? next.left: parseFloat(this.parent.css('width'));
                         var thisRightPos = (segmentView.segment) ? (segmentView.segment.startPos + 
                                     segmentView.segment.size): 0;
                         var nextStartPos = (next) ? next.segment.startPos: this.streetSize;
@@ -551,8 +551,8 @@ define(["jquery", "backbone", "views/segmentView"],
                         //prevent overlapping the borders
                         var minLeft = parent.offset().left;
                         var maxLeft = minLeft + 
-                                      parseInt(parent.css('width')) -
-                                      parseInt($(this.div).css('width'));                              
+                                      parseFloat(parent.css('width')) -
+                                      parseFloat($(this.div).css('width'));                              
                         if (left <= minLeft)
                             left = minLeft;                                
                         else if (left >= maxLeft)
@@ -625,7 +625,7 @@ define(["jquery", "backbone", "views/segmentView"],
             //the fixed attribute of each segment model in the collection
             loadEdition: function(){
                 var _this = this;
-                var height = parseInt(this.$el.css('height'));
+                var height = parseFloat(this.$el.css('height'));
                 var editorOffset = this.$el.offset().left
                 var ratio = this.pixelRatio();
                 this.collection.each(function(segment){
@@ -641,12 +641,12 @@ define(["jquery", "backbone", "views/segmentView"],
             },
             
             pixelRatio: function(){
-                return parseInt($(this.$el[0]).css('width')) / 
+                return parseFloat($(this.$el[0]).css('width')) / 
                     this.streetSize;
             },
                                
             streetProfileWidth: function(){
-                var width = parseInt($(this.$el[0]).css('width')) / this.pixelRatio();
+                var width = parseFloat($(this.$el[0]).css('width')) / this.pixelRatio();
                 this.collection.each((function(child){
                     //category 1 (borders like buildings etc.) don't belong
                     //to the profile of the street

@@ -159,8 +159,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 var objectImage = document.createElement("div"); 
                 var groundImage = document.createElement("div");
                 var attr = this.segment.attributes;
-                var height = parseInt($(imageContainer).css('height'));                
-                var width = parseInt($(imageContainer).css('width'));
+                var height = parseFloat($(imageContainer).css('height'));                
+                var width = parseFloat($(imageContainer).css('width'));
                 var groundHeight = height / 8;
                 
                 //render the ground on the bottom                
@@ -205,10 +205,10 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             $(div).css('width', actual_size * r);
                         $(div).html(svg_data);
                         var svg = $(div).find('svg')[0]; 
-                        var divWidth = parseInt($(div).css('width'));
-                        var divHeight = parseInt($(div).css('height'));
-                        var svgWidth = parseInt($(svg).css('width'));
-                        var svgHeight = parseInt($(svg).css('height'));
+                        var divWidth = parseFloat($(div).css('width'));
+                        var divHeight = parseFloat($(div).css('height'));
+                        var svgWidth = parseFloat($(svg).css('width'));
+                        var svgHeight = parseFloat($(svg).css('height'));
                         var width = (options.stretch) ? divWidth: svgWidth;
                         var height = (options.stretch) ? divHeight: svgHeight; 
                         //set viewbox to if (as a precaution, if not set while
@@ -230,7 +230,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                                 svg.setAttribute("height", "100%");   
                                 $(div).css("height", height / ratio);
                             }
-                            var parentWidth = parseInt($(div).parent().css('width'))
+                            var parentWidth = parseFloat($(div).parent().css('width'))
                             if (divWidth > parentWidth){
                                 $(div).css("left", -(divWidth - parentWidth / 2));
                                 $(div).css("right", -(divWidth - parentWidth / 2));
@@ -265,7 +265,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         cursor: "move", 
                         revertDuration: 200,
                         cursorAt: { 
-                            top: parseInt($(_this.div).css('height'))/2, 
+                            top: parseFloat($(_this.div).css('height'))/2, 
                             left: -20
                         },
                         start: function (e, dragged){
@@ -339,7 +339,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             }          
                             //no segment behind? take the border of the editor
                             else {
-                                var space = parseInt(_this.$el.css('width'))-
+                                var space = parseFloat(_this.$el.css('width'))-
                                         (_this.left + _this.width); 
                             }  
                             maxWidth = space + _this.width;  
@@ -351,7 +351,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     },
                     
                     resize: function(e, ui){   
-                        var width = parseInt($(div).css('width'));                      
+                        var width = parseFloat($(div).css('width'));                      
                         _this.setWidth(width);
                         var left = $(div).offset().left - _this.$el.offset().left;
                         _this.setLeft(left);                            
