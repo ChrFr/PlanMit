@@ -109,7 +109,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 var groundImage = document.createElement("div");
                 var attr = this.segment.attributes;
                 var height = parseInt($(imageContainer).css('height'));                
-                var width = parseInt($(imageContainer).css('height'));
+                var width = parseInt($(imageContainer).css('width'));
                 var groundHeight = height / 8;
                 
                 //render the ground on the bottom                
@@ -120,17 +120,19 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 $(imageContainer).append(groundImage);      
                 
                 //image of the object on top of the ground
-                $(objectImage).css('width', attr.base_size * this.pixelRatio);
+                $(objectImage).css('width', '100%');
                 $(objectImage).addClass('image');
                 $(objectImage).css('bottom', groundHeight);
                 $(objectImage).css('left', '0');
                 $(objectImage).css('right', '0');
                 $(objectImage).css('margin', '0 auto');  
-                $(imageContainer).append(objectImage);    
+                $(imageContainer).append(objectImage);   
                 
-                this.loadImage(attr.image_id, objectImage, {adjustHeight: true,
-                                                            maxHeight: height - groundHeight});
-                this.loadImage(attr.image_ground_id, groundImage, {stretch: true});
+                this.loadImage(attr.image_id, objectImage, this.pixelRatio,
+                                {adjustHeight: true,
+                                 maxHeight: height - groundHeight});
+                this.loadImage(attr.image_ground_id, groundImage, this.pixelRatio,
+                               {stretch: true});
                     
                 $(imageContainer).zIndex(1);
                 $(objectImage).zIndex(1);    
@@ -143,10 +145,13 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 $(imageContainer).append(imageContainer);                      
             },
             
-            loadImage: function(imageID, div, options){
+            loadImage: function(imageID, div, pixelRatio, options){
                 var options = options || {};
-                if (!this.svgUnsupported){ 
-                    this.segment.loadSvg(imageID, function(svg_data){
+                var r = pixelRatio || 1;
+                if (!this.svgUnsupported){
+                    this.segment.loadSvg(imageID, function(svg_data, actual_size){  
+                        if (actual_size)
+                            $(div).css('width', actual_size * r);
                         $(div).html(svg_data);
                         var svg = $(div).find('svg')[0]; 
                         var divWidth = parseInt($(div).css('width'));
@@ -161,7 +166,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         svg.setAttribute("width", "100%");                                     
                         svg.setAttribute("height", "100%");    
                         if (options.adjustHeight){
-                            var ratio = width / parseInt($(div).css('width'));
+                            var ratio = width / divWidth;
                             var maxHeight = options.maxHeight;
                             if (maxHeight && divHeight > maxHeight){
                                 $(div).css("height", maxHeight);
@@ -172,6 +177,12 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             }
                             else                                
                                 $(div).css("height", height / ratio);
+                            var parentWidth = parseInt($(div).parent().css('width'))
+                            if (divWidth > parentWidth){
+                                $(div).css("left", -(divWidth - parentWidth / 2));
+                                $(div).css("right", -(divWidth - parentWidth / 2));
+                            }
+                                
                         };     
                         if (options.stretch)
                             svg.setAttribute("preserveAspectRatio", 'none');

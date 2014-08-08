@@ -24,7 +24,8 @@ define(["jquery", "backbone"],
                 var xmlhttp = new XMLHttpRequest();
                 xmlhttp.onreadystatechange = function(){
                     if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                        callback(JSON.parse(xmlhttp.responseText).img_svg);
+                        var res = JSON.parse(xmlhttp.responseText)
+                        callback(res.img_svg, res.actual_size);
                     }
                 };                
                 xmlhttp.open("GET","db/images/" + id, 
