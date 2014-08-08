@@ -29,24 +29,28 @@ body {
     width: 40px;
     height: 40px;    
     left: 0px;
-    top: 0px;
-    display: none;
+    top: 10px;
+    display: none;    
+    border-radius: 20px 20px 20px 20px;    
+    background-size: auto 80%;    
+    background-position: center center;
+    background-repeat: no-repeat;
 }
 
-#lockedSymbol{
-    background-size: auto 100%;
-    background-repeat: no-repeat;
+
+.OSDSymbol:hover{
+    box-shadow: -0px -0px 8px #fecf1d,
+                 0px -0px 8px #fecf1d,
+                -0px  0px 8px #fecf1d,
+                 0px  0px 8px #fecf1d;
+}
+
+#lockedSymbol{    
     background-image: url("/img/icons-png/locked-yellow.png"); 
-    left: 5px;
-    top: 10px;
 }
 
 #unlockedSymbol{
-    background-size: auto 100%;
-    background-repeat: no-repeat;
     background-image: url("/img/icons-png/unlocked-yellow.png"); 
-    left: 5px;
-    top: 10px;
 }
 
 .fixed > .OSD > #lockedSymbol{
@@ -55,6 +59,13 @@ body {
 
 .fixed > .OSD > #unlockedSymbol{
     background-image: url("/img/icons-png/unlocked.png"); 
+}
+
+.fixed > .OSD > #lockedSymbol:hover, .fixed > .OSD > #unlockedSymbol:hover {
+    box-shadow: -0px -0px 0px #fecf1d,
+                 0px -0px 0px #fecf1d,
+                -0px  0px 0px #fecf1d,
+                 0px  0px 0px #fecf1d;
 }
 
 #lefthandle, #righthandle {

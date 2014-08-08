@@ -22,6 +22,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 this.next = null;
                 this.prev = null;
                 this.width = options.width || this.segment.size * this.pixelRatio;
+                this.steps = options.steps || 0.01;
                 //this.render();
             },            
 
@@ -41,6 +42,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 $(div).html(this.template);                    
                 this.$el.append(div);                                             
                 this.width = this.segment.size * this.pixelRatio
+                this.setLeft(this.left);
                 $(div).css('width', this.width);         
                 $(div).css('height', this.height);
                 $(div).css('left', this.left + this.$el.offset().left);
@@ -82,9 +84,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                                 $(view.div).find('.OSD').hide();
                         });
                         
-                    //toggle lock on segments by showing/hiding handles
-                    //in editing mode; in creation mode the segment fixed
-                    //status is toggled
+                    //toggle lock on segments 
                     if (view.segment.fixed){
                         $(view.div).find('#lockedSymbol').show();
                         if (!view.creationMode){                        
@@ -95,11 +95,16 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     else{  
                         $(view.div).find('#unlockedSymbol').show();
                     };
-                    $(view.div).find('#lockedSymbol').click(function(){                 
+                    //locked clicked -> unlock
+                    $(view.div).find('#lockedSymbol').click(function(){ 
+                    console.log(view.creationMode)                
                         if (view.creationMode){
-                            view.segment.fixed = false;                           
+                            view.segment.fixed = false;     
+                            //just telling the measure display to redraw
+                            //no actual resize done
                             view.trigger('resized');
-                        }
+                        }                        
+                        //enable resizing and dragging in editing mode
                         else if (!view.segment.fixed){
                             $(view.div).find('#lefthandle').show();                    
                             $(view.div).find('#righthandle').show();
@@ -109,16 +114,19 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             $(view.div).find('#lockedSymbol').hide();
                             $(view.div).find('#unlockedSymbol').show();     
                         }                        
-                    });                        
+                    });              
+                    //unlocked click -> lock
                     $(view.div).find('#unlockedSymbol').click(function(){
                         $(view.div).find('#unlockedSymbol').hide();
                         $(view.div).find('#lockedSymbol').show();
                         //toggle fixed status of segment in creation mode
                         if (view.creationMode){
-                            view.segment.fixed = true;                            
+                            view.segment.fixed = true;        
+                            //just telling the measure display to redraw 
+                            //no actual resize done                   
                             view.trigger('resized');
                         }
-                        //disable resize and dragging in editing mode
+                        //disable resizing and dragging in editing mode
                         else{
                             $(view.div).draggable({ disabled: true });
                             $(view.div).find('#lefthandle').hide();                    
@@ -131,12 +139,18 @@ define(["jquery", "backbone", "text!templates/segment.html"],
             
             setWidth: function(width){
                 this.width = width;
-                this.segment.size = this.width / this.pixelRatio
+                var size = this.width / this.pixelRatio;
+                //floor to fit steps
+                size -= (size % this.steps);
+                this.segment.size = parseFloat(size.toFixed(2));
             },
             
             setLeft: function(left){
                 this.left = left;
-                this.segment.startPos = this.left / this.pixelRatio;
+                var startPos = this.left / this.pixelRatio;
+                //floor to fit steps
+                startPos -= (startPos % this.steps);                
+                this.segment.startPos = parseFloat(startPos.toFixed(2));
             },
             
             renderImage: function(){
@@ -277,7 +291,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             else {
                                 dragged.removeClass('dragged');
                                 var left = dragged.offset().left - _this.$el.offset().left;
-                                _this.setLeft(left);
+                                _this.setLeft(left);                                
                                 _this.trigger("moved");
                             };
                         }
@@ -295,12 +309,13 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 var div = this.div;                
                 var maxWidth = 0;
                 $(div).resizable({
+                    grid: _this.steps * _this.pixelRatio,
                     handles: {
                       'w': '#lefthandle',
                       'e': '#righthandle'
                     },
                     start: function(e, ui){
-                        //prevent showing the handles of neighbours while resizing
+                        //prevent showing the OSD of neighbours while resizing
                         $('.OSD').css('visibility', 'hidden');
                         $(div).find('.OSD').css('visibility', 'visible');
                         //max width for resizing to the left
@@ -343,8 +358,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     },
                     
                     stop: function(e, ui){  
-                        //make all other handles visible again (while hovering)
-                        //$(div).find('.OSD').css('display', 'none');
+                        //make all other OSDs visible again on hover
                         $('.OSD').css('visibility', 'visible');
                     }
                 }); 
