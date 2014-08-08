@@ -19,7 +19,6 @@ define(["jquery", "backbone", "views/segmentView"],
                 _.bindAll(this, 'render', 'loadEdition');                 
                 this.collection.bind("reset", function(){                                 
                     _this.streetSize = options.startSize || this.getStreetSize() || 10;
-                console.log(_this.collection.getStreetSize())
                     _this.render();
                     
                 });  
@@ -48,9 +47,8 @@ define(["jquery", "backbone", "views/segmentView"],
                 var canvas = this.$el.find('canvas')[0];
                 this.measure = new this.MeasureDisplay(canvas, this.$el, 
                                             this.streetSize, this.creationMode);
-                this.streetView = new this.StreetView(this.$el, this.collection, this.measure);
-                this.placeholder = new this.Placeholder(this.streetView, this.$el,
-                                                        {grid: this.steps * this.pixelRatio()});
+                this.streetView = new this.StreetView(this.$el, this.collection, this.steps, this.measure);
+                this.placeholder = new this.Placeholder(this.streetView, this.$el);
                 this.streetView.changeScale(this.pixelRatio());
                 
                 if (this.creationMode){
@@ -66,6 +64,7 @@ define(["jquery", "backbone", "views/segmentView"],
                         },
                         change: function(e, ui){                            
                             _this.streetSize = ui.value;
+                            _this.measure.streetSize = ui.value;
                             _this.streetView.changeScale(_this.pixelRatio());
                         }
                     });
@@ -104,14 +103,16 @@ define(["jquery", "backbone", "views/segmentView"],
                                 var segment = _this.resources.getSegmentByID(draggedDiv.data('segmentID')); 
                                 var clonedSegment = segment.clone();
                                 clonedSegment.size = dropped.helper.data('size');
+                                var left = placeholder.left - _this.$el.offset().left
                                 var segmentView = new SegmentView({'el': _this.el,
                                                                    'segment': clonedSegment,
                                                                    'steps': _this.steps,
                                                                    'creationMode': _this.creationMode,
-                                                                   'left': placeholder.left - _this.$el.offset().left,
+                                                                   'left': left,
                                                                    'height': parseInt(placeholder.div.css('height')),
                                                                    'pixelRatio': _this.pixelRatio()});
                                 segmentView.render();
+                                segmentView.setLeft(left);
                                 _this.collection.addSegment(clonedSegment);
                                 _this.streetView.insert(segmentView);
                             };                            
@@ -140,13 +141,14 @@ define(["jquery", "backbone", "views/segmentView"],
                 });
             },
             
-            StreetView: function(parent, collection, measureDisplay){
+            StreetView: function(parent, collection, steps, measureDisplay){
                 this.parent = parent;
                 this.collection = collection;
                 this.first = null;
                 this.length = 0;
                 this.measureDisplay = measureDisplay;                
                 this.pixelRatio = 1;
+                this.steps = steps;
                 
                 this.changeScale = function(pixelRatio){
                     var changeRatio = pixelRatio / this.pixelRatio;
@@ -156,8 +158,8 @@ define(["jquery", "backbone", "views/segmentView"],
                         var left = segmentView.left * changeRatio;
                         var width = segmentView.width * changeRatio;
                         segmentView.pixelRatio = pixelRatio;
-                        segmentView.setLeft(left);
-                        segmentView.setWidth(width);
+                        segmentView.left = left;
+                        segmentView.width = width;
                         segmentView.render();
                         segmentView = segmentView.next;
                     };
@@ -266,11 +268,38 @@ define(["jquery", "backbone", "views/segmentView"],
                     segmentView.on("moved", function(){                            
                         _this.relocate(this);
                     });
-                    segmentView.on("resized", function(){
+                    segmentView.on("resized", function(){/*
+                        //resize is not precise enough -> adjust to
+                        //tolerance of steps and close tiny gaps
+                        var prev = segmentView.prev;
+                        var next = segmentView.next;
+                        var distLeft = (prev) ? segmentView.segment.startPos 
+                                - (prev.segment.startPos + prev.segment.size): 0;
+                        distLeft = parseFloat(distLeft.toFixed(2));
+                        if (distLeft !== 0 && distLeft <= Math.abs(this.steps * 2)){  
+                            segmentView.segment.startPos = Math.floor((prev.segment.startPos 
+                                    + prev.segment.size) * 100) / 100; 
+                            $(segmentView.div).css('left', 
+                                parseInt($(prev.div).css('left')) + 
+                                        parseInt($(prev.div).css('width')));
+                        }
+                        var distRight = (next) ? next.segment.startPos 
+                                - (segmentView.segment.startPos + segmentView.segment.size): this.streetSize;
+                        distRight = parseFloat(distRight.toFixed(2));
+                        if (distRight !== 0 && distRight <= Math.abs(this.steps * 2)){
+                            segmentView.segment.size = Math.floor((next.segment.startPos 
+                                - segmentView.segment.startPos) * 100) / 100; 
+                            $(segmentView.div).css('width', 
+                                parseInt($(next.div).css('left')) -  
+                                        parseInt($(segmentView.div).css('left')));
+                        }*/
                         _this.measureDisplay.draw(_this);
                     });
                     segmentView.on("delete", function(){  
                         _this.remove(this, true);
+                    });
+                    segmentView.on("update", function(){  
+                        _this.measureDisplay.draw(_this);
                     });
                     segmentView.pixelRatio = this.pixelRatio;
                     this.length++;
@@ -361,20 +390,20 @@ define(["jquery", "backbone", "views/segmentView"],
                     ctx.clearRect(0, 0, this.canvas.width, w);
                     var firstSegment = streetView.at(0);
                     var lastSegment = streetView.at(streetView.length - 1);
-                    var streetStartX = (firstSegment && firstSegment.segment.fixed) ? 
-                        firstSegment.left + firstSegment.width: 0; 
-                    var streetEndX = (lastSegment && lastSegment.segment.fixed) ?
-                        lastSegment.left: this.canvas.width;  
-                    var width = streetEndX - streetStartX;
-                    var size = width / ratio;                        
-                    var middle = width / 2 + streetStartX;
+                    var streetStart = (firstSegment && firstSegment.segment.fixed) ? 
+                        firstSegment.segment.startPos + firstSegment.segment.size: 0; 
+                    var streetEnd = (lastSegment && lastSegment.segment.fixed) ?
+                        lastSegment.segment.startPos: this.streetSize;  
+                    var size = streetEnd - streetStart;           
+                    var middle = size / 2 + streetStart;
                     var y = 12.5;
+                    
                     ctx.strokeStyle = 'grey';
                     ctx.setLineDash([0]);
                     //horizontal line
                     ctx.beginPath();
-                    ctx.moveTo(streetStartX, y);
-                    ctx.lineTo(streetEndX, y); 
+                    ctx.moveTo(streetStart * ratio, y);
+                    ctx.lineTo(streetEnd * ratio, y); 
                     ctx.lineWidth = 1;
                     ctx.stroke();  
 
@@ -382,18 +411,18 @@ define(["jquery", "backbone", "views/segmentView"],
                     ctx.font = "8px Arial";                            
                     ctx.fillStyle = 'grey';
                     ctx.textAlign = 'left';
-                    var step = ratio / 10;
+                    var step = 0.1;
                     var i = 0;
                     //draw a small line every meter
-                    for(var x = streetStartX; x <= streetEndX; x += step){ 
+                    for(var x = (streetStart * ratio); x <= (streetEnd * ratio); x += (step * ratio)){ 
                         var length = 4;
-                        var bigStep = (i % 10 === 0) ? true: false;
+                        var bigStep = ((i % 10) === 0) ? true: false;
                         ctx.beginPath();     
                         ctx.strokeStyle = 'grey';
                         ctx.setLineDash([0]);
                         if (bigStep){
                             length = 8;    
-                            ctx.fillText((i * step / ratio).toFixed(0), x, y + 13);
+                            ctx.fillText(i / 10, x, y + 13);
                         }
                         ctx.moveTo(x, y);
                         ctx.lineTo(x, y + length); 
@@ -418,7 +447,7 @@ define(["jquery", "backbone", "views/segmentView"],
                     ctx.font = "12px Arial";
                     ctx.fillStyle = 'grey';
                     ctx.textAlign = 'center';
-                    ctx.fillText(size.toFixed(2) + ' m', middle, y - 2);
+                    ctx.fillText(size.toFixed(2) + ' m', middle * ratio, y - 2);
                 };
                 
                 this.drawInfoLine = function(streetView){  
@@ -511,12 +540,10 @@ define(["jquery", "backbone", "views/segmentView"],
                 this.left = 0;
                 this.div = null;
                 this.cid = null;
-                this.segmentView = null;
                 this.snapTolerance = 20;
                 //offset of the dragged helper to the placeholder while dragging
                 this.offsetX = -20;
                 this.droppable = true;
-                this.grid = options.grid || 1;
 
                 this.updatePos = function(left){
                     if (this.active){
@@ -530,10 +557,9 @@ define(["jquery", "backbone", "views/segmentView"],
                             left = minLeft;                                
                         else if (left >= maxLeft)
                             left = maxLeft;
-                        
                         //snap to grid based on steps     
-                        left -= (left % this.grid);
-                        left = Math.floor(left);
+                        left -= (left % this.streetView.steps * this.streetView.pixelRatio);
+                        left = left;
                         this.left = left;
                         $(this.div).css('left', left);
                         var gap = this.streetView.doesFit(this.div);
@@ -618,17 +644,7 @@ define(["jquery", "backbone", "views/segmentView"],
                 return parseInt($(this.$el[0]).css('width')) / 
                     this.streetSize;
             },
-                        
-            allChildrenWidth: function(){
-                var width = 0;
-                this.collection.each((function(child){
-                    width += child.size;
-                }));
-                return width;
-                
-                //check order of children of div here, set pos of models in collection by passing ids to collection
-            },      
-            
+                               
             streetProfileWidth: function(){
                 var width = parseInt($(this.$el[0]).css('width')) / this.pixelRatio();
                 this.collection.each((function(child){

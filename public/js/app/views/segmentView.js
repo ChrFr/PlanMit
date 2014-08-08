@@ -42,7 +42,6 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 $(div).html(this.template);                    
                 this.$el.append(div);                                             
                 this.width = this.segment.size * this.pixelRatio
-                this.setLeft(this.left);
                 $(div).css('width', this.width);         
                 $(div).css('height', this.height);
                 $(div).css('left', this.left + this.$el.offset().left);
@@ -97,12 +96,10 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     };
                     //locked clicked -> unlock
                     $(view.div).find('#lockedSymbol').click(function(){ 
-                    console.log(view.creationMode)                
                         if (view.creationMode){
                             view.segment.fixed = false;     
                             //just telling the measure display to redraw
-                            //no actual resize done
-                            view.trigger('resized');
+                            view.trigger('update');
                         }                        
                         //enable resizing and dragging in editing mode
                         else if (!view.segment.fixed){
@@ -137,20 +134,24 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 },    
             },
             
-            setWidth: function(width){
-                this.width = width;
+            setWidth: function(width, cssUpdate){
+                this.width = width;      
+                if (cssUpdate)
+                    $(this.div).css('width', this.width);         
                 var size = this.width / this.pixelRatio;
                 //floor to fit steps
                 size -= (size % this.steps);
-                this.segment.size = parseFloat(size.toFixed(2));
+                this.segment.size = Math.floor(size * 100) / 100;
             },
             
-            setLeft: function(left){
-                this.left = left;
+            setLeft: function(left, cssUpdate){
+                this.left = left;     
+                if (cssUpdate)
+                    $(this.div).css('left', this.left + this.$el.offset().left);
                 var startPos = this.left / this.pixelRatio;
                 //floor to fit steps
-                startPos -= (startPos % this.steps);                
-                this.segment.startPos = parseFloat(startPos.toFixed(2));
+                startPos -= (startPos % this.steps);  
+                this.segment.startPos = Math.floor(startPos * 100) / 100;
             },
             
             renderImage: function(){
@@ -353,13 +354,14 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         var width = parseInt($(div).css('width'));                      
                         _this.setWidth(width);
                         var left = $(div).offset().left - _this.$el.offset().left;
-                        _this.setLeft(left);
-                        _this.trigger('resized');
+                        _this.setLeft(left);                            
+                        _this.trigger("update");
                     },
                     
                     stop: function(e, ui){  
                         //make all other OSDs visible again on hover
                         $('.OSD').css('visibility', 'visible');
+                        _this.trigger('resized');
                     }
                 }); 
             }                        
