@@ -14,7 +14,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 this.pixelRatio = options.pixelRatio || 1;
                 this.height = options.height || 100;
                 this.insertSorted = options.insertSorted || false;
-                this.fixed = options.fixed || false;
+                this.creationMode = options.creationMode || false;
                 this.svgUnsupported = options.svgUnsupported || false;
                 //processed attributes
                 this.left = options.left || this.segment.startPos * this.pixelRatio;
@@ -48,9 +48,9 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 //give the div information about the segment it is viewing
                 $(div).data('segmentID', this.segment.attributes.id); 
                 $(div).data('segmentViewID', this.cid); 
-                if (this.fixed)
+                if (this.segment.fixed && !this.creationMode)
                     $(div).addClass('fixed');
-                if (!this.fixed) {
+                else {
                     $(div).addClass('segment');
                     this.makeDraggable();
                     if (!this.cloneable)
@@ -81,15 +81,51 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             function() {
                                 $(view.div).find('.OSD').hide();
                         });
-                    if (view.fixed){
-                        $(view.div).find('#lockedSymbol').css('visibility', 'visible');
-                        $(view.div).find('#lefthandle').hide();                    
-                        $(view.div).find('#righthandle').hide();
+                        
+                    //toggle lock on segments by showing/hiding handles
+                    //in editing mode; in creation mode the segment fixed
+                    //status is toggled
+                    if (view.segment.fixed){
+                        $(view.div).find('#lockedSymbol').show();
+                        if (!view.creationMode){                        
+                            $(view.div).find('#lefthandle').hide();                    
+                            $(view.div).find('#righthandle').hide();
+                        };
                     }
                     else{  
-                        $(view.div).find('#unlockedSymbol').css('visibility', 'visible');
-                        $(view.div).find('#fixedSymbol').hide();
-                    }
+                        $(view.div).find('#unlockedSymbol').show();
+                    };
+                    $(view.div).find('#lockedSymbol').click(function(){                 
+                        if (view.creationMode){
+                            view.segment.fixed = false;                           
+                            view.trigger('resized');
+                        }
+                        else if (!view.segment.fixed){
+                            $(view.div).find('#lefthandle').show();                    
+                            $(view.div).find('#righthandle').show();
+                            $(view.div).draggable({ disabled: false });                            
+                        }
+                        if (!view.segment.fixed){
+                            $(view.div).find('#lockedSymbol').hide();
+                            $(view.div).find('#unlockedSymbol').show();     
+                        }                        
+                    });                        
+                    $(view.div).find('#unlockedSymbol').click(function(){
+                        $(view.div).find('#unlockedSymbol').hide();
+                        $(view.div).find('#lockedSymbol').show();
+                        //toggle fixed status of segment in creation mode
+                        if (view.creationMode){
+                            view.segment.fixed = true;                            
+                            view.trigger('resized');
+                        }
+                        //disable resize and dragging in editing mode
+                        else{
+                            $(view.div).draggable({ disabled: true });
+                            $(view.div).find('#lefthandle').hide();                    
+                            $(view.div).find('#righthandle').hide();
+                        };
+                        
+                    });
                 },    
             },
             
@@ -163,8 +199,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         //set viewbox to if (as a precaution, if not set while
                         //creating image)
                         svg.setAttribute("viewBox", "0 0 " + width + " " + height); 
-                        svg.setAttribute("width", "100%");                                     
-                        svg.setAttribute("height", "100%");    
+                        svg.setAttribute("width", "100%");                                                                                                            
+                            svg.setAttribute("height", "100%"); 
                         if (options.adjustHeight){
                             var ratio = width / divWidth;
                             var maxHeight = options.maxHeight;
@@ -175,8 +211,10 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                                 svg.setAttribute("viewBox", "0 " + (height - maxHeight) + " " + width + " " + options.maxHeight); 
                                 svg.setAttribute("preserveAspectRatio", 'xMidYMax');
                             }
-                            else                                
+                            else{                                                                                              
+                                svg.setAttribute("height", "100%");   
                                 $(div).css("height", height / ratio);
+                            }
                             var parentWidth = parseInt($(div).parent().css('width'))
                             if (divWidth > parentWidth){
                                 $(div).css("left", -(divWidth - parentWidth / 2));
@@ -184,8 +222,9 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             }
                                 
                         };     
-                        if (options.stretch)
+                        if (options.stretch){           
                             svg.setAttribute("preserveAspectRatio", 'none');
+                        }
                         svg.setAttribute("position", "absolute");
                     });
                 };
@@ -256,7 +295,6 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 var div = this.div;                
                 var maxWidth = 0;
                 $(div).resizable({
-                    autoHide: true,
                     handles: {
                       'w': '#lefthandle',
                       'e': '#righthandle'

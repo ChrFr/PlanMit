@@ -30,13 +30,13 @@ body {
     height: 40px;    
     left: 0px;
     top: 0px;
-    visibility: hidden;
+    display: none;
 }
 
 #lockedSymbol{
     background-size: auto 100%;
     background-repeat: no-repeat;
-    background-image: url("/img/icons-png/locked.png"); 
+    background-image: url("/img/icons-png/locked-yellow.png"); 
     left: 5px;
     top: 10px;
 }
@@ -44,9 +44,17 @@ body {
 #unlockedSymbol{
     background-size: auto 100%;
     background-repeat: no-repeat;
-    background-image: url("/img/icons-png/unlocked.png"); 
+    background-image: url("/img/icons-png/unlocked-yellow.png"); 
     left: 5px;
     top: 10px;
+}
+
+.fixed > .OSD > #lockedSymbol{
+    background-image: url("/img/icons-png/locked.png"); 
+}
+
+.fixed > .OSD > #unlockedSymbol{
+    background-image: url("/img/icons-png/unlocked.png"); 
 }
 
 #lefthandle, #righthandle {

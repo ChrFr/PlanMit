@@ -582,11 +582,10 @@ define(["jquery", "backbone", "views/segmentView"],
                 var editorOffset = this.$el.offset().left
                 var ratio = this.pixelRatio();
                 this.collection.each(function(segment){
-                    var fixed = (_this.fixElements) ? segment.fixed: false;
                     var segmentView = new SegmentView({'el': _this.el,
                                                       'segment': segment,
                                                       'height': height,
-                                                      'fixed': fixed,
+                                                      'creationMode': _this.creationMode,
                                                       'pixelRatio': _this.pixelRatio()});
                     segmentView.render();
                     _this.streetView.insert(segmentView);

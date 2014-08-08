@@ -92,13 +92,10 @@ define(["jquery","backbone","models/SegmentModel"],
             var edition = [];
             var i = 0;
             this.each(function(segment){
-                var fixed = false;
-                if (segment.attributes.category !== 0)
-                    fixed = true;
                 edition[i] = {id: segment.attributes.id,
                               start_pos: segment.startPos,
                               size: segment.size,
-                              fixed: fixed
+                              fixed: segment.fixed
                 };
                 i++;
             });
