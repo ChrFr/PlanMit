@@ -8,11 +8,13 @@ and open the template in the editor.
     Author     : Christoph Franke
 */
 body {
-    cursor: auto;
+    cursor: auto; 
+    margin: 0;
 }
 
 #mainFrame{
-    cursor: auto;
+    cursor: auto; 
+    margin: 0;
 }
 
 .OSD {
@@ -157,6 +159,7 @@ body {
                 -1px  1px 2px #fecf1d,
                  1px  1px 2px #fecf1d;
     z-index: 1;
+    margin: 0;
 }
 
 
@@ -172,9 +175,7 @@ body {
 .source{
     height: 600px;
     width: 300px;
-    overflow: auto;  
-    margin-left: 30px;
-    margin-right: 30px; 
+    overflow: auto; 
     cursor: auto;
     float: left;
 }
@@ -225,11 +226,11 @@ body {
 }
 
 .slider{
-    width: 500px; 
-    margin: 10px;
+    width: 500px;
+    margin-left: 50px;
 }
 
- .scroll-bar-wrap { clear: left; padding: 0 4px 0 2px; margin: 0 -1px -1px -1px; width: 1300px;}
+ .scroll-bar-wrap { clear: left; padding: 0 4px 0 2px; margin: 0px -1px -1px 50px; width: 1300px;}
   .scroll-bar-wrap .ui-slider { background: none; border:0; height: 2em; margin: 0 auto;  }
   .scroll-bar-wrap .ui-handle-helper-parent { position: relative; width: 100%; height: 100%; margin: 0 auto; }
   .scroll-bar-wrap .ui-slider-handle { top:.2em; height: 1.5em; }

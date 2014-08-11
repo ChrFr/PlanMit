@@ -358,7 +358,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         _this.setWidth(width);
                         var left = $(div).offset().left - _this.$el.offset().left;
                         _this.setLeft(left);                            
-                        _this.trigger("update");
+                        _this.trigger("resized");
                     },
                     
                     stop: function(e, ui){  
