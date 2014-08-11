@@ -104,7 +104,6 @@ define(["jquery","backbone","models/SegmentModel"],
         
         getStreetSize: function(){
             var lastSegment = this.at(this.length - 1);
-            console.log(lastSegment)
             var size = (lastSegment) ? lastSegment.size + lastSegment.startPos: null;
             return size;
         }

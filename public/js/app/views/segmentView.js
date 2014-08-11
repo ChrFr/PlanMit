@@ -44,7 +44,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 this.width = this.segment.size * this.pixelRatio
                 $(div).css('width', this.width);         
                 $(div).css('height', this.height);
-                $(div).css('left', this.left + this.$el.offset().left);
+                $(div).css('left', this.left);// + this.$el.offset().left);
 
                 //give the div information about the segment it is viewing
                 $(div).data('segmentID', this.segment.attributes.id); 
@@ -144,10 +144,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 this.segment.size = Math.floor(size * 100) / 100;
             },
             
-            setLeft: function(left, cssUpdate){
-                this.left = left;     
-                if (cssUpdate)
-                    $(this.div).css('left', this.left + this.$el.offset().left);
+            setLeft: function(left){
+                this.left = left;   
                 var startPos = this.left / this.pixelRatio;
                 //floor to fit steps
                 startPos -= (startPos % this.steps);  
@@ -253,6 +251,9 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     $(this.div).draggable({
                         helper: 'clone',
                         cursor: "move", 
+                        appendTo: 'body',
+                        containment: 'window',
+                        scroll: false,
                         cursorAt: { top: 0, left: 0 },
                         start: function (e, dragged) {    
                             var clone = $(dragged.helper);
@@ -262,8 +263,12 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     });
                 else {
                     $(this.div).draggable({
+                        helper: 'clone',
                         cursor: "move", 
-                        revertDuration: 200,
+                        revertDuration: 200, 
+                        appendTo: 'body',
+                        containment: 'window',
+                        scroll: false,
                         cursorAt: { 
                             top: parseFloat($(_this.div).css('height'))/2, 
                             left: -20
@@ -281,6 +286,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             });
                             var drag = $(dragged.helper);
                             drag.addClass('dragged');
+                            drag.data('segmentViewID', _this.cid);
                         },
                         
                         stop: function (e, dragged){
@@ -291,9 +297,6 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             }
                             else {
                                 dragged.removeClass('dragged');
-                                var left = dragged.offset().left - _this.$el.offset().left;
-                                _this.setLeft(left);                                
-                                _this.trigger("moved");
                             };
                         }
                     });

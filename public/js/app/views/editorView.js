@@ -15,6 +15,8 @@ define(["jquery", "backbone", "views/segmentView"],
                 this.creationMode = options.creationMode || false;
                 this.fixElements = !this.creationMode;   
                 this.streetSize = options.startSize || this.collection.getStreetSize() || 10;
+                this.zoom = 100;
+                this.width = this.$el.width;
                 var _this = this;
                 _.bindAll(this, 'render', 'loadEdition');                 
                 this.collection.bind("reset", function(){                                 
@@ -49,13 +51,108 @@ define(["jquery", "backbone", "views/segmentView"],
                                             this.streetSize, this.creationMode);
                 this.streetView = new this.StreetView(this.$el, this.collection, this.steps, this.measure);
                 this.placeholder = new this.Placeholder(this.streetView, this.$el);
-                this.streetView.changeScale(this.pixelRatio());
+                this.streetView.changeScale(this.pixelRatio());                
+                var _this = this;
+                
+                //build slider
+                var scrollPane = $( "#editorWrapper" ),
+                    scrollContent = $( ".editor" );
+                var scrollbar = $( ".scroll-bar" ).slider({
+                  slide: function( event, ui ) {
+                    if ( scrollContent.width() > scrollPane.width() ) {
+                      scrollContent.css( "margin-left", Math.round(
+                        ui.value / 100 * ( scrollPane.width() - scrollContent.width() )
+                      ) + "px" );
+                    } else {
+                      scrollContent.css( "margin-left", 0 );
+                    }
+                  }
+                });
+
+                //append icon to handle
+                var handleHelper = scrollbar.find( ".ui-slider-handle" )
+                .mousedown(function() {
+                  scrollbar.width( handleHelper.width() );
+                })
+                .mouseup(function() {
+                  scrollbar.width( "100%" );
+                })
+                .append( "<span class='ui-icon ui-icon-grip-dotted-vertical'></span>" )
+                .wrap( "<div class='ui-handle-helper-parent'></div>" ).parent();
+
+                //change overflow to hidden now that slider handles the scrolling
+                scrollPane.css( "overflow", "hidden" );
+
+                //size scrollbar and handle proportionally to scroll distance
+                function sizeScrollbar() {
+                  var remainder = scrollContent.width() - scrollPane.width();
+                  var proportion = remainder / scrollContent.width();
+                  var handleSize = scrollPane.width() - ( proportion * scrollPane.width() );
+                  scrollbar.find( ".ui-slider-handle" ).css({
+                    width: handleSize,
+                    "margin-left": -handleSize / 2
+                  });
+                  handleHelper.width( "" ).width( scrollbar.width() - handleSize );
+                }
+
+                //reset slider value based on scroll content position
+                function resetValue() {
+                  var remainder = scrollPane.width() - scrollContent.width();
+                  var leftVal = scrollContent.css( "margin-left" ) === "auto" ? 0 :
+                    parseInt( scrollContent.css( "margin-left" ) );
+                  var percentage = Math.round( leftVal / remainder * 100 );
+                  scrollbar.slider( "value", percentage );
+                }
+
+                //if the slider is 100% and window gets larger, reveal content
+                function reflowContent() {
+                    var showing = scrollContent.width() + parseInt( scrollContent.css( "margin-left" ), 10 );
+                    var gap = scrollPane.width() - showing;
+                    if ( gap > 0 ) {
+                      scrollContent.css( "margin-left", parseInt( scrollContent.css( "margin-left" ), 10 ) + gap );
+                    }
+                }
+
+                //change handle position on window resize
+                $( window ).resize(function() {
+                  resetValue();
+                  sizeScrollbar();
+                  reflowContent();
+                });                
+                
+                //init scrollbar size
+                setTimeout( sizeScrollbar, 10 );//safari wants a timeout
+                
+                $('#zoomSlider').slider({
+                    value: _this.zoom,
+                    step: 10,
+                    min: 10,
+                    max: 500,
+                    animate: true,
+                    slide: function (e, ui) {
+                        $( "#zoom" ).val( ui.value );
+                    },
+                    change: function(e, ui){
+                        var currentWidth = parseInt(_this.$el.css('width'));
+                        var unzoomedWidth = currentWidth * 100 / _this.zoom;
+                        _this.zoom = ui.value;                        
+                        _this.$el.css('width', unzoomedWidth * _this.zoom/100);
+                        _this.streetView.changeScale(_this.pixelRatio()); 
+                        resetValue();
+                        sizeScrollbar();
+                        reflowContent();
+                        /*                           
+                        _this.streetSize = ui.value;
+                        _this.measure.streetSize = ui.value;
+                        _this.streetView.changeScale(_this.pixelRatio());*/
+                    }
+                });
+                $("#zoom").val($('#zoomSlider').slider( "value" ));                
                 
                 if (this.creationMode){
-                    var _this = this;
                     $('#scaleSlider').slider({
                         value: _this.streetSize,
-                        range: 1,
+                        step: 1,
                         min: 10,
                         max: 100,
                         animate: true,
@@ -65,7 +162,10 @@ define(["jquery", "backbone", "views/segmentView"],
                         change: function(e, ui){                            
                             _this.streetSize = ui.value;
                             _this.measure.streetSize = ui.value;
-                            _this.streetView.changeScale(_this.pixelRatio());
+                            _this.streetView.changeScale(_this.pixelRatio());  
+                            resetValue();
+                            sizeScrollbar();
+                            reflowContent();
                         }
                     });
                     $("#scale").val($('#scaleSlider').slider( "value" ));
@@ -73,7 +173,7 @@ define(["jquery", "backbone", "views/segmentView"],
                 this.makeDroppable();
                 if (this.collection.length > 0)
                     this.loadEdition(); 
-               
+                               
                 return this;
             },
             
@@ -103,7 +203,7 @@ define(["jquery", "backbone", "views/segmentView"],
                                 var segment = _this.resources.getSegmentByID(draggedDiv.data('segmentID')); 
                                 var clonedSegment = segment.clone();
                                 clonedSegment.size = dropped.helper.data('size');
-                                var left = placeholder.left - _this.$el.offset().left
+                                var left = placeholder.left;// - _this.$el.offset().left;
                                 var segmentView = new SegmentView({'el': _this.el,
                                                                    'segment': clonedSegment,
                                                                    'steps': _this.steps,
@@ -123,8 +223,12 @@ define(["jquery", "backbone", "views/segmentView"],
                         else if (placeholder.droppable){                                
                             //place the div on the position of the
                             //placeholder and prevent moving back
+                            var left = placeholder.left;
                             draggedDiv.css('top', _this.$el.css('top'));
-                            draggedDiv.css('left', placeholder.left);
+                            draggedDiv.css('left', left);
+                            var segmentView = _this.streetView.getView(draggedDiv.data('segmentViewID'));
+                            segmentView.setLeft(left);                                
+                            segmentView.trigger("moved");
                             draggedDiv.draggable( "option", "revert", false );
                         }
                         else
@@ -162,6 +266,20 @@ define(["jquery", "backbone", "views/segmentView"],
                         segmentView.width = width;
                         segmentView.render();
                         segmentView = segmentView.next;
+                    };
+                    this.measureDisplay.draw(this);
+                };
+                
+                this.changeZoom = function(zoom){  
+                    var segmentView = this.first;
+                    while (segmentView) {/*
+                        var left = segmentView.left * changeRatio;
+                        var width = segmentView.width * changeRatio;
+                        segmentView.pixelRatio = pixelRatio;
+                        segmentView.left = left;
+                        segmentView.width = width;
+                        segmentView.render();
+                        segmentView = segmentView.next;*/
                     };
                     this.measureDisplay.draw(this);
                 };
@@ -350,6 +468,17 @@ define(["jquery", "backbone", "views/segmentView"],
                     this.measureDisplay.draw(this);                      
                 };
                 
+                this.getView = function (cid){
+                    var segmentView = this.first;
+                    while(segmentView){                         
+                        //ignore segmentView currently dragged
+                        if (cid === segmentView.cid){
+                            return segmentView;                        
+                        }
+                        segmentView = segmentView.next;
+                    };
+                    return null;
+                };
             },
             
             MeasureDisplay: function(canvas, parent, streetSize, showRaster){
@@ -365,19 +494,19 @@ define(["jquery", "backbone", "views/segmentView"],
                  * adapt canvas to current parent
                  */
                 this.resize = function(){
+                    
                     var width = parseFloat(this.parent.css('width'));
                     var height = parseFloat(this.parent.css('height')) +
                                  this.marginTop + 
                                  this.marginBottom;
-                    $(this.canvas).css('top', this.parent.offset().top -
-                                        this.marginTop);
+                    $(this.canvas).css('top', -this.marginTop );
                     $(this.canvas).css('width', width);
-                    $(this.canvas).css('height', height);  
+                    $(this.canvas).css('height', height); 
                     this.canvas.width = width;
                     this.canvas.height = height;
                 };
                 
-                this.draw = function(streetView){  
+                this.draw = function(streetView){                      
                     this.drawScalingLine(streetView);
                     this.drawInfoLine(streetView);
                 };
@@ -549,7 +678,7 @@ define(["jquery", "backbone", "views/segmentView"],
                     if (this.active){
                         left += this.offsetX;
                         //prevent overlapping the borders
-                        var minLeft = parent.offset().left;
+                        var minLeft = 0;//parent.offset().left;
                         var maxLeft = minLeft + 
                                       parseFloat(parent.css('width')) -
                                       parseFloat($(this.div).css('width'));                              
@@ -625,8 +754,7 @@ define(["jquery", "backbone", "views/segmentView"],
             //the fixed attribute of each segment model in the collection
             loadEdition: function(){
                 var _this = this;
-                var height = parseFloat(this.$el.css('height'));
-                var editorOffset = this.$el.offset().left
+                var height = parseInt(this.$el.css('height'));
                 var ratio = this.pixelRatio();
                 this.collection.each(function(segment){
                     var segmentView = new SegmentView({'el': _this.el,
@@ -634,7 +762,7 @@ define(["jquery", "backbone", "views/segmentView"],
                                                       'height': height,
                                                       'steps': _this.steps,
                                                       'creationMode': _this.creationMode,
-                                                      'pixelRatio': _this.pixelRatio()});
+                                                      'pixelRatio': ratio});
                     segmentView.render();
                     _this.streetView.insert(segmentView);
                 });

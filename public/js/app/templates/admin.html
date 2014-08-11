@@ -4,15 +4,26 @@
 </head>
 <body>
     <button type="button" id="uploadButton">Hochladen</button>
-    <button type="button" id="resetButton">Zurücksetzen</button>
+    <button type="button" id="resetButton">Zurücksetzen</button>  
+    <p>
+      <label for="zoom">Zoom:</label>
+      <input type="text" id="zoom" readonly style="border:0; color:#f6931f; font-weight:bold;">
+    </p>
+    <div id="zoomSlider" class="slider"/></div>
     <p>
       <label for="scale">Breite:</label>
       <input type="text" id="scale" readonly style="border:0; color:#f6931f; font-weight:bold;">
     </p>
-    <div id="scaleSlider" style="width: 500px; margin: 10px; float: left" /></div>
-    <div class="editor" id="editor" style="width: 90%">     
-    <canvas id="editorCanvas"></canvas>
-    </div>    
+    <div id="scaleSlider" class="slider"/></div>
+    <div id="editorWrapper">
+        <div class="editor" id="editor"> 
+            <canvas id="editorCanvas"></canvas>    
+        </div>    
+    </div>
+    
+    <div class="scroll-bar-wrap ui-widget-content ui-corner-bottom">
+      <div class="scroll-bar"></div>
+    </div>
     <div class="source" id="resources">
     </div>
     

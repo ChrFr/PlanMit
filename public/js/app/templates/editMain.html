@@ -2,13 +2,22 @@
 <html lang="en">
 <head>
 </head>
-<body>
-    <div>
-        <div class="editor" id="editor" >        
-            <canvas id="editorCanvas"></canvas>
+<body>    
+    <p>
+      <label for="zoom">Zoom:</label>
+      <input type="text" id="zoom" readonly style="border:0; color:#f6931f; font-weight:bold;">
+    </p>
+    <div id="zoomSlider" class="slider"></div>
+    <div id="editorWrapper">
+        <div class="editor" id="editor"> 
+            <canvas id="editorCanvas"></canvas>    
         </div>    
-        <div class="source" id="resources">
-        </div>
-    </div>    
-</body>
+    </div>
+    
+    <div class="scroll-bar-wrap ui-widget-content ui-corner-bottom">
+      <div class="scroll-bar"></div>
+    </div>
+    <div class="source" id="resources">
+    </div>
+    
 </html>
