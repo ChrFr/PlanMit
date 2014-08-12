@@ -273,12 +273,13 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             left: -20
                         },
                         start: function (e, ui){
+                            console.log($(this).parent())
                             $(this).addClass('dragOrigin'); 
                             //keep track if div is pulled in or out to delete
-                            _this.$el.on("dropout", function(e, ui) {
+                            $('#editorWrapper').on("dropout", function(e, ui) {
                                 outside = true;
                             });
-                            _this.$el.on("drop", function(e, ui) {
+                            $('#editorWrapper').on("drop", function(e, ui) {
                                 outside = false;
                             });
                             var drag = $(ui.helper);

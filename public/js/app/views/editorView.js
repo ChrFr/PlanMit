@@ -63,9 +63,8 @@ define(["jquery", "backbone", "views/segmentView"],
             
             makeDroppable: function(){
                 var _this = this;
-                this.$el.droppable({
+                this.wrapper.droppable({
                     tolerance: "intersect",
-                    containment: _this.$el,
                     cursor: 'auto',
                     over: function(e, dragged) {
                         var clone = $(dragged.helper);  
@@ -87,7 +86,7 @@ define(["jquery", "backbone", "views/segmentView"],
                         //clone the segment and make a new view
                         var draggedDiv = dropped.draggable;
                         var placeholder = _this.placeholder;
-                        if (_this.el != draggedDiv.parent()[0]){
+                        if (_this.el !== draggedDiv.parent()[0]){
                             if (placeholder.droppable){
                                 var segment = _this.resources.getSegmentByID(draggedDiv.data('segmentID')); 
                                 var clonedSegment = segment.clone();
