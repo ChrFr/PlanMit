@@ -246,7 +246,6 @@ define(["jquery", "backbone", "text!templates/segment.html"],
             makeDraggable: function(){
                 var _this = this;
                 var outside = true;
-                var dragOriginDiv;  
                 if (this.cloneable)
                     $(this.div).draggable({
                         helper: 'clone',
@@ -255,8 +254,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         containment: 'window',
                         scroll: false,
                         cursorAt: { top: 0, left: 0 },
-                        start: function (e, dragged) {    
-                            var clone = $(dragged.helper);
+                        start: function (e, ui) {    
+                            var clone = $(ui.helper);
                             clone.addClass('dragged');                            
                             clone.data('size', _this.segment.attributes.base_size); 
                         }, 
@@ -273,10 +272,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             top: parseFloat($(_this.div).css('height'))/2, 
                             left: -20
                         },
-                        start: function (e, dragged){
-                            dragOriginDiv = dragged.helper.clone();
-                            dragOriginDiv.addClass('dragOrigin');                            
-                            _this.$el.append(dragOriginDiv);
+                        start: function (e, ui){
+                            $(this).addClass('dragOrigin'); 
                             //keep track if div is pulled in or out to delete
                             _this.$el.on("dropout", function(e, ui) {
                                 outside = true;
@@ -284,20 +281,20 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             _this.$el.on("drop", function(e, ui) {
                                 outside = false;
                             });
-                            var drag = $(dragged.helper);
+                            var drag = $(ui.helper);
                             drag.addClass('dragged');
                             drag.data('segmentViewID', _this.cid);
                         },
                         
-                        stop: function (e, dragged){
-                            dragOriginDiv.remove();
-                            var dragged = $(dragged.helper);
+                        stop: function (e, ui){
+                            var dragged = $(ui.helper);
                             if (outside){
                                 _this.delete();
                             }
                             else {
-                                dragged.removeClass('dragged');
-                            };
+                                dragged.removeClass('dragged');                                
+                                $(this).removeClass('dragOrigin');     
+                            };    
                         }
                     });
                 };

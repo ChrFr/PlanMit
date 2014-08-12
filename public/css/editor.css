@@ -98,11 +98,15 @@ body {
 }
 
 .segment {
-    //background: mintcream;
     height: 100px;
     width: 100px;  
     cursor: pointer;
-    background: transparent;
+    //background: transparent;
+}
+
+.remove{
+    background: #ff1400;
+    opacity: 0;
 }
 
 #imageContainer {

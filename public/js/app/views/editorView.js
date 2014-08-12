@@ -65,6 +65,7 @@ define(["jquery", "backbone", "views/segmentView"],
                 var _this = this;
                 this.$el.droppable({
                     tolerance: "intersect",
+                    containment: _this.$el,
                     cursor: 'auto',
                     over: function(e, dragged) {
                         var clone = $(dragged.helper);  
@@ -72,10 +73,13 @@ define(["jquery", "backbone", "views/segmentView"],
                         var draggable = dragged.draggable;
                         clone.animate({height: _this.$el.css('height'),
                                        width: width}, 250);        
-                        var offset = -parseInt(_this.$el.css('margin-left'));
-                        _this.placeholder.setActive(true, clone, offset);
+                        var offsetScroll = -parseInt(_this.$el.css('margin-left'));
+                        _this.placeholder.setActive(true, clone);
                         draggable.on( "drag", function( event, ui ) {
-                            _this.placeholder.updatePos(event.clientX, offset);} );
+                            _this.placeholder.updatePos(event.clientX);
+                            console.log(_this.placeholder.left)
+                                console.log(offsetScroll + _this.wrapper.width())
+                        } );
                         return;
                     },
                     drop: function(e, dropped) {
@@ -87,8 +91,8 @@ define(["jquery", "backbone", "views/segmentView"],
                             if (placeholder.droppable){
                                 var segment = _this.resources.getSegmentByID(draggedDiv.data('segmentID')); 
                                 var clonedSegment = segment.clone();
+                                var left = placeholder.left;
                                 clonedSegment.size = dropped.helper.data('size');
-                                var left = placeholder.left;// - _this.$el.offset().left;
                                 var segmentView = new SegmentView({'el': _this.el,
                                                                    'segment': clonedSegment,
                                                                    'steps': _this.steps,
@@ -105,10 +109,10 @@ define(["jquery", "backbone", "views/segmentView"],
                         }
                         //else move the existing element to the position of the
                         //placeholder
-                        else if (placeholder.droppable){                                
+                        else if (placeholder.droppable){            
                             //place the div on the position of the
                             //placeholder and prevent moving back
-                            var left = placeholder.left;
+                            var left = placeholder.left;// + offsetScroll;
                             draggedDiv.css('top', _this.$el.css('top'));
                             draggedDiv.css('left', left);
                             var segmentView = _this.streetView.getView(draggedDiv.data('segmentViewID'));
@@ -185,8 +189,8 @@ define(["jquery", "backbone", "views/segmentView"],
                     return found;
                 };          
 
-                this.doesFit = function(div, offset){
-                    var left = $(div).offset().left - parent.offset().left - offset;
+                this.doesFit = function(div){
+                    var left = $(div).offset().left - parent.offset().left;
                     var width = parseFloat($(div).css('width'));
                     var right = left + width;
                     var editorWidth = parseFloat(parent.css('width'));
@@ -305,8 +309,8 @@ define(["jquery", "backbone", "views/segmentView"],
                     });
                     segmentView.on("update", function(){  
                         _this.measureDisplay.draw(_this);
-                    });
-                    segmentView.pixelRatio = this.pixelRatio;
+                    });                    
+                    segmentView.pixelRatio = this.pixelRatio;  
                     this.length++;
                     this.measureDisplay.draw(this);
                 };
@@ -561,9 +565,10 @@ define(["jquery", "backbone", "views/segmentView"],
                 this.offsetX = -20;
                 this.droppable = true;
 
-                this.updatePos = function(left, offset){
+                this.updatePos = function(left){
                     if (this.active){
                         left += this.offsetX;
+                        left -= this.parent.offset().left;
                         //prevent overlapping the borders
                         var minLeft = 0;//parent.offset().left;
                         var maxLeft = minLeft + 
@@ -574,11 +579,10 @@ define(["jquery", "backbone", "views/segmentView"],
                         else if (left >= maxLeft)
                             left = maxLeft;
                         //snap to grid based on steps     
-                        left -= (left % this.streetView.steps * this.streetView.pixelRatio);                      
-                        offset = offset || 0;
-                        this.left = left + offset;
+                        left -= (left % this.streetView.steps * this.streetView.pixelRatio); 
+                        this.left = left; 
                         $(this.div).css('left', left);
-                        var gap = this.streetView.doesFit(this.div, offset);
+                        var gap = this.streetView.doesFit(this.div);
                         //flag as not droppable if collision to neighbours 
                         //is detected
                         if (!gap.fits){
@@ -616,13 +620,13 @@ define(["jquery", "backbone", "views/segmentView"],
                         offset = offset || 0;
                         var left = clone.position().left + offset;
                         var width = (width) ? width: clone.css('width');
-                        this.div = $(document.createElement('div'));
+                        this.div = $(document.createElement('div'));  
                         $(this.div).css('width', width);
                         $(this.div).css('height', parent.css('height'));
                         $(this.div).addClass('placeholder');
                         $(this.div).data('segmentViewID', this.cid);
                         parent.append(this.div);
-                        this.updatePos(left);
+                        this.updatePos(left, offset);
                     }
                 };                               
             },
