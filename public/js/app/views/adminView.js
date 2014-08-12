@@ -26,7 +26,8 @@ define(["jquery", "backbone", "text!templates/admin.html",
                                                   el: '#editor',
                                                   resources: this.resources,
                                                   creationMode: true,
-                                                  startSize: 50});
+                                                  startSize: 50,
+                                                  wrapper: "#editorWrapper"});
                 this.resources.fetch({reset: true});
             },
 

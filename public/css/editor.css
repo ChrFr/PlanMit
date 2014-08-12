@@ -230,8 +230,40 @@ body {
     margin-left: 50px;
 }
 
- .scroll-bar-wrap { clear: left; padding: 0 4px 0 2px; margin: 0px -1px -1px 50px; width: 1300px;}
-  .scroll-bar-wrap .ui-slider { background: none; border:0; height: 2em; margin: 0 auto;  }
-  .scroll-bar-wrap .ui-handle-helper-parent { position: relative; width: 100%; height: 100%; margin: 0 auto; }
-  .scroll-bar-wrap .ui-slider-handle { top:.2em; height: 1.5em; }
-  .scroll-bar-wrap .ui-slider-handle .ui-icon { margin: -8px auto 0; position: relative; top: 50%; }
+.fade{
+    width: 50px;
+    position: absolute;
+    z-index: 9999;
+    display: none;
+    opacity: 1;
+}
+
+#leftFade{
+    background-image: -webkit-linear-gradient(left, #fecf1d 0%, transparent 100%); 
+    background-image: -moz-linear-gradient(left, #fecf1d 0%, transparent 100%); 
+    background-image: -o-linear-gradient(left, #fecf1d 0%, transparent 100%); 
+    background-image: linear-gradient(left, #fecf1d 0%, transparent 100%);
+}
+
+#rightFade{
+    background-image: -webkit-linear-gradient(left, transparent 0%, #fecf1d 100%); 
+    background-image: -moz-linear-gradient(left, transparent 0%, #fecf1d 100%); 
+    background-image: -o-linear-gradient(left, transparent 0%, #fecf1d 100%); 
+    background-image: linear-gradient(left, transparent 0%, #fecf1d 100%);
+}
+
+#scrollSlider{
+    margin: 0px -1px -1px 50px;
+    width: 1300px;
+    clear: left; 
+    padding: 0 4px 0 2px;  
+}
+
+#scrollSlider .ui-slider { 
+    background: none; 
+    border:0; 
+    height: 2em; 
+    margin: 0 auto; }
+#scrollSlider .ui-handle-helper-parent { position: relative; width: 100%; height: 100%; margin: 0 auto; }
+#scrollSlider .ui-slider-handle { top:.2em; height: 1.5em; }
+#scrollSlider .ui-slider-handle .ui-icon { margin: -8px auto 0; position: relative; top: 50%; }

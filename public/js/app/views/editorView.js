@@ -17,6 +17,7 @@ define(["jquery", "backbone", "views/segmentView"],
                 this.streetSize = options.startSize || this.collection.getStreetSize() || 10;
                 this.zoom = 100;
                 this.width = this.$el.width;
+                this.wrapper = $(options.wrapper);
                 var _this = this;
                 _.bindAll(this, 'render', 'loadEdition');                 
                 this.collection.bind("reset", function(){                                 
@@ -46,132 +47,13 @@ define(["jquery", "backbone", "views/segmentView"],
 
             // Renders the view's template to the UI
             render: function() {            
-                var canvas = this.$el.find('canvas')[0];
+                var canvas = this.$el.find('canvas')[0];                
                 this.measure = new this.MeasureDisplay(canvas, this.$el, 
                                             this.streetSize, this.creationMode);
                 this.streetView = new this.StreetView(this.$el, this.collection, this.steps, this.measure);
                 this.placeholder = new this.Placeholder(this.streetView, this.$el);
-                this.streetView.changeScale(this.pixelRatio());                
-                var _this = this;
-                
-                //build slider
-                var scrollPane = $( "#editorWrapper" );
-                var scrollbar = $( ".scroll-bar" ).slider({
-                  slide: function( event, ui ) {
-                    if ( _this.$el.width() > scrollPane.width() ) {
-                      _this.$el.css( "margin-left", Math.round(
-                        ui.value / 100 * ( scrollPane.width() - _this.$el.width() )
-                      ) + "px" );
-                    } else {
-                      _this.$el.css( "margin-left", 0 );
-                    }
-                  }
-                });
-
-                //append icon to handle
-                var handleHelper = scrollbar.find( ".ui-slider-handle" )
-                .mousedown(function() {
-                  scrollbar.width( handleHelper.width() );
-                })
-                .mouseup(function() {
-                  scrollbar.width( "100%" );
-                })
-                .append( "<span class='ui-icon ui-icon-grip-dotted-vertical'></span>" )
-                .wrap( "<div class='ui-handle-helper-parent'></div>" ).parent();
-
-                //change overflow to hidden now that slider handles the scrolling
-                scrollPane.css( "overflow", "hidden" );
-
-                //size scrollbar and handle proportionally to scroll distance
-                function sizeScrollbar() {
-                  var remainder = _this.$el.width() - scrollPane.width();
-                  var proportion = remainder / _this.$el.width();
-                  var handleSize = scrollPane.width() - ( proportion * scrollPane.width() );
-                  scrollbar.find( ".ui-slider-handle" ).css({
-                    width: handleSize,
-                    "margin-left": -handleSize / 2
-                  });
-                  handleHelper.width( "" ).width( scrollbar.width() - handleSize );
-                }
-
-                //reset slider value based on scroll content position
-                function resetValue() {
-                  var remainder = scrollPane.width() - _this.$el.width();
-                  var leftVal = _this.$el.css( "margin-left" ) === "auto" ? 0 :
-                    parseInt( _this.$el.css( "margin-left" ) );
-                  var percentage = Math.round( leftVal / remainder * 100 );
-                  scrollbar.slider( "value", percentage );
-                }
-
-                //if the slider is 100% and window gets larger, reveal content
-                function reflowContent() {
-                    var showing = _this.$el.width() + parseInt( _this.$el.css( "margin-left" ), 10 );
-                    var gap = scrollPane.width() - showing;
-                    if ( gap > 0 ) {
-                      _this.$el.css( "margin-left", parseInt( _this.$el.css( "margin-left" ), 10 ) + gap );
-                    }
-                    if ( _this.$el.width() <= scrollPane.width() ) {
-                      _this.$el.css( "margin-left", 0 );
-                    }
-                }
-
-                //change handle position on window resize
-                $( window ).resize(function() {
-                  resetValue();
-                  sizeScrollbar();
-                  reflowContent();
-                });                
-                
-                //init scrollbar size
-                setTimeout( sizeScrollbar, 10 );//safari wants a timeout
-                
-                $('#zoomSlider').slider({
-                    value: _this.zoom,
-                    step: 10,
-                    min: 10,
-                    max: 500,
-                    animate: true,
-                    slide: function (e, ui) {
-                        $( "#zoom" ).val( ui.value );
-                    },
-                    change: function(e, ui){
-                        var currentWidth = parseInt(_this.$el.css('width'));
-                        var unzoomedWidth = currentWidth * 100 / _this.zoom;
-                        _this.zoom = ui.value;                        
-                        _this.$el.css('width', unzoomedWidth * _this.zoom/100);
-                        _this.streetView.changeScale(_this.pixelRatio()); 
-                        resetValue();
-                        sizeScrollbar();
-                        reflowContent();
-                        /*                           
-                        _this.streetSize = ui.value;
-                        _this.measure.streetSize = ui.value;
-                        _this.streetView.changeScale(_this.pixelRatio());*/
-                    }
-                });
-                $("#zoom").val($('#zoomSlider').slider( "value" ));                
-                
-                if (this.creationMode){
-                    $('#scaleSlider').slider({
-                        value: _this.streetSize,
-                        step: 1,
-                        min: 10,
-                        max: 100,
-                        animate: true,
-                        slide: function (e, ui) {
-                            $( "#scale" ).val( ui.value );
-                        },
-                        change: function(e, ui){                            
-                            _this.streetSize = ui.value;
-                            _this.measure.streetSize = ui.value;
-                            _this.streetView.changeScale(_this.pixelRatio());  
-                            resetValue();
-                            sizeScrollbar();
-                            reflowContent();
-                        }
-                    });
-                    $("#scale").val($('#scaleSlider').slider( "value" ));
-                }
+                this.streetView.changeScale(this.pixelRatio());  
+                this.renderControls()
                 this.makeDroppable();
                 if (this.collection.length > 0)
                     this.loadEdition(); 
@@ -189,10 +71,11 @@ define(["jquery", "backbone", "views/segmentView"],
                         var width = clone.data('size') * _this.pixelRatio();
                         var draggable = dragged.draggable;
                         clone.animate({height: _this.$el.css('height'),
-                                       width: width}, 250);                                      
-                        _this.placeholder.setActive(true, clone, width);
+                                       width: width}, 250);        
+                        var offset = -parseInt(_this.$el.css('margin-left'));
+                        _this.placeholder.setActive(true, clone, offset);
                         draggable.on( "drag", function( event, ui ) {
-                            _this.placeholder.updatePos(event.clientX);} );
+                            _this.placeholder.updatePos(event.clientX, offset);} );
                         return;
                     },
                     drop: function(e, dropped) {
@@ -269,6 +152,7 @@ define(["jquery", "backbone", "views/segmentView"],
                         segmentView.render();
                         segmentView = segmentView.next;
                     };
+                    this.measureDisplay.resize();
                     this.measureDisplay.draw(this);
                 };
                 
@@ -301,8 +185,8 @@ define(["jquery", "backbone", "views/segmentView"],
                     return found;
                 };          
 
-                this.doesFit = function(div){
-                    var left = $(div).offset().left - parent.offset().left;
+                this.doesFit = function(div, offset){
+                    var left = $(div).offset().left - parent.offset().left - offset;
                     var width = parseFloat($(div).css('width'));
                     var right = left + width;
                     var editorWidth = parseFloat(parent.css('width'));
@@ -388,7 +272,7 @@ define(["jquery", "backbone", "views/segmentView"],
                     segmentView.on("moved", function(){                            
                         _this.relocate(this);
                     });
-                    segmentView.on("resized", function(){
+                    segmentView.on("resized", function(){/*
                         //jquery resize is not precise and tends to jump
                         //around on west resize -> adjust to
                         //tolerance of steps and close tiny gaps
@@ -413,7 +297,7 @@ define(["jquery", "backbone", "views/segmentView"],
                             $(segmentView.div).css('width', 
                                 parseFloat($(next.div).css('left')) -  
                                         parseFloat($(segmentView.div).css('left')));
-                        }
+                        }*/
                         _this.measureDisplay.draw(_this);
                     });
                     segmentView.on("delete", function(){  
@@ -677,7 +561,7 @@ define(["jquery", "backbone", "views/segmentView"],
                 this.offsetX = -20;
                 this.droppable = true;
 
-                this.updatePos = function(left){
+                this.updatePos = function(left, offset){
                     if (this.active){
                         left += this.offsetX;
                         //prevent overlapping the borders
@@ -690,11 +574,11 @@ define(["jquery", "backbone", "views/segmentView"],
                         else if (left >= maxLeft)
                             left = maxLeft;
                         //snap to grid based on steps     
-                        left -= (left % this.streetView.steps * this.streetView.pixelRatio);
-                        left = left;
-                        this.left = left;
+                        left -= (left % this.streetView.steps * this.streetView.pixelRatio);                      
+                        offset = offset || 0;
+                        this.left = left + offset;
                         $(this.div).css('left', left);
-                        var gap = this.streetView.doesFit(this.div);
+                        var gap = this.streetView.doesFit(this.div, offset);
                         //flag as not droppable if collision to neighbours 
                         //is detected
                         if (!gap.fits){
@@ -718,16 +602,19 @@ define(["jquery", "backbone", "views/segmentView"],
                     }
                 };
 
-                this.setActive = function(active, clone, width){
+                this.setActive = function(active, clone, offset){
                     this.active = active;
                     //remove placeholder if deactivated
                     if (!active)
                         $(this.div).remove();
-                    //create placeholder on position of given div with offset
+                    //create placeholder on position of given div
+                    //offset: if zoomed in clone (appended to body)
+                    //has different position left than dragged div
                     else if (clone){
                         //update the positions of the other divs
-                        this.cid = clone.data('segmentViewID');
-                        var left = clone.position().left;
+                        this.cid = clone.data('segmentViewID');                        
+                        offset = offset || 0;
+                        var left = clone.position().left + offset;
                         var width = (width) ? width: clone.css('width');
                         this.div = $(document.createElement('div'));
                         $(this.div).css('width', width);
@@ -787,11 +674,115 @@ define(["jquery", "backbone", "views/segmentView"],
                 return width;
                 
                 //check order of children of div here, set pos of models in collection by passing ids to collection
-            },               
+            },              
             
+            renderControls: function(){        
+                var _this = this;
+                var editorWrapper = $( "#editorWrapper" );
+                editorWrapper.css( "overflow", "hidden" );
+                $('.fade').css('height', this.$el.height());
+                var left = editorWrapper.offset().left;
+                $('#leftFade').css('left', left);
+                $('#rightFade').css('left', left + editorWrapper.width() 
+                        - $('#rightFade').width() + 11);
+                
+                var scrollSlider = $('#scrollSlider');
+                var scrollbar =  $('#scrollSlider').find(".scroll-bar").slider({
+                    slide: function( event, ui ) {
+                        var proportion = editorWrapper.width() / _this.$el.width();
+                        if (proportion < 1) {
+                            _this.$el.css( "margin-left", -ui.value);
+                            if(ui.value > 0)
+                                $('#leftFade').show()       
+                            else
+                                $('#leftFade').hide() 
+                            if(ui.value < scrollbar.slider("option", "max"))
+                                $('#rightFade').show()       
+                            else
+                                $('#rightFade').hide()   
+                        } 
+                    }
+                });
+
+                function resizeScrollSlider(){  
+                    $('.fade').hide()
+                    var proportion = editorWrapper.width() / _this.$el.width();                                     
+                    if (proportion > 1) {
+                        _this.$el.css( "margin-left", 0 );
+                        scrollSlider.hide();                         
+                    }
+                    else {
+                        var overflow = _this.$el.width() - editorWrapper.width(); 
+                        if (overflow < 0)
+                            overflow = 0;           
+                        scrollSlider.show();
+                        var editorPos = _this.$el.css( "margin-left" ) === "auto" ? 0 :
+                            parseInt( _this.$el.css( "margin-left" ) ); 
+                        var handleSize = editorWrapper.width() * proportion;
+                        scrollbar.slider( "value", -editorPos);
+                        scrollbar.css('width', scrollSlider.width() - handleSize);
+                        scrollbar.slider("option", "max", overflow);   
+                        scrollbar.find( ".ui-slider-handle" ).css({
+                            width: handleSize,
+                            "margin-left": -handleSize / 2                     
+                        });   
+                        if(-editorPos > 0)
+                            $('#leftFade').show()  
+                        if(-editorPos < overflow)
+                            $('#rightFade').show()       
+                    }
+                }
+                
+                //change handle position on window resize
+                $( window ).resize(function() {
+                  resizeScrollSlider();
+                });                
+                
+                //init scrollbar size
+                setTimeout( resizeScrollSlider, 10 );//safari wants a timeout
+                
+                $('#zoomSlider').slider({
+                    value: _this.zoom,
+                    step: 10,
+                    min: 10,
+                    max: 500,
+                    animate: true,
+                    slide: function (e, ui) {
+                        $( "#zoom" ).val( ui.value );
+                    },
+                    change: function(e, ui){
+                        var currentWidth = parseInt(_this.$el.css('width'));
+                        var unzoomedWidth = currentWidth * 100 / _this.zoom;
+                        _this.zoom = ui.value;                        
+                        _this.$el.css('width', unzoomedWidth * _this.zoom/100);                        
+                        _this.streetView.changeScale(_this.pixelRatio()); 
+                        resizeScrollSlider();
+                    }
+                });
+                $("#zoom").val($('#zoomSlider').slider( "value" ));                
+                
+                if (this.creationMode){
+                    $('#scaleSlider').slider({
+                        value: _this.streetSize,
+                        step: 1,
+                        min: 10,
+                        max: 100,
+                        animate: true,
+                        slide: function (e, ui) {
+                            $( "#scale" ).val( ui.value );
+                        },
+                        change: function(e, ui){                            
+                            _this.streetSize = ui.value;
+                            _this.measure.streetSize = ui.value;
+                            _this.streetView.changeScale(_this.pixelRatio());  
+                            resizeScrollSlider;
+                        }
+                    });
+                $("#scale").val($('#scaleSlider').slider( "value" ));
+                }
+            }
                  
         });
-
         // Returns the View class
         return EditorView;
 
