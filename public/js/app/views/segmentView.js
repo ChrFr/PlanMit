@@ -157,8 +157,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 var objectImage = document.createElement("div"); 
                 var groundImage = document.createElement("div");
                 var attr = this.segment.attributes;
-                var height = parseFloat($(imageContainer).css('height'));                
-                var width = parseFloat($(imageContainer).css('width'));
+                var height = parseFloat($(imageContainer).css('height')); 
                 var groundHeight = height / 8;
                 
                 //render the ground on the bottom                
@@ -188,9 +187,29 @@ define(["jquery", "backbone", "text!templates/segment.html"],
             },
             
             renderThumbnail: function(){
-                var imageContainer = $(this.div).find('#imageContainer');  
+                var imageContainer = $(this.div).find('#imageContainer');             
+                var objectImage = document.createElement("div"); 
+                var groundImage = document.createElement("div");
+                var height = parseFloat($(imageContainer).css('height')); 
+                var width = parseFloat($(imageContainer).css('width')); 
                 var attr = this.segment.attributes;
-                this.loadImage(attr.image_id, imageContainer, {thumb: true});
+                
+                if (attr.connector){
+                //render the ground on the bottom  
+                $(groundImage).css('width', width);           
+                $(groundImage).css('height', height);
+                $(groundImage).addClass('image');
+                $(imageContainer).append(groundImage);  
+                    this.loadImage(attr.image_ground_id, groundImage);    
+                }
+                
+                //image of the object on top of the ground
+                $(objectImage).css('width', width);           
+                $(objectImage).css('height', height);
+                $(objectImage).addClass('image');
+                $(imageContainer).append(objectImage);                 
+                
+                this.loadImage(attr.image_id, objectImage, {thumb: true});
                 $(imageContainer).append(imageContainer);                      
             },
             

@@ -129,7 +129,6 @@ body {
 
 .source > .segment:hover {
     background: #fefefe;  
-    border-radius: 15px;
     border: solid #fecf1d;
 }
 
@@ -177,17 +176,24 @@ body {
 }
 
 .source{
-    height: 600px;
-    width: 300px;
     overflow: auto; 
     cursor: auto;
     float: left;
+    box-shadow: -1px -1px 2px #c4edfd,
+                 1px -1px 2px #c4edfd,
+                -1px  1px 2px #c4edfd,
+                 1px  1px 2px #c4edfd;
+    z-index: 1;
+    margin: 5;
+    padding: 5;
 }
 
 .source > div {
     float: left;     
-    border-radius: 15px;
+    border-radius: 50px;
     border: solid #c4edfd;
+    margin: 2;
+    padding: 20px;
 }
 
 .editor > .placeholder {
@@ -237,7 +243,7 @@ body {
 .fade{
     width: 50px;
     position: absolute;
-    z-index: 9999;
+    z-index: 500;
     display: none;
     opacity: 1;
 }

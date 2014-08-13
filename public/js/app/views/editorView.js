@@ -20,8 +20,10 @@ define(["jquery", "backbone", "views/segmentView"],
                 this.wrapper = $(options.wrapper);
                 var _this = this;
                 _.bindAll(this, 'render', 'loadEdition');                 
-                this.collection.bind("reset", function(){                                 
-                    _this.streetSize = options.startSize || this.getStreetSize() || 10;
+                this.collection.bind("reset", function(){                    
+                    var streetSize = this.getStreetSize();                    
+                    var startSize = options.startSize || 0;
+                    _this.streetSize = (startSize < streetSize) ? streetSize: startSize;
                     _this.render();
                     
                 });  
@@ -71,13 +73,10 @@ define(["jquery", "backbone", "views/segmentView"],
                         var width = clone.data('size') * _this.pixelRatio();
                         var draggable = dragged.draggable;
                         clone.animate({height: _this.$el.css('height'),
-                                       width: width}, 250);        
-                        var offsetScroll = -parseInt(_this.$el.css('margin-left'));
-                        _this.placeholder.setActive(true, clone);
+                                       width: width}, 250);    
+                        _this.placeholder.setActive(true, clone, width);
                         draggable.on( "drag", function( event, ui ) {
                             _this.placeholder.updatePos(event.clientX);
-                            console.log(_this.placeholder.left)
-                                console.log(offsetScroll + _this.wrapper.width())
                         } );
                         return;
                     },
@@ -605,7 +604,7 @@ define(["jquery", "backbone", "views/segmentView"],
                     }
                 };
 
-                this.setActive = function(active, clone, offset){
+                this.setActive = function(active, clone, width){
                     this.active = active;
                     //remove placeholder if deactivated
                     if (!active)
@@ -615,9 +614,8 @@ define(["jquery", "backbone", "views/segmentView"],
                     //has different position left than dragged div
                     else if (clone){
                         //update the positions of the other divs
-                        this.cid = clone.data('segmentViewID');                        
-                        offset = offset || 0;
-                        var left = clone.position().left + offset;
+                        this.cid = clone.data('segmentViewID');  
+                        var left = clone.position().left;
                         var width = (width) ? width: clone.css('width');
                         this.div = $(document.createElement('div'));  
                         $(this.div).css('width', width);
@@ -625,7 +623,7 @@ define(["jquery", "backbone", "views/segmentView"],
                         $(this.div).addClass('placeholder');
                         $(this.div).data('segmentViewID', this.cid);
                         parent.append(this.div);
-                        this.updatePos(left, offset);
+                        this.updatePos(left);
                     }
                 };                               
             },
@@ -736,10 +734,11 @@ define(["jquery", "backbone", "views/segmentView"],
                     }
                 }
                 
+                /*
                 //change handle position on window resize
                 $( window ).resize(function() {
                   resizeScrollSlider();
-                });                
+                });                */
                 
                 //init scrollbar size
                 setTimeout( resizeScrollSlider, 10 );//safari wants a timeout

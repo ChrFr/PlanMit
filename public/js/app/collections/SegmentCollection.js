@@ -90,10 +90,14 @@ define(["jquery","backbone","models/SegmentModel"],
         
         toJSON: function(){
             var edition = [];
-            var i = 0;
+            var i = 0;            
+            var offset = 0;
+            var first = this.at(0);
+            if (first && first.fixed)
+                offset = first.startPos;
             this.each(function(segment){
                 edition[i] = {id: segment.attributes.id,
-                              start_pos: segment.startPos,
+                              start_pos: segment.startPos - offset,
                               size: segment.size,
                               fixed: segment.fixed
                 };
