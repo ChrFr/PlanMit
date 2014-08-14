@@ -19,7 +19,7 @@ define(["jquery", "backbone", "views/segmentView"],
                 this.width = this.$el.width;
                 this.wrapper = $(options.wrapper);
                 var _this = this;
-                _.bindAll(this, 'render', 'loadEdition');                 
+                _.bindAll(this, 'render', 'renderEdition');                 
                 this.collection.bind("reset", function(){                    
                     var streetSize = this.getStreetSize();                    
                     var startSize = options.startSize || 0;
@@ -52,13 +52,13 @@ define(["jquery", "backbone", "views/segmentView"],
                 var canvas = this.$el.find('canvas')[0];                
                 this.measure = new this.MeasureDisplay(canvas, this.$el, 
                                             this.streetSize, this.creationMode);
-                this.streetView = new this.StreetView(this.$el, this.collection, this.steps, this.measure);
-                this.placeholder = new this.Placeholder(this.streetView, this.$el);
-                this.streetView.changeScale(this.pixelRatio());  
+                this.segmentViewCollection = new this.SegmentViewCollection(this.$el, this.collection, this.steps, this.measure);
+                this.placeholder = new this.Placeholder(this.segmentViewCollection, this.$el);
+                this.segmentViewCollection.changeScale(this.pixelRatio());  
                 this.renderControls()
                 this.makeDroppable();
                 if (this.collection.length > 0)
-                    this.loadEdition(); 
+                    this.renderEdition(); 
                                
                 return this;
             },
@@ -101,7 +101,7 @@ define(["jquery", "backbone", "views/segmentView"],
                                 segmentView.render();
                                 segmentView.setLeft(left);
                                 _this.collection.addSegment(clonedSegment);
-                                _this.streetView.insert(segmentView);
+                                _this.segmentViewCollection.insert(segmentView);
                             };                            
                             dropped.helper.remove();
                         }
@@ -113,7 +113,7 @@ define(["jquery", "backbone", "views/segmentView"],
                             var left = placeholder.left;// + offsetScroll;
                             draggedDiv.css('top', _this.$el.css('top'));
                             draggedDiv.css('left', left);
-                            var segmentView = _this.streetView.getView(draggedDiv.data('segmentViewID'));
+                            var segmentView = _this.segmentViewCollection.getView(draggedDiv.data('segmentViewID'));
                             segmentView.setLeft(left);                                
                             segmentView.trigger("moved");
                             draggedDiv.draggable( "option", "revert", false );
@@ -132,7 +132,7 @@ define(["jquery", "backbone", "views/segmentView"],
                 });
             },
             
-            StreetView: function(parent, collection, steps, measureDisplay){
+            SegmentViewCollection: function(parent, collection, steps, measureDisplay){
                 this.parent = parent;
                 this.collection = collection;
                 this.first = null;
@@ -157,21 +157,7 @@ define(["jquery", "backbone", "views/segmentView"],
                     this.measureDisplay.resize();
                     this.measureDisplay.draw(this);
                 };
-                
-                this.changeZoom = function(zoom){  
-                    var segmentView = this.first;
-                    while (segmentView) {/*
-                        var left = segmentView.left * changeRatio;
-                        var width = segmentView.width * changeRatio;
-                        segmentView.pixelRatio = pixelRatio;
-                        segmentView.left = left;
-                        segmentView.width = width;
-                        segmentView.render();
-                        segmentView = segmentView.next;*/
-                    };
-                    this.measureDisplay.draw(this);
-                };
-                
+                                
                 this.at = function(pos){
                     var found = null;
                     var segmentView = this.first;
@@ -395,19 +381,19 @@ define(["jquery", "backbone", "views/segmentView"],
                     this.canvas.height = height;
                 };
                 
-                this.draw = function(streetView){                      
-                    this.drawScalingLine(streetView);
-                    this.drawInfoLine(streetView);
+                this.draw = function(segmentViewCollection){                      
+                    this.drawScalingLine(segmentViewCollection);
+                    this.drawInfoLine(segmentViewCollection);
                 };
                 
-                this.drawScalingLine = function(streetView){
-                    var ratio = streetView.pixelRatio;
+                this.drawScalingLine = function(segmentViewCollection){
+                    var ratio = segmentViewCollection.pixelRatio;
                     var ctx = this.canvas.getContext("2d");
                     var w = (this.showRaster) ? this.canvas.height - this.marginBottom : this.marginTop;
                     //clear upper area
                     ctx.clearRect(0, 0, this.canvas.width, w);
-                    var firstSegment = streetView.at(0);
-                    var lastSegment = streetView.at(streetView.length - 1);
+                    var firstSegment = segmentViewCollection.at(0);
+                    var lastSegment = segmentViewCollection.at(segmentViewCollection.length - 1);
                     var streetStart = (firstSegment && firstSegment.segment.fixed) ? 
                         firstSegment.segment.startPos + firstSegment.segment.size: 0; 
                     var streetEnd = (lastSegment && lastSegment.segment.fixed) ?
@@ -468,8 +454,8 @@ define(["jquery", "backbone", "views/segmentView"],
                     ctx.fillText(size.toFixed(2) + ' m', middle * ratio, y - 2);
                 };
                 
-                this.drawInfoLine = function(streetView){  
-                    var ratio = streetView.pixelRatio;  
+                this.drawInfoLine = function(segmentViewCollection){  
+                    var ratio = segmentViewCollection.pixelRatio;  
                     var originY = this.canvas.height - this.marginBottom;
                     var ctx = this.canvas.getContext("2d");
                     //clear lower area
@@ -477,7 +463,7 @@ define(["jquery", "backbone", "views/segmentView"],
                                   this.canvas.width, this.marginBottom);
                     var segmentView = {left: 0,
                                        width: 0,
-                                       next: streetView.first};
+                                       next: segmentViewCollection.first};
                     while(segmentView){
                         var y = originY + this.marginBottom - 30.5;                        
                         ctx.lineWidth = 1;                        
@@ -551,9 +537,9 @@ define(["jquery", "backbone", "views/segmentView"],
                 this.resize();
             },
                 
-            Placeholder: function(streetView, parent, options){
+            Placeholder: function(segmentViewCollection, parent, options){
                 this.parent = parent;
-                this.streetView = streetView;
+                this.segmentViewCollection = segmentViewCollection;
                 this.active = false;
                 this.left = 0;
                 this.div = null;
@@ -577,10 +563,10 @@ define(["jquery", "backbone", "views/segmentView"],
                         else if (left >= maxLeft)
                             left = maxLeft;
                         //snap to grid based on steps     
-                        left -= (left % this.streetView.steps * this.streetView.pixelRatio); 
+                        left -= (left % this.segmentViewCollection.steps * this.segmentViewCollection.pixelRatio); 
                         this.left = left; 
                         $(this.div).css('left', left);
-                        var gap = this.streetView.doesFit(this.div);
+                        var gap = this.segmentViewCollection.doesFit(this.div);
                         //flag as not droppable if collision to neighbours 
                         //is detected
                         if (!gap.fits){
@@ -627,23 +613,16 @@ define(["jquery", "backbone", "views/segmentView"],
                     }
                 };                               
             },
-                        
-            updateAttributeLog: function(){                
-                $('#elementspx').val(this.allChildrenWidth() * this.pixelRatio());
-                $('#elementsm').val(this.allChildrenWidth());
-                $('#streetpx').val(this.streetProfileWidth() * this.pixelRatio());                    
-                $('#streetm').val(this.streetProfileWidth());
-            },
-            
+                                    
             clear: function(){
-                 this.streetView.clear();
+                 this.segmentViewCollection.clear();
                  this.collection.reset();
             },
             
             //divide the edit view into no editable divs and editable divs 
             //(last ones are registered to shapeshift) depending on the
             //the fixed attribute of each segment model in the collection
-            loadEdition: function(){
+            renderEdition: function(){
                 var _this = this;
                 var height = parseInt(this.$el.css('height'));
                 var ratio = this.pixelRatio();
@@ -655,7 +634,7 @@ define(["jquery", "backbone", "views/segmentView"],
                                                       'creationMode': _this.creationMode,
                                                       'pixelRatio': ratio});
                     segmentView.render();
-                    _this.streetView.insert(segmentView);
+                    _this.segmentViewCollection.insert(segmentView);
                 });
             },
             
@@ -663,20 +642,7 @@ define(["jquery", "backbone", "views/segmentView"],
                 return parseFloat($(this.$el[0]).css('width')) / 
                     this.streetSize;
             },
-                               
-            streetProfileWidth: function(){
-                var width = parseFloat($(this.$el[0]).css('width')) / this.pixelRatio();
-                this.collection.each((function(child){
-                    //category 1 (borders like buildings etc.) don't belong
-                    //to the profile of the street
-                    if (child.attributes.category === 1)
-                        width -= child.size;
-                }));
-                return width;
-                
-                //check order of children of div here, set pos of models in collection by passing ids to collection
-            },              
-            
+                                           
             renderControls: function(){        
                 var _this = this;
                 var editorWrapper = $( "#editorWrapper" );
@@ -757,7 +723,7 @@ define(["jquery", "backbone", "views/segmentView"],
                         var unzoomedWidth = currentWidth * 100 / _this.zoom;
                         _this.zoom = ui.value;                        
                         _this.$el.css('width', unzoomedWidth * _this.zoom/100);                        
-                        _this.streetView.changeScale(_this.pixelRatio()); 
+                        _this.segmentViewCollection.changeScale(_this.pixelRatio()); 
                         resizeScrollSlider();
                     }
                 });
@@ -776,7 +742,7 @@ define(["jquery", "backbone", "views/segmentView"],
                         change: function(e, ui){                            
                             _this.streetSize = ui.value;
                             _this.measure.streetSize = ui.value;
-                            _this.streetView.changeScale(_this.pixelRatio());  
+                            _this.segmentViewCollection.changeScale(_this.pixelRatio());  
                             resizeScrollSlider;
                         }
                     });
