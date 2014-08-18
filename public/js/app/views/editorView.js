@@ -201,21 +201,24 @@ define(["jquery", "backbone", "views/segmentView"],
                         var segLeft = segmentView.left;
                         var segRight = segLeft + segmentView.width; 
                         var next = segmentView.next;
-                        if (next){                
-                            //ignore segmentView currently dragged
-                            if (next.isConnector)
-                                next = segmentView.next.next;
+                        if (next){     
+                            //ignore connectors and segmentView currently dragged
+                            if (next.isConnector){
+                                next = next.next;
+                            }
                             if (next.cid === divID){
                                 next = next.next;
                             }
-                        };                  
-                        
+                            if (next.isConnector){
+                                next = next.next;
+                            }
+                        };            
                         //take editor border, if there is no next segment
                         var nextLeft = (next) ? next.left: editorWidth;
 
                         //2 segments found, where div is in between
                         if (!isConnector && left >= segRight && left < nextLeft){
-                            //enough room for the div?
+                            //enough room for the div?      
                             if (right <= nextLeft){  
                                 gap.fits = true;
                             }

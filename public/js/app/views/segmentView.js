@@ -370,8 +370,10 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         else if ($(e.toElement).attr('id') === 'righthandle'){
                             //is there a segment to the right?
                             var next = (!_this.next.isConnector) ? _this.next: _this.next.next;
+                            if(_this.next.isConnector)
+                                console.log(next)
                             if (next) {
-                                var space = _this.next.left - (_this.left + _this.width);
+                                var space = next.left - (_this.left + _this.width);
                             }          
                             //no segment behind? take the border of the editor
                             else {
