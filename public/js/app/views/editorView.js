@@ -38,8 +38,7 @@ define(["jquery", "backbone", "views/segmentView"],
                     this.collection.fetch({reset: true});}
                 //else only render (and show modified edition rather than reset
                 else
-                    this.render();                
-                
+                    this.render();      
             },            
 
             // View Event Handlers
@@ -173,7 +172,7 @@ define(["jquery", "backbone", "views/segmentView"],
                     return found;
                 };          
 
-                this.doesFit = function(div){
+                this.doesFit = function(div, isConnector){
                     var left = $(div).offset().left - parent.offset().left;
                     var width = parseFloat($(div).css('width'));
                     var right = left + width;
@@ -193,26 +192,29 @@ define(["jquery", "backbone", "views/segmentView"],
                     //temporary first element is left border
                     var tmp = {left: 0, width: 0, cid: null, next: this.first};
                     var segmentView = tmp;
-                    while(segmentView){                         
-                        //ignore segmentView currently dragged
-                        if (divID && segmentView.cid === divID){
-                            segmentView = segmentView.next;
+                    while(segmentView){      
+                        //ignore segmentView currently dragged                        
+                        if ((divID && segmentView.cid === divID) || segmentView.isConnector){
+                            segmentView = segmentView.next;                
                             continue;
-                        }
+                        }     
                         var segLeft = segmentView.left;
                         var segRight = segLeft + segmentView.width; 
                         var next = segmentView.next;
                         if (next){                
                             //ignore segmentView currently dragged
-                            if (next.cid === divID)
+                            if (next.isConnector)
                                 next = segmentView.next.next;
-                        };                        
+                            if (next.cid === divID){
+                                next = next.next;
+                            }
+                        };                  
                         
                         //take editor border, if there is no next segment
                         var nextLeft = (next) ? next.left: editorWidth;
 
                         //2 segments found, where div is in between
-                        if (left >= segRight && left < nextLeft){
+                        if (!isConnector && left >= segRight && left < nextLeft){
                             //enough room for the div?
                             if (right <= nextLeft){  
                                 gap.fits = true;
@@ -222,6 +224,14 @@ define(["jquery", "backbone", "views/segmentView"],
                             //break loop, because list is sorted 
                             break;
                         }
+                        else if (isConnector && right >= segRight && left <=nextLeft){
+                            if (Math.abs(nextLeft - segRight) <= 1){  
+                                gap.fits = true;
+                                gap.left = (left - segRight) / 2;
+                                gap.right = (nextLeft - right) / 2;
+                            }
+                        }
+                        
                         segmentView = segmentView.next;
                     };
                     
@@ -254,8 +264,7 @@ define(["jquery", "backbone", "views/segmentView"],
                             segmentView.prev.next = segmentView;
                         if (segmentView.next)
                             segmentView.next.prev = segmentView;;               
-                    };
-                    
+                    };                    
                     var _this = this;
                     segmentView.on("moved", function(){                            
                         _this.relocate(this);
@@ -464,12 +473,13 @@ define(["jquery", "backbone", "views/segmentView"],
                     var segmentView = {left: 0,
                                        width: 0,
                                        next: segmentViewCollection.first};
-                    while(segmentView){
+                    while(segmentView){                        
+                        var next = (segmentView.next && segmentView.next.isConnector) ? segmentView.next.next: segmentView.next;
                         var y = originY + this.marginBottom - 30.5;                        
                         ctx.lineWidth = 1;                        
                         ctx.font = "bold 12px Arial";
                         ctx.strokeStyle = 'black';
-                        
+
                         //horizontal line
                         ctx.beginPath();
                         var segRight = segmentView.left + segmentView.width;
@@ -477,7 +487,7 @@ define(["jquery", "backbone", "views/segmentView"],
                         ctx.moveTo(segmentView.left, y);
                         ctx.lineTo(segRight, y); 
                         ctx.stroke();    
-                                                
+
                         //vertical lines
                         ctx.beginPath();
                         ctx.setLineDash([1,2]);
@@ -486,7 +496,7 @@ define(["jquery", "backbone", "views/segmentView"],
                         ctx.moveTo(segRight, y);
                         ctx.lineTo(segRight, originY); 
                         ctx.stroke();                            
-                        
+
                         if (segmentView.width > 0){
                             //small rectangle with display of segmentsize inside
                             //in middle of horizontal line
@@ -502,8 +512,6 @@ define(["jquery", "backbone", "views/segmentView"],
                             var size = segmentView.segment.size;
                             ctx.fillText(size + ' m', middle, y + 3);
                         }
-                        
-                        var next = segmentView.next
                         //visualize gaps between segments
                         var nextLeft = (next) ? next.left: parseFloat(this.parent.css('width'));
                         var thisRightPos = (segmentView.segment) ? (segmentView.segment.startPos + 
@@ -519,7 +527,7 @@ define(["jquery", "backbone", "views/segmentView"],
                             ctx.lineTo(nextLeft, y - 10); 
                             ctx.moveTo(middle, y - 10);
                             ctx.lineTo(middle, y + 5); 
-                            
+
                             ctx.rect(middle - 25 , y + 5, 50, 20);
                             ctx.fillStyle = 'white';
                             ctx.fill();
@@ -527,9 +535,10 @@ define(["jquery", "backbone", "views/segmentView"],
                             ctx.fillStyle = 'grey';
                             ctx.textAlign = 'center';
                             var gapSize = nextStartPos - thisRightPos;
-                                    
+
                             ctx.fillText(gapSize.toFixed(2) + ' m',  middle, y + 18);
                         };
+                        
                         segmentView = next;
                     };              
                 };
@@ -544,6 +553,7 @@ define(["jquery", "backbone", "views/segmentView"],
                 this.left = 0;
                 this.div = null;
                 this.cid = null;
+                this.isConnector;
                 this.snapTolerance = 20;
                 //offset of the dragged helper to the placeholder while dragging
                 this.offsetX = -20;
@@ -566,7 +576,8 @@ define(["jquery", "backbone", "views/segmentView"],
                         left -= (left % this.segmentViewCollection.steps * this.segmentViewCollection.pixelRatio); 
                         this.left = left; 
                         $(this.div).css('left', left);
-                        var gap = this.segmentViewCollection.doesFit(this.div);
+                        var gap = this.segmentViewCollection.doesFit(this.div, 
+                            this.isConnector);
                         //flag as not droppable if collision to neighbours 
                         //is detected
                         if (!gap.fits){
@@ -599,6 +610,7 @@ define(["jquery", "backbone", "views/segmentView"],
                     //offset: if zoomed in clone (appended to body)
                     //has different position left than dragged div
                     else if (clone){
+                        this.isConnector = clone.data('isConnector');
                         //update the positions of the other divs
                         this.cid = clone.data('segmentViewID');  
                         var left = clone.position().left;

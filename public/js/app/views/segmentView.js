@@ -15,7 +15,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 this.height = options.height || 100;
                 this.insertSorted = options.insertSorted || false;
                 this.creationMode = options.creationMode || false;
-                this.svgUnsupported = options.svgUnsupported || false;
+                this.svgUnsupported = options.svgUnsupported || false;                
+                this.isConnector = (this.segment.attributes.type === 1) ? true: false; 
                 //processed attributes
                 this.left = options.left || this.segment.startPos * this.pixelRatio;
                 this.div = null;
@@ -48,14 +49,18 @@ define(["jquery", "backbone", "text!templates/segment.html"],
 
                 //give the div information about the segment it is viewing
                 $(div).data('segmentID', this.segment.attributes.id); 
-                $(div).data('segmentViewID', this.cid); 
+                $(div).data('segmentViewID', this.cid);
+                $(div).data('isConnector', this.isConnector); 
+                
+                //fix element or make it drag- and resizable
                 if (this.segment.fixed && !this.creationMode)
                     $(div).addClass('fixed');
                 else {
                     $(div).addClass('segment');
                     this.makeDraggable();
-                    if (!this.cloneable)
+                    if (!this.cloneable && !this.isConnector){
                        this.makeResizable();
+                   }
                 };
                 
                 if (this.cloneable)
@@ -72,7 +77,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
         
                 render: function(view){
                     this.view = view;
-                    if (view.cloneable)
+                    if (view.cloneable || view.isConnector)
                         $(view.div).find('.OSD').hide();
                     else
                         $(view.div).hover(
@@ -160,32 +165,40 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 var height = parseFloat($(imageContainer).css('height')); 
                 var groundHeight = height / 8;
                 
-                //render the ground on the bottom                
-                $(groundImage).css('width', '100%');
-                $(groundImage).addClass('image');
-                $(groundImage).css('height', groundHeight);
-                $(groundImage).css('bottom', 0);
-                $(imageContainer).append(groundImage);      
-                
-                //image of the object on top of the ground
-                $(objectImage).css('width', '100%');
-                $(objectImage).addClass('image');
-                $(objectImage).css('bottom', groundHeight);
-                $(objectImage).css('left', '0');
-                $(objectImage).css('right', '0');
-                $(objectImage).css('margin', '0 auto');  
-                $(imageContainer).append(objectImage);   
-                
-                this.loadImage(attr.image_id, objectImage, this.pixelRatio,
-                                {adjustHeight: true,
-                                 maxHeight: height - groundHeight});
-                this.loadImage(attr.image_ground_id, groundImage, this.pixelRatio,
-                               {stretch: true});
+                if (!this.isConnector){
+                    //render the ground on the bottom                
+                    $(groundImage).css('width', '100%');
+                    $(groundImage).addClass('image');
+                    $(groundImage).css('height', groundHeight);
+                    $(groundImage).css('bottom', 0);
+                    $(imageContainer).append(groundImage);      
+                    //image of the object on top of the ground
+                    $(objectImage).css('width', '100%');
+                    $(objectImage).addClass('image');
+                    $(objectImage).css('bottom', groundHeight);
+                    $(objectImage).css('left', '0');
+                    $(objectImage).css('right', '0');
+                    $(objectImage).css('margin', '0 auto');  
+                    $(imageContainer).append(objectImage);   
+                    this.loadImage(attr.image_id, objectImage, this.pixelRatio,
+                        {adjustHeight: true, maxHeight: height - groundHeight});
+                    this.loadImage(attr.image_ground_id, groundImage, 
+                        this.pixelRatio, {stretch: true});
                     
-                $(imageContainer).zIndex(1);
-                $(objectImage).zIndex(1);    
+                    $(imageContainer).zIndex(1);
+                }
+                else {                                 
+                    $(objectImage).css('width', '100%');
+                    $(objectImage).addClass('image');
+                    $(objectImage).css('height', groundHeight);
+                    $(objectImage).css('bottom', 0);
+                    $(imageContainer).append(objectImage);     
+                    this.loadImage(attr.image_id, objectImage, this.pixelRatio,
+                    {stretch: true});
+                    $(imageContainer).zIndex(9000);
+                }               
             },
-            
+                        
             renderThumbnail: function(){
                 var imageContainer = $(this.div).find('#imageContainer');             
                 var objectImage = document.createElement("div"); 
@@ -277,6 +290,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             var clone = $(ui.helper);
                             clone.addClass('dragged');                            
                             clone.data('size', _this.segment.attributes.base_size); 
+                            clone.data('isConnector', _this.isConnector); 
                         }, 
                     });
                 else {
@@ -292,7 +306,6 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             left: -20
                         },
                         start: function (e, ui){
-                            console.log($(this).parent())
                             $(this).addClass('dragOrigin'); 
                             //keep track if div is pulled in or out to delete
                             $('#editorWrapper').on("dropout", function(e, ui) {
@@ -303,7 +316,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             });
                             var drag = $(ui.helper);
                             drag.addClass('dragged');
-                            drag.data('segmentViewID', _this.cid);
+                            drag.data('segmentViewID', _this.cid); 
+                            drag.data('isConnector', _this.isConnector); 
                         },
                         
                         stop: function (e, ui){
@@ -342,8 +356,9 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         //max width for resizing to the left
                         if ($(e.toElement).attr('id') === 'lefthandle'){
                             //is there a segment to the left?
-                            if (_this.prev) {
-                                var space = _this.left - (_this.prev.left + _this.prev.width);                  
+                            var prev = (!_this.prev.isConnector) ? _this.prev: _this.prev.prev;
+                            if (prev) {
+                                var space = _this.left - (prev.left + prev.width);                  
                             }   
                             //no segment infront? take the border of the editor
                             else {
@@ -354,7 +369,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         //max width for resizing to the right
                         else if ($(e.toElement).attr('id') === 'righthandle'){
                             //is there a segment to the right?
-                            if (_this.next) {
+                            var next = (!_this.next.isConnector) ? _this.next: _this.next.next;
+                            if (next) {
                                 var space = _this.next.left - (_this.left + _this.width);
                             }          
                             //no segment behind? take the border of the editor
