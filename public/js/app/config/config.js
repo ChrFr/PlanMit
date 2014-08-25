@@ -14,6 +14,8 @@ require.config({
       "jquery": "../libs/jquery",
 
       "jqueryui": "../libs/jqueryui",
+      
+      "jquerytouchpunch": "../libs/jquery.ui.touch-punch.min",
 
       "jquerymobile": "../libs/jquery.mobile",
 
@@ -44,6 +46,8 @@ require.config({
 
       // jQueryUI
       "jqueryui": ["jquery"],
+      
+      "jquerytouchpunch": ["jquery"],
 
       // Backbone.validateAll plugin that depends on Backbone
       "backbone.validateAll": ["backbone"],

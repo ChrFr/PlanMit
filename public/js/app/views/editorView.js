@@ -65,7 +65,7 @@ define(["jquery", "backbone", "views/segmentView"],
             makeDroppable: function(){
                 var _this = this;
                 this.wrapper.droppable({
-                    tolerance: "intersect",
+                    tolerance: "fit",
                     cursor: 'auto',
                     over: function(e, dragged) {
                         var clone = $(dragged.helper);  

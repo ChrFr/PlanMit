@@ -1,6 +1,7 @@
 
 This project uses Backbone-Require-Boilerplate (BRB) provided by Greg Franko.
 https://github.com/BoilerplateMVC/Backbone-Require-Boilerplate
+also uses jQuery Touch Punch http://touchpunch.furf.com/
 
 additionally requires: node-postgres for PostgreSQL Connection
 
