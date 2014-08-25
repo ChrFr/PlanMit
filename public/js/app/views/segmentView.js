@@ -343,8 +343,11 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 var _this = this;
                 var div = this.div;                
                 var maxWidth = 0;
+                var startRight = 0;
+                var startLeft = 0;
+                var space = 0;
                 $(div).resizable({
-                    grid: _this.steps * _this.pixelRatio,
+                    //grid: Math.round(_this.steps * _this.pixelRatio),
                     handles: {
                       'w': '#lefthandle',
                       'e': '#righthandle'
@@ -354,31 +357,32 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         $('.OSD').css('visibility', 'hidden');
                         $(div).find('.OSD').css('visibility', 'visible');
                         //max width for resizing to the left
+                        startLeft = _this.left;
+                        startRight = startLeft + _this.width;
                         if ($(e.toElement).attr('id') === 'lefthandle'){
-                            //is there a segment to the left?
+                            //connectors are ignored
                             var prev = (!_this.prev.isConnector) ? _this.prev: _this.prev.prev;
+                            //is there a segment to the left?
                             if (prev) {
-                                var space = _this.left - (prev.left + prev.width);                  
+                                space = startLeft - (prev.left + prev.width);                  
                             }   
-                            //no segment infront? take the border of the editor
+                            //no segment infront? take the left border of the editor
                             else {
-                                var space = _this.left; 
+                                space = startLeft; 
                             }
                             maxWidth = space + _this.width;                 
                         }
                         //max width for resizing to the right
                         else if ($(e.toElement).attr('id') === 'righthandle'){
-                            //is there a segment to the right?
                             var next = (!_this.next.isConnector) ? _this.next: _this.next.next;
-                            if(_this.next.isConnector)
-                                console.log(next)
+                            //is there a segment to the right?
                             if (next) {
-                                var space = next.left - (_this.left + _this.width);
+                                space = next.left - startRight;
                             }          
-                            //no segment behind? take the border of the editor
+                            //no segment behind? take the right border of the editor
                             else {
-                                var space = parseFloat(_this.$el.css('width'))-
-                                        (_this.left + _this.width); 
+                                space = parseFloat(_this.$el.css('width'))-
+                                        startRight; 
                             }  
                             maxWidth = space + _this.width;  
                         }
@@ -392,6 +396,10 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         var width = parseFloat($(div).css('width'));                      
                         _this.setWidth(width);
                         var left = $(div).offset().left - _this.$el.offset().left;
+                        //avoid jumping of size of gap to the right (float calc)
+                        //by determining the left pos based on the right border
+                        //of the segment if resized to the left
+                        //var left = ($(div).data('ui-resizable').axis === 'w')? startRight - width: startLeft;
                         _this.setLeft(left);                            
                         _this.trigger("resized");
                     },
