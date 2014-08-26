@@ -65,7 +65,7 @@ define(["jquery", "backbone", "views/segmentView"],
             makeDroppable: function(){
                 var _this = this;
                 this.wrapper.droppable({
-                    tolerance: "fit",
+                    tolerance: "intersect",
                     cursor: 'auto',
                     over: function(e, dragged) {
                         var clone = $(dragged.helper);  
@@ -576,7 +576,7 @@ define(["jquery", "backbone", "views/segmentView"],
                         else if (left >= maxLeft)
                             left = maxLeft;
                         //snap to grid based on steps     
-                        left -= (left % this.segmentViewCollection.steps * this.segmentViewCollection.pixelRatio); 
+                        //left -= (left % this.segmentViewCollection.steps * this.segmentViewCollection.pixelRatio); 
                         this.left = left; 
                         $(this.div).css('left', left);
                         var gap = this.segmentViewCollection.doesFit(this.div, 

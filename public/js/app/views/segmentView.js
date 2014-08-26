@@ -345,7 +345,9 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 var maxWidth = 0;
                 var startRight = 0;
                 var startLeft = 0;
+                var prevLeft = 0;
                 var space = 0;
+                var snapTolerance = 10;
                 $(div).resizable({
                     //grid: Math.round(_this.steps * _this.pixelRatio),
                     handles: {
@@ -362,14 +364,9 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         if ($(e.toElement).attr('id') === 'lefthandle'){
                             //connectors are ignored
                             var prev = (!_this.prev.isConnector) ? _this.prev: _this.prev.prev;
-                            //is there a segment to the left?
-                            if (prev) {
-                                space = startLeft - (prev.left + prev.width);                  
-                            }   
-                            //no segment infront? take the left border of the editor
-                            else {
-                                space = startLeft; 
-                            }
+                            //no segment infront? take the left border of the editor (=0)
+                            prevLeft = (prev)? prevLeft = (prev.left + prev.width): 0;
+                            space = startLeft - prevLeft;       
                             maxWidth = space + _this.width;                 
                         }
                         //max width for resizing to the right
@@ -392,10 +389,18 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         $(div).resizable( "option", "minWidth", minWidth );
                     },
                     
-                    resize: function(e, ui){   
-                        var width = parseFloat($(div).css('width'));                      
+                    resize: function(e, ui){        
+                        var width = parseFloat($(div).css('width'));                         
+                        var left = parseFloat($(div).css('left'));
+                        if (maxWidth - width < snapTolerance) {  
+                            if ($(div).data('ui-resizable').axis === 'w'){
+                                left = prevLeft;                           
+                                $(div).css('left', prevLeft);
+                            };
+                            width = maxWidth;
+                            $(div).css('width', width); 
+                        }
                         _this.setWidth(width);
-                        var left = $(div).offset().left - _this.$el.offset().left;
                         //avoid jumping of size of gap to the right (float calc)
                         //by determining the left pos based on the right border
                         //of the segment if resized to the left
