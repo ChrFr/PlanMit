@@ -7,7 +7,7 @@ define(["jquery", "backbone"],
 
         var SegmentModel = Backbone.Model.extend({
             
-            url: 'db/segments/',
+            url: 'api/segments/',
 
             initialize: function(dbID) {
                 this.url += dbID || 1;
@@ -28,7 +28,7 @@ define(["jquery", "backbone"],
                         callback(res.img_svg, res.actual_size);
                     }
                 };                
-                xmlhttp.open("GET","db/images/" + id, 
+                xmlhttp.open("GET","api/images/" + id, 
                              true);
                 xmlhttp.send();                
             }            

@@ -8,17 +8,17 @@ define(["jquery","backbone","models/SegmentModel"],
     var SegmentSource = Backbone.Collection.extend({
         
         model: SegmentModel,
-        url: 'db/projects/1/segments/',
+        url: 'api/projects/1/segments/',
         
         initialize: function(options){
             var project_id, url;            
             if (options){
                 project_id = options.project_id;   
                 if (options.showAll)
-                    url = 'db/segments/';
+                    url = 'api/segments/';
             };
             this.project_id = project_id || 1;
-            this.url = url || 'db/projects/' + this.project_id + '/segments/';
+            this.url = url || 'api/projects/' + this.project_id + '/segments/';
         },
     
         addSegment: function(segment) {  

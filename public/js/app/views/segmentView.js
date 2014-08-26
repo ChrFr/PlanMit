@@ -392,6 +392,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     resize: function(e, ui){        
                         var width = parseInt($(div).css('width'));                         
                         var left = parseInt($(div).css('left'));
+                        
+                        //snap to neighbour
                         if (maxWidth - width < snapTolerance) {  
                             if ($(div).data('ui-resizable').axis === 'w'){
                                 left = prevLeft;                           
@@ -402,10 +404,6 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         }
                             
                         _this.setWidth(width);
-                        //avoid jumping of size of gap to the right (float calc)
-                        //by determining the left pos based on the right border
-                        //of the segment if resized to the left
-                        //var left = ($(div).data('ui-resizable').axis === 'w')? startRight - width: startLeft;
                         _this.setLeft(left);                    
                         _this.trigger("resized");
                     },

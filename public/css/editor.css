@@ -124,6 +124,10 @@ body {
                  0px -0px 0px #fecf1d,
                 -0px  0px 0px #fecf1d,
                  0px  6px 8px #fecf1d;
+    /*
+    box-shadow: 0  0px 6px 8px #fecf1d, 
+                0 -0px -6px 8px #fecf1d;
+    background: #fecf1d;  */
 }
 
 .source > .segment:hover {

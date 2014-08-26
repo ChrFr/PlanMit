@@ -11,7 +11,7 @@ define(["jquery","backbone","models/SegmentModel"],
 
         // Tells the Backbone Collection that all of it's models will be of type Model (listed up top as a dependency)
         model: SegmentModel,
-        url: 'db/projects/1',
+        url: 'api/projects/1',
         
         initialize: function(project_id){
             this.count = 1;
@@ -42,7 +42,7 @@ define(["jquery","backbone","models/SegmentModel"],
         },
         
         fetch: function(options) {            
-            this.url = 'db/projects/' + this.projectID;
+            this.url = 'api/projects/' + this.projectID;
             var _this = this;
             $.ajax({
                 type: 'GET',

@@ -272,32 +272,7 @@ define(["jquery", "backbone", "views/segmentView"],
                     segmentView.on("moved", function(){                            
                         _this.relocate(this);
                     });
-                    segmentView.on("resized", function(){/*
-                        //jquery resize is not precise and tends to jump
-                        //around on west resize -> adjust to
-                        //tolerance of steps and close tiny gaps
-                        var prev = segmentView.prev;
-                        var next = segmentView.next;
-                        var distLeft = (prev) ? segmentView.segment.startPos 
-                                - (prev.segment.startPos + prev.segment.size): 0;
-                        distLeft = parseInt(distLeft.toFixed(2));
-                        if (distLeft !== 0 && distLeft <= Math.abs(this.steps * 2)){  
-                            segmentView.segment.startPos = Math.floor((prev.segment.startPos 
-                                    + prev.segment.size) * 100) / 100; 
-                            $(segmentView.div).css('left', 
-                                parseInt($(prev.div).css('left')) + 
-                                        parseInt($(prev.div).css('width')));
-                        }
-                        var distRight = (next) ? next.segment.startPos 
-                                - (segmentView.segment.startPos + segmentView.segment.size): this.streetSize;
-                        distRight = parseInt(distRight.toFixed(2));
-                        if (distRight !== 0 && distRight <= Math.abs(this.steps * 2)){
-                            segmentView.segment.size = Math.floor((next.segment.startPos 
-                                - segmentView.segment.startPos) * 100) / 100; 
-                            $(segmentView.div).css('width', 
-                                parseInt($(next.div).css('left')) -  
-                                        parseInt($(segmentView.div).css('left')));
-                        }*/
+                    segmentView.on("resized", function(){
                         _this.measureDisplay.drawInfoLine(_this);
                     });
                     segmentView.on("delete", function(){  
@@ -312,10 +287,10 @@ define(["jquery", "backbone", "views/segmentView"],
                 };
 
                 this.remove = function(segmentView, doDelete){
-                    //bend pointers                    
                     segmentView.off("moved");
                     segmentView.off("delete");
                     segmentView.off("resized");
+                    //bend pointers                    
                     var prev = segmentView.prev;
                     var next = segmentView.next;
                     if (prev){

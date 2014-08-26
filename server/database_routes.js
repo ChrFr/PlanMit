@@ -2,6 +2,7 @@ module.exports = function(){
     var express = require('express');
     var app = module.exports = express();
     
+    
     //Mapping taken from https://github.com/visionmedia/express/blob/master/examples/route-map/index.js
 
     app.map = function(a, route){
@@ -60,28 +61,6 @@ module.exports = function(){
                 //merge the project object with the borders from db                
                 if (result.length === 0)
                     return res.send(404);
-                /*
-                var resProj = result[0];
-                var left = resProj.left_border;
-                var right = resProj.right_border;
-                var order = 'ORDER BY id ';
-                if (left < right)
-                    order += 'ASC';
-                else
-                    order += 'DESC';
-                _pg('SELECT * FROM segments WHERE id in(' + left + 
-                        ',' + right + ') ' + order,
-                function(result){
-                    if (result.length === 0)
-                        return res.send(resProj);
-                    if (result.length === 1)                    
-                        result.push(result[0]);
-                    if (left)
-                        resProj.left_border = result[0]
-                    if (right)
-                        resProj.right_border = result[1]
-                    return res.send(resProj);
-                })*/
                 return res.send(result);
             });
         },
@@ -91,8 +70,6 @@ module.exports = function(){
                         + JSON.stringify(req.body.template) + 
                         "' WHERE id=" 
                         + req.params.pid;
-            console.log(post);
-            console.log(req.body.template);
             pgQuery(post,
                 function(result){
                     return res.send(result);
@@ -104,6 +81,9 @@ module.exports = function(){
 
     var segments = {        
         list: function(req, res){  
+            console.log(req.session)
+            if(!req.session.user)
+                return res.send(401);
             var _pg = pgQuery;
             //if projectid is given, get the project specific segments
             if (req.params.pid){
@@ -219,7 +199,50 @@ module.exports = function(){
       delete: function(req, res){        
       }
     };
+    
+    var session = {
+        get: function(req, res){
+            if(req.session.user){
+              res.send(200, {
+                  auth : true,
+                  user : req.session.user
+                });
+            }else{
+                res.send(401, {
+                    auth : false,
+                    csrf : req.session._csrf
+                });
+            }
+        },
 
+        post: function(req, res){
+            var email = req.body.email;
+            var password = req.body.password;
+            for (var i = 0; i < Users.length; i++) {
+                var user = Users[i];
+                if(user.email == email && user.password == password){
+                    req.session.user = user;
+                    return res.send(200, {
+                        auth : true,
+                        user : user
+                    });
+                }
+            };
+            return res.send(401);
+        },
+
+        delete: function(req, res){ 
+            //Sending new csrf to client when user logged out
+            //for next user to sign in without refreshing the page
+            req.session.user = null;
+            req.session._csrf = uid(24);
+
+            res.send(200, {
+                csrf : req.session._csrf
+            });
+        }
+    };
+    
     app.map({
         '/projects': {
             get: projects.list,
@@ -251,6 +274,11 @@ module.exports = function(){
                 get: segments.get,
                 delete: segments.delete
             }
+        },
+        '/session': {
+            get: session.get,
+            post: session.post,
+            delete: session.delete
         }
     });
     
