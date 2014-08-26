@@ -139,22 +139,22 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 },    
             },
             
-            setWidth: function(width, cssUpdate){
-                this.width = width;      
-                if (cssUpdate)
-                    $(this.div).css('width', this.width);         
+            setWidth: function(width){
+                this.width = width;   
                 var size = this.width / this.pixelRatio;
-                //floor to fit steps
-                size -= (size % this.steps);
-                this.segment.size = Math.floor(size * 100) / 100;
+                //round to fit steps
+                size = Math.round(size / this.steps) * this.steps;
+                //cut wrong decimal places caused by float inaccuracy
+                this.segment.size = parseFloat(size.toFixed(2));
             },
             
             setLeft: function(left){
                 this.left = left;   
                 var startPos = this.left / this.pixelRatio;
-                //floor to fit steps
-                startPos -= (startPos % this.steps);  
-                this.segment.startPos = Math.floor(startPos * 100) / 100;
+                //round to fit steps
+                startPos = Math.round(startPos / this.steps) * this.steps;
+                //cut wrong decimal places caused by float inaccuracy
+                this.segment.startPos = parseFloat(startPos.toFixed(2))
             },
             
             renderImage: function(){
@@ -162,7 +162,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 var objectImage = document.createElement("div"); 
                 var groundImage = document.createElement("div");
                 var attr = this.segment.attributes;
-                var height = parseFloat($(imageContainer).css('height')); 
+                var height = parseInt($(imageContainer).css('height')); 
                 var groundHeight = height / 8;
                 
                 if (!this.isConnector){
@@ -203,8 +203,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 var imageContainer = $(this.div).find('#imageContainer');             
                 var objectImage = document.createElement("div"); 
                 var groundImage = document.createElement("div");
-                var height = parseFloat($(imageContainer).css('height')); 
-                var width = parseFloat($(imageContainer).css('width')); 
+                var height = parseInt($(imageContainer).css('height')); 
+                var width = parseInt($(imageContainer).css('width')); 
                 var attr = this.segment.attributes;
                 
                 if (attr.connector){
@@ -235,10 +235,10 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             $(div).css('width', actual_size * r);
                         $(div).html(svg_data);
                         var svg = $(div).find('svg')[0]; 
-                        var divWidth = parseFloat($(div).css('width'));
-                        var divHeight = parseFloat($(div).css('height'));
-                        var svgWidth = parseFloat($(svg).css('width'));
-                        var svgHeight = parseFloat($(svg).css('height'));
+                        var divWidth = parseInt($(div).css('width'));
+                        var divHeight = parseInt($(div).css('height'));
+                        var svgWidth = parseInt($(svg).css('width'));
+                        var svgHeight = parseInt($(svg).css('height'));
                         var width = (options.stretch) ? divWidth: svgWidth;
                         var height = (options.stretch) ? divHeight: svgHeight; 
                         //set viewbox to if (as a precaution, if not set while
@@ -260,7 +260,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                                 svg.setAttribute("height", "100%");   
                                 $(div).css("height", height / ratio);
                             }
-                            var parentWidth = parseFloat($(div).parent().css('width'))
+                            var parentWidth = parseInt($(div).parent().css('width'))
                             if (divWidth > parentWidth){
                                 $(div).css("left", -(divWidth - parentWidth / 2));
                                 $(div).css("right", -(divWidth - parentWidth / 2));
@@ -285,7 +285,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         appendTo: 'body',
                         containment: 'body',
                         scroll: false,
-                        cursorAt: { top: 0, left: 0 },
+                        //cursorAt: { top: 0, left: 0 },
                         start: function (e, ui) {    
                             var clone = $(ui.helper);
                             clone.addClass('dragged');                            
@@ -302,7 +302,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         containment: 'body',
                         scroll: false,
                         cursorAt: { 
-                            top: parseFloat($(_this.div).css('height'))/2, 
+                            top: parseInt($(_this.div).css('height'))/2, 
                             left: -20
                         },
                         start: function (e, ui){
@@ -349,7 +349,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 var space = 0;
                 var snapTolerance = 10;
                 $(div).resizable({
-                    //grid: Math.round(_this.steps * _this.pixelRatio),
+                    grid: Math.round(_this.steps * _this.pixelRatio),
                     handles: {
                       'w': '#lefthandle',
                       'e': '#righthandle'
@@ -378,11 +378,11 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             }          
                             //no segment behind? take the right border of the editor
                             else {
-                                space = parseFloat(_this.$el.css('width'))-
+                                space = parseInt(_this.$el.css('width'))-
                                         startRight; 
                             }  
                             maxWidth = space + _this.width;  
-                        }
+                        };
                         var minWidth = _this.segment.attributes.base_size *
                                 _this.pixelRatio;
                         $(div).resizable( "option", "maxWidth", maxWidth );
@@ -390,8 +390,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     },
                     
                     resize: function(e, ui){        
-                        var width = parseFloat($(div).css('width'));                         
-                        var left = parseFloat($(div).css('left'));
+                        var width = parseInt($(div).css('width'));                         
+                        var left = parseInt($(div).css('left'));
                         if (maxWidth - width < snapTolerance) {  
                             if ($(div).data('ui-resizable').axis === 'w'){
                                 left = prevLeft;                           
@@ -400,12 +400,16 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             width = maxWidth;
                             $(div).css('width', width); 
                         }
+                            
                         _this.setWidth(width);
                         //avoid jumping of size of gap to the right (float calc)
                         //by determining the left pos based on the right border
                         //of the segment if resized to the left
                         //var left = ($(div).data('ui-resizable').axis === 'w')? startRight - width: startLeft;
-                        _this.setLeft(left);                            
+                        _this.setLeft(left);    
+                        
+                                console.log(_this.segment.startPos)
+                                console.log(_this.segment.size)                        
                         _this.trigger("resized");
                     },
                     
