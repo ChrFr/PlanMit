@@ -14,7 +14,7 @@ define(["jquery", "backbone", "views/segmentView"],
                 this.resources = options.resources; 
                 this.creationMode = options.creationMode || false;
                 this.fixElements = !this.creationMode;   
-                this.streetSize = options.startSize || this.collection.getStreetSize() || 10;
+                this.streetSize = options.startSize || this.collection.getStreetSize() || 1000;
                 this.zoom = 100;
                 this.width = this.$el.width;
                 this.wrapper = $(options.wrapper);
@@ -28,9 +28,9 @@ define(["jquery", "backbone", "views/segmentView"],
                     
                 });  
                 
-                //only 0.05 steps (more precise is not executable while
+                //only 5cm steps (more precise is not executable while
                 //actually building streets)
-                this.steps = 0.05;
+                this.steps = 5;
                 
                  //only fetch the edition from db (incl. overwrite), 
                 //if no models are overwritten (meaning it is not already load)
@@ -209,7 +209,7 @@ define(["jquery", "backbone", "views/segmentView"],
                             if (next.cid === divID){
                                 next = next.next;
                             }
-                            if (next.isConnector){
+                            if (next && next.isConnector){
                                 next = next.next;
                             }
                         };            
@@ -298,7 +298,7 @@ define(["jquery", "backbone", "views/segmentView"],
                                 parseInt($(next.div).css('left')) -  
                                         parseInt($(segmentView.div).css('left')));
                         }*/
-                        _this.measureDisplay.draw(_this);
+                        _this.measureDisplay.drawInfoLine(_this);
                     });
                     segmentView.on("delete", function(){  
                         _this.remove(this, true);
@@ -427,7 +427,7 @@ define(["jquery", "backbone", "views/segmentView"],
                     ctx.font = "8px Arial";                            
                     ctx.fillStyle = 'grey';
                     ctx.textAlign = 'left';
-                    var step = 0.1;
+                    var step = 10;
                     var i = 0;
                     //draw a small line every meter
                     for(var x = (streetStart * ratio); x <= (streetEnd * ratio); x += (step * ratio)){ 
@@ -458,12 +458,11 @@ define(["jquery", "backbone", "views/segmentView"],
                         }
                         i++;
                     }; 
-
                     //small rectangle with display of street size
                     ctx.font = "12px Arial";
                     ctx.fillStyle = 'grey';
                     ctx.textAlign = 'center';
-                    ctx.fillText(size.toFixed(2) + ' m', middle * ratio, y - 2);
+                    ctx.fillText((size / 100).toFixed(2) + ' m', middle * ratio, y - 2);
                 };
                 
                 this.drawInfoLine = function(segmentViewCollection){  
@@ -513,7 +512,7 @@ define(["jquery", "backbone", "views/segmentView"],
                             ctx.fillStyle = 'black';
                             ctx.textAlign = 'center';
                             var size = segmentView.segment.size;
-                            ctx.fillText(size + ' m', middle, y + 3);
+                            ctx.fillText((size / 100).toFixed(2) + ' m', middle, y + 3);
                         }
                         //visualize gaps between segments
                         var nextLeft = (next) ? next.left: parseInt(this.parent.css('width'));
@@ -538,7 +537,7 @@ define(["jquery", "backbone", "views/segmentView"],
                             ctx.fillStyle = 'grey';
                             ctx.textAlign = 'center';
                             var gapSize = nextStartPos - thisRightPos;
-                            ctx.fillText(gapSize.toFixed(2) + ' m',  middle, y + 18);
+                            ctx.fillText((gapSize / 100).toFixed(2) + ' m',  middle, y + 18);
                         };
                         
                         segmentView = next;
@@ -747,8 +746,8 @@ define(["jquery", "backbone", "views/segmentView"],
                     $('#scaleSlider').slider({
                         value: _this.streetSize,
                         step: 1,
-                        min: 10,
-                        max: 100,
+                        min: 1000,
+                        max: 10000,
                         animate: true,
                         slide: function (e, ui) {
                             $( "#scale" ).val( ui.value );

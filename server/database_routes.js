@@ -128,7 +128,7 @@ module.exports = function(){
                     //available determines, if the segment is available as a resource
                     //for editing
                     _pg('SELECT * FROM segments LEFT JOIN ' + 
-                        '(SELECT id AS type, category, min_width, max_width, ' +
+                        '(SELECT id AS type, category, ' +
                         'rules FROM segment_types) AS rule ON segments.type = ' +
                         'rule.type WHERE available = true ' + ignorestr, 
                     function(result){
@@ -141,7 +141,7 @@ module.exports = function(){
             }
             else {
                 pgQuery('SELECT * FROM segments LEFT JOIN ' + 
-                        '(SELECT id AS type, category, min_width, max_width, ' +
+                        '(SELECT id AS type, category, ' +
                         'rules FROM segment_types) AS rule ON segments.type = ' +
                         'rule.type', 
                 function(result){
@@ -159,7 +159,7 @@ module.exports = function(){
             //if projectid is given, get the project specific segment
             if (req.params.pid){
                 pgQuery('SELECT * FROM segments LEFT JOIN ' + 
-                        '(SELECT id AS type, category, min_width, max_width, rules ' +
+                        '(SELECT id AS type, category, rules ' +
                         'FROM segment_types) AS rule ON segments.type = rule.type' +
                         ' WHERE available = true AND id=' 
                         + req.params.sid, 
@@ -185,7 +185,7 @@ module.exports = function(){
             }
             else {
                 pgQuery('SELECT * FROM segments LEFT JOIN ' + 
-                        '(SELECT id AS type, category, min_width, max_width, rules ' +
+                        '(SELECT id AS type, category, rules ' +
                         'FROM segment_types) AS rule ON segments.type = rule.type' +
                         ' WHERE id=' 
                         + req.params.sid, 

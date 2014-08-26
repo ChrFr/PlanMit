@@ -23,7 +23,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 this.next = null;
                 this.prev = null;
                 this.width = options.width || this.segment.size * this.pixelRatio;
-                this.steps = options.steps || 0.01;
+                this.steps = options.steps || 1;
                 //this.render();
             },            
 
@@ -114,7 +114,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         }
                         if (!view.segment.fixed){
                             $(view.div).find('#lockedSymbol').hide();
-                            $(view.div).find('#unlockedSymbol').show();     
+                            $(view.div).find('#unlockedSymbol').show(); 
                         }                        
                     });              
                     //unlocked click -> lock
@@ -125,8 +125,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         if (view.creationMode){
                             view.segment.fixed = true;        
                             //just telling the measure display to redraw 
-                            //no actual resize done                   
-                            view.trigger('resized');
+                            //no actual resize done 
+                            view.trigger('update');    
                         }
                         //disable resizing and dragging in editing mode
                         else{
@@ -145,7 +145,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 //round to fit steps
                 size = Math.round(size / this.steps) * this.steps;
                 //cut wrong decimal places caused by float inaccuracy
-                this.segment.size = parseFloat(size.toFixed(2));
+                this.segment.size = parseInt(size);
             },
             
             setLeft: function(left){
@@ -289,7 +289,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         start: function (e, ui) {    
                             var clone = $(ui.helper);
                             clone.addClass('dragged');                            
-                            clone.data('size', _this.segment.attributes.base_size); 
+                            clone.data('size', _this.segment.attributes.min_width); 
                             clone.data('isConnector', _this.isConnector); 
                         }, 
                     });
@@ -363,7 +363,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         startRight = startLeft + _this.width;
                         if ($(e.toElement).attr('id') === 'lefthandle'){
                             //connectors are ignored
-                            var prev = (!_this.prev.isConnector) ? _this.prev: _this.prev.prev;
+                            var prev = (_this.prev && _this.prev.isConnector) ? _this.prev.prev: _this.prev;
                             //no segment infront? take the left border of the editor (=0)
                             prevLeft = (prev)? prevLeft = (prev.left + prev.width): 0;
                             space = startLeft - prevLeft;       
@@ -371,7 +371,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         }
                         //max width for resizing to the right
                         else if ($(e.toElement).attr('id') === 'righthandle'){
-                            var next = (!_this.next.isConnector) ? _this.next: _this.next.next;
+                            var next = (_this.next && _this.next.isConnector) ? _this.next.next: _this.next;
                             //is there a segment to the right?
                             if (next) {
                                 space = next.left - startRight;
@@ -383,7 +383,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             }  
                             maxWidth = space + _this.width;  
                         };
-                        var minWidth = _this.segment.attributes.base_size *
+                        var minWidth = _this.segment.attributes.min_width *
                                 _this.pixelRatio;
                         $(div).resizable( "option", "maxWidth", maxWidth );
                         $(div).resizable( "option", "minWidth", minWidth );
@@ -406,17 +406,14 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         //by determining the left pos based on the right border
                         //of the segment if resized to the left
                         //var left = ($(div).data('ui-resizable').axis === 'w')? startRight - width: startLeft;
-                        _this.setLeft(left);    
-                        
-                                console.log(_this.segment.startPos)
-                                console.log(_this.segment.size)                        
+                        _this.setLeft(left);                    
                         _this.trigger("resized");
                     },
                     
                     stop: function(e, ui){  
                         //make all other OSDs visible again on hover
                         $('.OSD').css('visibility', 'visible');
-                        _this.trigger('resized');
+                        _this.trigger('update');
                     }
                 }); 
             }                        
