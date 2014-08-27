@@ -14,8 +14,6 @@ require.config({
       "jquery": "../libs/jquery",
 
       "jqueryui": "../libs/jqueryui",
-      
-      "jquerytouchpunch": "../libs/jquery.ui.touch-punch.min",
 
       "jquerymobile": "../libs/jquery.mobile",
 
@@ -31,8 +29,9 @@ require.config({
 
       "text": "../libs/plugins/text",
 
-      "jasminejquery": "../libs/plugins/jasmine-jquery"
-
+      "jasminejquery": "../libs/plugins/jasmine-jquery",
+      
+      "touchpunch": "../libs/jquery.ui.touch-punch.min"
   },
 
   // Sets the configuration for your third party scripts that are not AMD compatible
@@ -47,7 +46,7 @@ require.config({
       // jQueryUI
       "jqueryui": ["jquery"],
       
-      "jquerytouchpunch": ["jquery"],
+      "touchpunch": ["jquery"],
 
       // Backbone.validateAll plugin that depends on Backbone
       "backbone.validateAll": ["backbone"],
