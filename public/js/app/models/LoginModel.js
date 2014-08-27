@@ -7,10 +7,15 @@ define(["jquery", "backbone"],
 
         var LoginModel = Backbone.Model.extend({
             
-            url : '/login',
+            url : '/api/session',
 
             initialize : function(){
-                this.csrf = null;
+                
+                this.csrf = $.ajax({
+                    url : this.url,
+                    type : 'GET'
+                });
+                console.log(this.csrf)
                 //Ajax Request Configuration
                 //To Set The CSRF Token To Request Header
                 $.ajaxSetup({
@@ -45,18 +50,19 @@ define(["jquery", "backbone"],
             },
 
             login : function(credentials){
-                var that = this;
+                var _this = this;
                 var login = $.ajax({
-                    url : this.url,
+                    url : this.url + '/login',
                     data : credentials,
                     type : 'POST'
                 });
+                console.log(login);/*
                 login.done(function(response){
-                    that.set('authenticated', true);
-                    that.set('user', JSON.stringify(response.user));
-                    if(that.get('redirectFrom')){
-                        var path = that.get('redirectFrom');
-                        that.unset('redirectFrom');
+                    _this.set('authenticated', true);
+                    _this.set('user', JSON.stringify(response.user));
+                    if(_this.get('redirectFrom')){
+                        var path = _this.get('redirectFrom');
+                        _this.unset('redirectFrom');
                         Backbone.history.navigate(path, { trigger : true });
                     }else{
                         Backbone.history.navigate('', { trigger : true });
@@ -64,7 +70,7 @@ define(["jquery", "backbone"],
                 });
                 login.fail(function(){
                     Backbone.history.navigate('login', { trigger : true });
-                });
+                });*/
             },
 
             logout : function(callback){

@@ -33,27 +33,14 @@ server.configure(function() {
     server.use(express.csrf());
     server.use(express.methodOverride());
     server.use(server.router);
-    server.use(function (req, res, next) {
-        res.cookie('XSRF-TOKEN', req.csrfToken());
-        res.locals.csrftoken = req.csrfToken();
-        next();
-    });
-    // development only
-    if ('development' == server.get('env')) {
-      server.use(express.errorHandler());
-    }
-
-    server.get("/", function(req, res){
-      //send and csrf token with frist request
-      //and assign it to a global csrf variable
-      //inside the template
-      res.render('index', {
-          csrf : req.session._csrf
-      });
+server.use('/api', require('./database_routes')); 
+    server.use(function(req, res, next){
+        console.log(req.session._csrf)
+      res.setHeader('X-CSRF-Token', req.session._csrf);
+      next();
     });
 });
 
-server.use('/api', require('./database_routes')); 
 
 // SERVER
 // ======

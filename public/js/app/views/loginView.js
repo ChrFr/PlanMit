@@ -17,7 +17,7 @@ define(["jquery", "backbone", "text!templates/login.html"],
 
             // View Event Handlers
             events: {
-                //"submit #login": "login",
+                "click #loginButton": "login",
             },        
 
             // Renders the view's template to the UI
@@ -32,7 +32,7 @@ define(["jquery", "backbone", "text!templates/login.html"],
             },
             
             login: function() {
-                console.log('login')
+                this.session.login();
             }
         });
         

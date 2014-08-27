@@ -4,17 +4,23 @@
 </head>
 <body>    
     <h1>Einloggen</h1>
-    <form id = "login" method="post" action="api/session/">
-      <p><input type="text" name="login" value="" placeholder="Benutzername"></p>
-      <p><input type="password" name="password" value="" placeholder="Passwort"></p>
-      <p class="remember_me">
+    <div id="login">
+        <table border="0" cellpadding="0" cellspacing="4">
+        <tr>
+          <td align="right">Benutzername:</td>
+          <td><input id="name" type="text" size="30"></td>
+        </tr>
+        <tr>
+          <td align="right">Passwort:</td>
+          <td><input id="password" type="password" size="30"></td>
+        </table>
         <label>
           <input type="checkbox" name="keeplog" id="keeplog">
           Eingeloggt bleiben
         </label>
-      </p>
-      <p class="submit"><input type="submit" name="commit" value="Login"></p>
-    </form>
+        
+        <button type="button" id="loginButton">Einloggen</button>
+    </div>
 </body>
     
 </html>

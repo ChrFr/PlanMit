@@ -206,10 +206,15 @@ module.exports = function(){
       }
     };
     
-    var login = {
+    var session = {
         
-    //csrf login taken from http://danialk.github.io/blog/2013/07/28/advanced-security-in-backbone-application/
-        get: function(req, res){
+        //csrf login taken from http://danialk.github.io/blog/2013/07/28/advanced-security-in-backbone-application/
+        getToken: function(req, res){
+            console.log(req.session._csrf)
+            return res.send(req.session._csrf);
+        },
+        
+        getLogin: function(req, res){
             if(req.session.user){
               res.send(200, {
                   auth : true,
@@ -224,9 +229,10 @@ module.exports = function(){
         },
 
         login: function(req, res){
-            var email = req.body.email;
+            var name = req.body.name;
+            console.log(name);
             var password = req.body.password;
-            pgQuery('SELECT * from users WHERE name=' + email, 
+            pgQuery('SELECT * from users WHERE name=' + name, 
             function(result){
                 if (result.length === 0)
                     return res.send(401);
@@ -293,14 +299,17 @@ module.exports = function(){
                 delete: segments.delete
             }
         },
-        '/login': {
-            get: login.get,
-            delete: login.logout, 
-            post: login.login,
-            '/:register': {                
-                post: login.register,
-                delete: login.unsuscribe
-            },            
+        '/session': {
+            get: session.getToken,
+            delete: session.delete, 
+            '/:login': {
+                get: session.getLogin,  
+                post: session.login,      
+            },
+            '/:register': {        
+                post: session.register,
+                delete: session.unsuscribe
+            },       
         }
     });
     
