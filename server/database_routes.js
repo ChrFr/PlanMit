@@ -80,10 +80,10 @@ module.exports = function(){
     };
 
     var segments = {        
-        list: function(req, res){  
-            console.log(req.session)
+        list: function(req, res){
+            /*
             if(!req.session.user)
-                return res.send(401);
+                return res.send(401);*/
             var _pg = pgQuery;
             //if projectid is given, get the project specific segments
             if (req.params.pid){
@@ -181,11 +181,17 @@ module.exports = function(){
     };
     
     var images = {
-      //you shouldn't access all images in db at once 
-      //(due to performance issues)
-      list: function(req, res){
-        return res.send(403);
-      },
+        list: function(req, res){
+            if(!req.session.user)
+                return res.send(401);
+            
+            pgQuery('SELECT * from images', 
+            function(result){
+                if (result.length === 0)
+                    return res.send(404);
+                return res.send(result[0]);
+            });
+        },
 
       get: function(req, res){
         pgQuery('SELECT * from images WHERE id=' + req.params.iid, 
@@ -200,7 +206,9 @@ module.exports = function(){
       }
     };
     
-    var session = {
+    var login = {
+        
+    //csrf login taken from http://danialk.github.io/blog/2013/07/28/advanced-security-in-backbone-application/
         get: function(req, res){
             if(req.session.user){
               res.send(200, {
@@ -215,23 +223,27 @@ module.exports = function(){
             }
         },
 
-        post: function(req, res){
+        login: function(req, res){
             var email = req.body.email;
             var password = req.body.password;
-            for (var i = 0; i < Users.length; i++) {
-                var user = Users[i];
+            pgQuery('SELECT * from users WHERE name=' + email, 
+            function(result){
+                if (result.length === 0)
+                    return res.send(401);
+                /*
                 if(user.email == email && user.password == password){
                     req.session.user = user;
                     return res.send(200, {
                         auth : true,
                         user : user
                     });
-                }
-            };
+                }*/
+                return res.send(result[0]);
+            });
             return res.send(401);
         },
 
-        delete: function(req, res){ 
+        logout: function(req, res){ 
             //Sending new csrf to client when user logged out
             //for next user to sign in without refreshing the page
             req.session.user = null;
@@ -240,7 +252,13 @@ module.exports = function(){
             res.send(200, {
                 csrf : req.session._csrf
             });
-        }
+        },
+        
+        register: function(req, res){ 
+        },
+        
+        unsuscribe: function(req, res){ 
+        },
     };
     
     app.map({
@@ -275,10 +293,14 @@ module.exports = function(){
                 delete: segments.delete
             }
         },
-        '/session': {
-            get: session.get,
-            post: session.post,
-            delete: session.delete
+        '/login': {
+            get: login.get,
+            delete: login.logout, 
+            post: login.login,
+            '/:register': {                
+                post: login.register,
+                delete: login.unsuscribe
+            },            
         }
     });
     

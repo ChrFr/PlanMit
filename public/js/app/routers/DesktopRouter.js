@@ -2,10 +2,11 @@
 // ----------------
 define(["jquery", "backbone", "views/navbarView",
     "views/welcomeView", "views/editMainView", "views/adminView",
+    "views/loginView", "models/LoginModel",
     "collections/SegmentCollection", "collections/SegmentSource"],
 
-    function($, Backbone, Navbar, Welcome, Edit, Admin, SegmentCollection,
-                SegmentSource) {
+    function($, Backbone, Navbar, Welcome, Edit, Admin, Login,
+             LoginModel, SegmentCollection, SegmentSource) {
 
         var DesktopRouter = Backbone.Router.extend({
             
@@ -15,6 +16,7 @@ define(["jquery", "backbone", "views/navbarView",
                 this.edition = new SegmentCollection();
                 this.adminResources = new SegmentSource({showAll: true});
                 this.adminEdition = new SegmentCollection();
+                this.session = new LoginModel();
                 //navbar is always seen
                 this.navbar = new Navbar();
                 // Tells Backbone to start watching for hashchange events
@@ -26,7 +28,8 @@ define(["jquery", "backbone", "views/navbarView",
                 // when there is no hash on the url, the welcome page is called
                 "": "welcome",
                 "edit": "edit",
-                "admin": "admin"
+                "admin": "admin",
+                "login": "login"
             },
 
             welcome: function() {
@@ -39,6 +42,10 @@ define(["jquery", "backbone", "views/navbarView",
             
             admin: function() {
                 new Admin(this.adminResources, this.adminEdition);
+            },
+            
+            login: function() {
+                new Login({session: this.session});
             }
 
         });

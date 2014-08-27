@@ -19,7 +19,7 @@ server.configure(function() {
 
     }));
 
-    //csrf sec taken from http://danialk.github.io/blog/2013/07/28/advanced-security-in-backbone-application/
+    //csrf login taken from http://danialk.github.io/blog/2013/07/28/advanced-security-in-backbone-application/
     server.set('views', __dirname + '/views');
     server.set('view engine', 'jade');
     server.use(express.favicon());
@@ -33,9 +33,10 @@ server.configure(function() {
     server.use(express.csrf());
     server.use(express.methodOverride());
     server.use(server.router);
-    server.use(function(req, res, next){
-      res.setHeader('X-CSRF-Token', req.session._csrf);
-      next();
+    server.use(function (req, res, next) {
+        res.cookie('XSRF-TOKEN', req.csrfToken());
+        res.locals.csrftoken = req.csrfToken();
+        next();
     });
     // development only
     if ('development' == server.get('env')) {

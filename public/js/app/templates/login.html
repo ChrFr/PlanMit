@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+</head>
+<body>    
+    <h1>Einloggen</h1>
+    <form id = "login" method="post" action="api/session/">
+      <p><input type="text" name="login" value="" placeholder="Benutzername"></p>
+      <p><input type="password" name="password" value="" placeholder="Passwort"></p>
+      <p class="remember_me">
+        <label>
+          <input type="checkbox" name="keeplog" id="keeplog">
+          Eingeloggt bleiben
+        </label>
+      </p>
+      <p class="submit"><input type="submit" name="commit" value="Login"></p>
+    </form>
+</body>
+    
+</html>
