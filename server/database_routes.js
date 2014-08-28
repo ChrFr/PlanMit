@@ -210,8 +210,7 @@ module.exports = function(){
         
         //csrf login taken from http://danialk.github.io/blog/2013/07/28/advanced-security-in-backbone-application/
         getToken: function(req, res){
-            console.log(req.session._csrf)
-            return res.send(req.session._csrf);
+            return res.send({csrf: req.csrfToken()});
         },
         
         getLogin: function(req, res){
@@ -230,23 +229,24 @@ module.exports = function(){
 
         login: function(req, res){
             var name = req.body.name;
-            console.log(name);
+                console.log(name);
             var password = req.body.password;
-            pgQuery('SELECT * from users WHERE name=' + name, 
+            pgQuery("SELECT * from users WHERE name='" + name + "'", 
             function(result){
-                if (result.length === 0)
-                    return res.send(401);
-                /*
-                if(user.email == email && user.password == password){
-                    req.session.user = user;
-                    return res.send(200, {
-                        auth : true,
-                        user : user
-                    });
-                }*/
-                return res.send(result[0]);
+                for (var i=0; i < result.length; i++) {
+                    if(result[i].password === password){    
+                        res.statusCode = 200;
+                        req.session.user = {name: name};
+                        return res.json({
+                            auth : true,
+                            user : req.session.user
+                        });
+                    }
+                }; 
+                req.session.user = null;
+                res.statusCode = 401;
+                return res.end('invalid user or password');             
             });
-            return res.send(401);
         },
 
         logout: function(req, res){ 

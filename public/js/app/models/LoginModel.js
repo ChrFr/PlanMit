@@ -10,24 +10,21 @@ define(["jquery", "backbone"],
             url : '/api/session',
 
             initialize : function(){
-                
-                this.csrf = $.ajax({
-                    url : this.url,
-                    type : 'GET'
-                });
-                console.log(this.csrf)
-                //Ajax Request Configuration
-                //To Set The CSRF Token To Request Header
-                $.ajaxSetup({
-                    headers : {
-                        'X-CSRF-Token' : this.csrf
+                var _this = this;
+                this.csrf = null;
+                //get a session token and setup ajax to always send it on
+                //requests
+                $.ajax({url: this.url,
+                    success:function(result){
+                        _this.csrf = result.csrf;
+                        $.ajaxSetup({
+                            headers : {
+                                'X-CSRF-Token' : _this.csrf
+                            }
+                        });
                     }
                 });
-
-                //Check for sessionStorage support
-                //if(Storage && sessionStorage){
-                    this.supportStorage = false;
-                //}
+                this.supportStorage = false;
             },
 
             get : function(key){
@@ -49,14 +46,16 @@ define(["jquery", "backbone"],
                 Backbone.Model.prototype.clear(this);
             },
 
-            login : function(credentials){
+            login : function(data){
                 var _this = this;
+                console.log(data)
                 var login = $.ajax({
                     url : this.url + '/login',
-                    data : credentials,
+                    data : data,
                     type : 'POST'
                 });
-                console.log(login);/*
+                console.log(login)
+                /*
                 login.done(function(response){
                     _this.set('authenticated', true);
                     _this.set('user', JSON.stringify(response.user));

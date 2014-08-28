@@ -32,7 +32,14 @@ define(["jquery", "backbone", "text!templates/login.html"],
             },
             
             login: function() {
-                this.session.login();
+                var name = $('input#name').val() || '';       
+                var email = $('input#email').val() || '';      
+                var password = $('input#password').val() || '';
+                this.session.login({
+                    name: name,
+                    email: email,
+                    password: password
+                });
             }
         });
         
