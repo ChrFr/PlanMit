@@ -30,12 +30,12 @@ module.exports = function(){
     //var client = new pg.Client(conString);
     //client.connect();
     
-    function pgQuery(queryString, callback){
+    function pgQuery(queryString, parameters, callback){
         pg.connect(conString, function(err, client, done) {
             if(err) {
                 return callback([]);
             }
-            client.query(queryString, function(err, result) {
+            client.query(queryString, parameters, function(err, result) {
                 //call `done()` to release the client back to the pool
                 done();
                 if(err) {
@@ -56,7 +56,7 @@ module.exports = function(){
         //return all project specific segments and projects base attributes
         get: function(req, res){ 
             var _pg = pgQuery;
-            pgQuery('SELECT * FROM projects WHERE id=' + req.params.pid, 
+            pgQuery('SELECT * FROM projects WHERE id=$1', [req.params.pid], 
             function(result){
                 //merge the project object with the borders from db                
                 if (result.length === 0)
@@ -66,11 +66,8 @@ module.exports = function(){
         },
 
         post: function(req, res){
-            var post = "UPDATE projects SET default_template = '"
-                        + JSON.stringify(req.body.template) + 
-                        "' WHERE id=" 
-                        + req.params.pid;
-            pgQuery(post,
+            var post = "UPDATE projects SET default_template=$1 WHERE id=$2";
+            pgQuery(post, [JSON.stringify(req.body.template), req.params.pid],
                 function(result){
                     return res.send(result);
                 });
@@ -87,8 +84,7 @@ module.exports = function(){
             var _pg = pgQuery;
             //if projectid is given, get the project specific segments
             if (req.params.pid){
-                pgQuery('SELECT ignore_segments FROM projects WHERE id=' 
-                        + req.params.pid, 
+                pgQuery('SELECT ignore_segments FROM projects WHERE id=$1', [req.params.pid], 
                 function(result){
                     var ignored = [];
                     var ignorestr = '';
@@ -110,7 +106,7 @@ module.exports = function(){
                     _pg('SELECT * FROM segments LEFT JOIN ' + 
                         '(SELECT id AS type, category, ' +
                         'rules FROM segment_types) AS rule ON segments.type = ' +
-                        'rule.type WHERE available = true ' + ignorestr, 
+                        'rule.type WHERE available = true ' + ignorestr, [],
                     function(result){
                         if (result.length === 0)
                             return res.send(404);
@@ -123,7 +119,7 @@ module.exports = function(){
                 pgQuery('SELECT * FROM segments LEFT JOIN ' + 
                         '(SELECT id AS type, category, ' +
                         'rules FROM segment_types) AS rule ON segments.type = ' +
-                        'rule.type', 
+                        'rule.type', [],
                 function(result){
                     //merge the project object with the borders from db                
                     if (result.length === 0)
@@ -141,8 +137,7 @@ module.exports = function(){
                 pgQuery('SELECT * FROM segments LEFT JOIN ' + 
                         '(SELECT id AS type, category, rules ' +
                         'FROM segment_types) AS rule ON segments.type = rule.type' +
-                        ' WHERE available = true AND id=' 
-                        + req.params.sid, 
+                        ' WHERE available = true AND id=$1', [req.params.sid], 
                 function(result){ 
                     if (result.length === 0)
                         return res.send(404);
@@ -167,8 +162,7 @@ module.exports = function(){
                 pgQuery('SELECT * FROM segments LEFT JOIN ' + 
                         '(SELECT id AS type, category, rules ' +
                         'FROM segment_types) AS rule ON segments.type = rule.type' +
-                        ' WHERE id=' 
-                        + req.params.sid, 
+                        ' WHERE id=$1', [req.params.sid],
                 function(result){
                     //merge the project object with the borders from db                
                     if (result.length === 0)
@@ -194,7 +188,7 @@ module.exports = function(){
         },
 
       get: function(req, res){
-        pgQuery('SELECT * from images WHERE id=' + req.params.iid, 
+        pgQuery('SELECT * from images WHERE id=$1', [req.params.iid],
         function(result){
             if (result.length === 0)
                 return res.send(404);
@@ -208,7 +202,6 @@ module.exports = function(){
     
     var session = {
         
-        //csrf login taken from http://danialk.github.io/blog/2013/07/28/advanced-security-in-backbone-application/
         getToken: function(req, res){
             return res.send({csrf: req.csrfToken()});
         },
@@ -230,7 +223,7 @@ module.exports = function(){
         login: function(req, res){
             var name = req.body.name;
             var password = req.body.password;
-            pgQuery("SELECT * from users WHERE name='" + name + "'", 
+            pgQuery("SELECT * from users WHERE name=$1", [name],
             function(result){
                 for (var i=0; i < result.length; i++) {
                     if(result[i].password === password){    
@@ -259,10 +252,11 @@ module.exports = function(){
             var name = req.body.name;
             var email = req.body.email;
             var password = req.body.password;
-            pgQuery("INSERT INTO users (name, email, password) VALUES ('" + name + "','" + email + "','" + password + "');", 
-            function(result){
-                return res.send(200);             
-            });
+            pgQuery("INSERT INTO users (name, email, password) VALUES ($1, $2, $3);", 
+                [name, email, password],
+                function(result){
+                    return res.send(200);             
+                });
         },
         
         unsuscribe: function(req, res){ 

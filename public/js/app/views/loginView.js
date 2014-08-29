@@ -54,7 +54,6 @@ define(["jquery", "backbone", "text!templates/login.html"],
                 var password = $('#loginForm').find('#password').val() || '';
                 this.session.login({
                     name: name,
-                    email: email,
                     password: password
                 });
             },
