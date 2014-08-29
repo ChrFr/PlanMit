@@ -18,7 +18,7 @@ define(["jquery", "backbone", "views/navbarView",
                 this.adminEdition = new SegmentCollection();
                 this.session = new LoginModel();
                 //navbar is always seen
-                this.navbar = new Navbar();
+                this.navbar = new Navbar({session: this.session});
                 // Tells Backbone to start watching for hashchange events
                 Backbone.history.start();
             },
@@ -41,7 +41,9 @@ define(["jquery", "backbone", "views/navbarView",
             },
             
             admin: function() {
-                new Admin(this.adminResources, this.adminEdition);
+                var user = this.session.get('user');
+                if(user && user.superuser)
+                    new Admin(this.adminResources, this.adminEdition);
             },
             
             login: function() {

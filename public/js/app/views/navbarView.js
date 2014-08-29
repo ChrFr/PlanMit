@@ -10,7 +10,10 @@ define(["jquery", "backbone", "text!templates/navbar.html"],
             el: ".navbar.navbar-default",
 
             // View constructor
-            initialize: function(segments) {
+            initialize: function(options) {
+                var _this = this;
+                var options = options || {};
+                this.session = options.session;
                 // Calls the view's render method
                 this.render();                
                 //change active item if navbar item is clicked
@@ -18,6 +21,8 @@ define(["jquery", "backbone", "text!templates/navbar.html"],
                     $('ul.nav > li').removeClass('active');
                     $(this).addClass('active');                
                 });     
+                if (this.session) 
+                    this.session.bind("change:user", function(){_this.displayLogin()});
             },
 
             // View Event Handlers
@@ -26,15 +31,27 @@ define(["jquery", "backbone", "text!templates/navbar.html"],
             },
 
             // Renders the view's template to the UI
-            render: function() {               
-
-                // Setting the view's template property using the Underscore template method
+            render: function() {         
                 this.template = _.template(template, {});
-                // Dynamically updates the UI with the view's template
-                this.$el.html(this.template);
-                // Maintains chainability
+                this.$el.html(this.template);        
+                this.$el.find('#admin').hide();
                 return this;
 
+            },
+            
+            displayLogin: function(){
+                if (this.session.get('authenticated')){
+                    var user = this.session.get('user');
+                    this.$el.find('#login').text('Eingeloggt als ' + user.name);   
+                    if (user.superuser)
+                        this.$el.find('#admin').show();
+                    else
+                        this.$el.find('#admin').hide();
+                }
+                else{
+                    this.$el.find('#login').text('Einloggen'); 
+                    this.$el.find('#admin').hide();
+                }
             }
 
         });

@@ -213,7 +213,7 @@ module.exports = function(){
             return res.send({csrf: req.csrfToken()});
         },
         
-        getLogin: function(req, res){
+        getStatus: function(req, res){
             if(req.session.user){
               res.send(200, {
                   auth : true,
@@ -229,14 +229,15 @@ module.exports = function(){
 
         login: function(req, res){
             var name = req.body.name;
-                console.log(name);
             var password = req.body.password;
             pgQuery("SELECT * from users WHERE name='" + name + "'", 
             function(result){
                 for (var i=0; i < result.length; i++) {
                     if(result[i].password === password){    
                         res.statusCode = 200;
-                        req.session.user = {name: name};
+                        req.session.user = {name: result[i].name,
+                                            email: result[i].email,
+                                            superuser: result[i].superuser};
                         return res.json({
                             auth : true,
                             user : req.session.user
@@ -244,23 +245,24 @@ module.exports = function(){
                     }
                 }; 
                 req.session.user = null;
-                res.statusCode = 401;
+                res.statusCode = 404;
                 return res.end('invalid user or password');             
             });
         },
 
         logout: function(req, res){ 
-            //Sending new csrf to client when user logged out
-            //for next user to sign in without refreshing the page
             req.session.user = null;
-            req.session._csrf = uid(24);
-
-            res.send(200, {
-                csrf : req.session._csrf
-            });
+            res.send(200);
         },
         
-        register: function(req, res){ 
+        register: function(req, res){  
+            var name = req.body.name;
+            var email = req.body.email;
+            var password = req.body.password;
+            pgQuery("INSERT INTO users (name, email, password) VALUES ('" + name + "','" + email + "','" + password + "');", 
+            function(result){
+                return res.send(200);             
+            });
         },
         
         unsuscribe: function(req, res){ 
@@ -301,12 +303,12 @@ module.exports = function(){
         },
         '/session': {
             get: session.getToken,
-            delete: session.delete, 
-            '/:login': {
-                get: session.getLogin,  
+            delete: session.logout, 
+            '/login': {
+                get: session.getStatus,  
                 post: session.login,      
             },
-            '/:register': {        
+            '/register': {        
                 post: session.register,
                 delete: session.unsuscribe
             },       
