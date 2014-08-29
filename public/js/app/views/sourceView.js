@@ -13,6 +13,7 @@ define(["jquery", "backbone", "views/segmentView"],
             initialize: function(options) {
                 
                 //if collection changes, view will be rendered
+                this.images = options.images;
                 _.bindAll(this, "render");
                 this.collection.bind("reset", this.render);
                 //this.target = options.target;
@@ -27,9 +28,10 @@ define(["jquery", "backbone", "views/segmentView"],
             render: function() {                
                 var _this = this;
                 this.collection.each(function(segment){
-                    var segmentView = new SegmentView({'el': _this.el,
-                                                       'segment': segment,
-                                                       'cloneable': true});
+                    var segmentView = new SegmentView({el: _this.el,
+                                                       segment: segment,
+                                                       cloneable: true,
+                                                       images: _this.images});
                     segmentView.render();
                 });          
                 

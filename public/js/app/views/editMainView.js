@@ -13,19 +13,22 @@ define(["jquery", "backbone", "text!templates/editMain.html",
             el: "#mainFrame",
 
             // View constructor
-            initialize: function(resources, edition) {
-                
-                this.resources = resources;  
-                this.edition = edition;
+            initialize: function(options) {
+                var options = options || {};
+                this.resources = options.resources;  
+                this.edition = options.edition;
+                this.images = options.images;  
                 // Calls the view's render method
                 this.render();    
                 
                 this.editorView = new EditorView({collection: this.edition,
                                                   el: '#editor',
                                                   resources: this.resources,
-                                                  wrapper: "#editorWrapper"});
-                this.resourcesView = new SourceView({collection: resources,
-                                                     el: '#resources'});
+                                                  wrapper: "#editorWrapper",
+                                                  images: this.images});
+                this.resourcesView = new SourceView({collection: this.resources,
+                                                     el: '#resources',
+                                                     images: this.images});
                                                      //target: '#editor'
                 this.resources.fetch({reset: true});
 

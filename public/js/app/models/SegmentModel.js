@@ -16,23 +16,7 @@ define(["jquery", "backbone"],
 
             validate: function(attrs) {
                 console.log('validation');
-            },
-                        
-            loadSvg: function(id, callback){
-                //ToDo: switch top and front img
-                var _this = this;
-                var xmlhttp = new XMLHttpRequest();
-                xmlhttp.onreadystatechange = function(){
-                    if (xmlhttp.readyState==4 && xmlhttp.status==200){
-                        var res = JSON.parse(xmlhttp.responseText)
-                        callback(res.img_svg, res.actual_size);
-                    }
-                };                
-                xmlhttp.open("GET","api/images/" + id, 
-                             true);
-                xmlhttp.send();                
-            }            
-
+            }
         });
 
         return SegmentModel;

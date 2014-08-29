@@ -175,11 +175,17 @@ module.exports = function(){
     };
     
     var images = {
-        list: function(req, res){
-            if(!req.session.user)
-                return res.send(401);
-            
-            pgQuery('SELECT * from images', 
+        list: function(req, res){            
+            pgQuery('SELECT id, name, actual_size from images', [],
+            function(result){
+                if (result.length === 0)
+                    return res.send(404);
+                return res.send(result);
+            });
+        },
+
+        get: function(req, res){
+            pgQuery('SELECT id, name, actual_size from images WHERE id=$1', [req.params.iid],
             function(result){
                 if (result.length === 0)
                     return res.send(404);
@@ -187,17 +193,32 @@ module.exports = function(){
             });
         },
 
-      get: function(req, res){
-        pgQuery('SELECT * from images WHERE id=$1', [req.params.iid],
-        function(result){
-            if (result.length === 0)
-                return res.send(404);
-            return res.send(result[0]);
-        });
-      },
+        getSVG: function(req, res){   
+            pgQuery('SELECT img_svg from images WHERE id=$1', [req.params.iid],
+            function(result){
+                if (result.length === 0)
+                    return res.send(404);
+                return res.send(result[0].img_svg);
+            });
+        },
 
-      delete: function(req, res){        
-      }
+        getPNG: function(req, res){   
+            pgQuery('SELECT img_png from images WHERE id=$1', [req.params.iid],
+            function(result){
+                if (result.length === 0)
+                    return res.send(404);
+                return res.send(result[0].img_png);
+            });
+        },
+        
+        getThumb: function(req, res){   
+            pgQuery('SELECT img_thumb from images WHERE id=$1', [req.params.iid],
+            function(result){
+                if (result.length === 0)
+                    return res.send(404);
+                return res.send(result[0].img_thumb);
+            });
+        },
     };
     
     var session = {
@@ -284,7 +305,15 @@ module.exports = function(){
             get: images.list,
             '/:iid': {
                 get: images.get,
-                delete: images.delete
+                '/svg':{
+                    get: images.getSVG
+                },
+                '/png':{
+                    get: images.getPNG
+                },
+                '/thumb':{
+                    get: images.getThumb
+                },                
             }
         },
         //all segments in database

@@ -10,13 +10,14 @@ define(["jquery", "backbone", "text!templates/segment.html"],
             initialize: function(options) {
                 //options
                 this.cloneable = options.cloneable || false;
+                this.images = options.images;
                 this.segment = options.segment;
                 this.pixelRatio = options.pixelRatio || 1;
                 this.height = options.height || 100;
                 this.insertSorted = options.insertSorted || false;
                 this.creationMode = options.creationMode || false;
                 this.svgUnsupported = options.svgUnsupported || false;                
-                this.isConnector = (this.segment.attributes.type === 1) ? true: false; 
+                this.isConnector = (this.segment.get('type') === 1) ? true: false; 
                 //processed attributes
                 this.left = options.left || this.segment.startPos * this.pixelRatio;
                 this.div = null;
@@ -206,7 +207,6 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 var height = parseInt($(imageContainer).css('height')); 
                 var width = parseInt($(imageContainer).css('width')); 
                 var attr = this.segment.attributes;
-                
                 if (attr.connector){
                 //render the ground on the bottom  
                 $(groundImage).css('width', width);           
@@ -229,8 +229,9 @@ define(["jquery", "backbone", "text!templates/segment.html"],
             loadImage: function(imageID, div, pixelRatio, options){
                 var options = options || {};
                 var r = pixelRatio || 1;
+                var image = this.images.get(imageID)
                 if (!this.svgUnsupported){
-                    this.segment.loadSvg(imageID, function(svg_data, actual_size){  
+                    image.getImage('svg', function(svg_data, actual_size){  
                         if (actual_size)
                             $(div).css('width', actual_size * r);
                         $(div).html(svg_data);

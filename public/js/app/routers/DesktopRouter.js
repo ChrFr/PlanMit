@@ -3,27 +3,31 @@
 define(["jquery", "backbone", "views/navbarView",
     "views/welcomeView", "views/editMainView", "views/adminView",
     "views/loginView", "models/LoginModel",
-    "collections/SegmentCollection", "collections/SegmentSource"],
+    "collections/SegmentCollection", "collections/SegmentSource",
+    "collections/ImageCollection"],
 
     function($, Backbone, Navbar, Welcome, Edit, Admin, Login,
-             LoginModel, SegmentCollection, SegmentSource) {
+             LoginModel, SegmentCollection, SegmentSource, ImageCollection) {
 
         var DesktopRouter = Backbone.Router.extend({
             
             initialize: function() {
                 //load a project
+                var _this = this;
+                this.session = new LoginModel();
                 this.resources = new SegmentSource();
                 this.edition = new SegmentCollection();
+                this.images = new ImageCollection();
+                this.images.fetch();
                 this.adminResources = new SegmentSource({showAll: true});
                 this.adminEdition = new SegmentCollection();
-                this.session = new LoginModel();
                 //navbar is always seen
                 this.navbar = new Navbar({session: this.session});
                 // Tells Backbone to start watching for hashchange events
                 Backbone.history.start();
             },
 
-            // All of your Backbone Routes (add more)
+            // Backbone Routes (call: domain/#route)
             routes: {
                 // when there is no hash on the url, the welcome page is called
                 "": "welcome",
@@ -37,13 +41,17 @@ define(["jquery", "backbone", "views/navbarView",
             },
             
             edit: function() {
-                new Edit(this.resources, this.edition);
+                new Edit({resources: this.resources, 
+                          edition: this.edition,
+                          images: this.images});
             },
             
             admin: function() {
                 var user = this.session.get('user');
                 if(user && user.superuser)
-                    new Admin(this.adminResources, this.adminEdition);
+                    new Admin({resources: this.adminResources, 
+                               edition: this.adminEdition,
+                               images: this.images});
             },
             
             login: function() {

@@ -1,4 +1,4 @@
-// SourceView.js
+// editorView.js
 // -------
 define(["jquery", "backbone", "views/segmentView", "touchpunch"],
 
@@ -11,6 +11,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
 
             // View constructor
             initialize: function(options) {
+                this.images = options.images;
                 this.resources = options.resources; 
                 this.creationMode = options.creationMode || false;
                 this.fixElements = !this.creationMode;   
@@ -90,13 +91,15 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                                 var clonedSegment = segment.clone();
                                 var left = placeholder.left;
                                 clonedSegment.size = dropped.helper.data('size');
-                                var segmentView = new SegmentView({'el': _this.el,
-                                                                   'segment': clonedSegment,
-                                                                   'steps': _this.steps,
-                                                                   'creationMode': _this.creationMode,
-                                                                   'left': left,
-                                                                   'height': parseInt(placeholder.div.css('height')),
-                                                                   'pixelRatio': _this.pixelRatio()});
+                                
+                                var segmentView = new SegmentView({el: _this.el,
+                                                                   segment: clonedSegment,
+                                                                   steps: _this.steps,
+                                                                   creationMode: _this.creationMode,
+                                                                   left: left,
+                                                                   height: parseInt(placeholder.div.css('height')),
+                                                                   pixelRatio: _this.pixelRatio(),
+                                                                   images: _this.images});
                                 segmentView.render();
                                 segmentView.setLeft(left);
                                 _this.collection.addSegment(clonedSegment);
@@ -615,12 +618,14 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                 var height = parseInt(this.$el.css('height'));
                 var ratio = this.pixelRatio();
                 this.collection.each(function(segment){
-                    var segmentView = new SegmentView({'el': _this.el,
-                                                      'segment': segment,
-                                                      'height': height,
-                                                      'steps': _this.steps,
-                                                      'creationMode': _this.creationMode,
-                                                      'pixelRatio': ratio});
+                    var segmentView = new SegmentView({el: _this.el,
+                                                       segment: segment,
+                                                       height: height,
+                                                       steps: _this.steps,
+                                                       creationMode: _this.creationMode,
+                                                       pixelRatio: ratio,
+                                                       images: _this.images
+                                                       });
                     segmentView.render();
                     _this.segmentViewCollection.insert(segmentView);
                 });
