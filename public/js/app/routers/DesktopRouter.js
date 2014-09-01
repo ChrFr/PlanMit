@@ -52,7 +52,7 @@ define(["jquery", "backbone", "views/navbarView",
             admin: function() {
                 var user = this.session.get('user');
                 if(user && user.superuser){
-                    this.resetView();
+                    this.cleanUp();
                     this.view = new Admin({el: '#mainFrame',
                                resources: this.adminResources, 
                                edition: this.adminEdition,

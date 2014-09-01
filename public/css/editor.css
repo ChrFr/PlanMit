@@ -36,19 +36,32 @@ body {
 
 .textBar {
     font-family: 'Open Sans Condensed', sans-serif;
+    padding: 0em 3em 1em 3em;
     display: table-cell;
     font-size: 2em;
-    margin-top: 2em;
+    margin-top: 5em;
     color: white;
     display: inline-block;
+    text-align:justify;
     vertical-align: middle;
-    background-color: #383838;
-    opacity: 0.7;
+    background-color: rgba(80, 80, 80, 0.5);
+    //background-color: rgba(250, 230, 30, 0.7);
     width: 100%;
 }
 
+.centered {    
+    display: inline-block;
+    text-align: center;
+}
+
 .textBar > h1{
-    font-weight: bold;
+    font-weight: bold;    
+    text-align: left;
+}
+
+.centered > h1{
+    font-weight: bold;    
+    text-align: center;
 }
 
 .OSD {
@@ -151,6 +164,7 @@ body {
 .image {
     background: transparent;
     position: absolute;
+    pointer-events: none;
 }
 
 .editor > .segment:hover {

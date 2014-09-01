@@ -3,15 +3,15 @@
 <head>
 </head>
 <body>    
-    <div id="loginForm">
+    <div id="loginForm" class="textBar centered">
         <h1>Einloggen</h1>
-        <table border="0" cellpadding="0" cellspacing="4">
+        <table border="0" cellpadding="0" cellspacing="4" class="centered">
             <tr>
-                <td align="right">Benutzername:</td>
+                <td align="right">Benutzername:&nbsp;</td>
                 <td><input id="name" type="text" size="30"></td>
             </tr>
             <tr>
-                <td align="right">Passwort:</td>
+                <td align="right">Passwort: </td>
                 <td><input id="password" type="password" size="30"></td>
             </tr>
         </table>           
@@ -20,19 +20,19 @@
         <button type="button" id="loginButton">Einloggen</button>
     </div>
     
-    <div id="registerForm">
+    <div id="registerForm" class="textBar centered">
         <h1>Noch nicht angemeldet? Hier Registrieren!</h1>
-        <table border="0" cellpadding="0" cellspacing="4">
+        <table border="0" cellpadding="0" cellspacing="4" class="centered">
             <tr>
-                <td align="right">Benutzername:</td>
+                <td align="right">Benutzername: </td>
                 <td><input id="name" type="text" size="30"></td>
             </tr>
             <tr>
-                <td align="right">Email:</td>
+                <td align="right">Email: </td>
                 <td><input id="email" type="text" size="30" ></td>
             </tr>
             <tr>
-                <td align="right">Passwort:</td>
+                <td align="right">Passwort: </td>
                 <td><input id="password" type="password" size="30"></td>
             </tr>
         </table>
@@ -41,26 +41,27 @@
         <button type="button" id="registerButton">Registrieren</button>
     </div>
     
-    <div id="loginStatus">
-        <button type="button" id="logoutButton">Ausloggen</button>
+    <div id="loginStatus" class="textBar centered">
         <h1>Login Status</h1>
-        <table border="0" cellpadding="0" cellspacing="4">
+        <table border="0" cellpadding="0" cellspacing="4" class="centered">
             <tr>
-                <td align="right">Benutzername:</td>
+                <td align="right">Benutzername: </td>
                 <td><input id="name" type="text" size="30"></td>
             </tr>
             <tr>
-                <td align="right">Email:</td>
+                <td align="right">Email: </td>
                 <td><input id="email" type="text" size="30" ></td>
             </tr>
             <tr>
-                <td align="right">Passwort:</td>
+                <td align="right">Passwort: </td>
                 <td><input id="password" type="password" size="30"></td>
             </tr>
         </table>
-        <label id="status"></label>
         <br>
-        <button type="button" id="registerButton">Änderung hochladen</button>
+        <label id="status"></label>
+        <br>        
+        <button type="button" id="logoutButton">Ausloggen</button>
+        <button type="button" id="registerButton">Änderungen übernehmen</button>
     </div>
 </body>
     
