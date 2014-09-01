@@ -21,25 +21,28 @@ module.exports = function(){
       }
     };
     
-    var pg = require("pg");
+    var pg = require("pg");    
     
-    var login = require('./dbconfig')
-
-    var conString = "pg://" + login.user + ":" + login.password + "@" + login.host + ":" + login.port + "/" + login.database;
-
+    var config = require('./config').dbconfig
+    
     //var client = new pg.Client(conString);
     //client.connect();
     
+<<<<<<< f6bf6ace3ae523b917ac07fdb82008e36e4c45d7:server/database_routes.js
     function pgQuery(queryString, parameters, callback){
         pg.connect(conString, function(err, client, done) {
+=======
+    function pgQuery(queryString, callback){
+        pg.connect(config, function(err, client, done) {
+>>>>>>> 62865b89baf7cd0f1f7617faf051681c38cab4bb:server/api_routes.js
             if(err) {
-                return callback([]);
+                return callback([err]);
             }
             client.query(queryString, parameters, function(err, result) {
                 //call `done()` to release the client back to the pool
                 done();
                 if(err) {
-                    return callback([]);
+                    return callback([err]);
                 }
                 return callback(result.rows);
             });

@@ -1,8 +1,9 @@
 // DEPENDENCIES
 // ============
 var express = require("express"),
+    config = require('./config').serverconfig,
     http = require("http"),
-    port = (process.env.PORT || 8001),
+    port = (process.env.PORT || config.port),
     server = module.exports = express(),
     bodyParser = require('body-parser'),
     cookieParser = require('cookie-parser'),
@@ -34,7 +35,7 @@ var express = require("express"),
 
     server.use(csrf());
     
-    server.use('/api', require('./database_routes')); 
+    server.use('/api', require('./api_routes')); 
     
 //};
 

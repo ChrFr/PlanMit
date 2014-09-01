@@ -7,7 +7,7 @@ define(["jquery", "backbone"],
 
         var LoginModel = Backbone.Model.extend({
             
-            url : '/api/session',
+            url : 'api/session',
 
             initialize : function(){
                 var _this = this;
