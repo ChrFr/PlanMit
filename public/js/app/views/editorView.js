@@ -40,12 +40,24 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                 //else only render (and show modified edition rather than reset
                 else
                     this.render();    
-                
+                /*
                 $(window).on("resize", function(e){
                     if (e.target === this) {
+                    }
+                });*/
+                var delay = (function(){
+                    var timer = 0;
+                    return function(callback, ms){
+                        clearTimeout (timer);
+                        timer = setTimeout(callback, ms);
+                    };
+                })();
+                
+                $(window).resize(function() {
+                    delay(function(){
                         _this.$el.find('div').remove();
                         _this.render();
-                    }
+                    }, 500);
                 });
             },            
 
