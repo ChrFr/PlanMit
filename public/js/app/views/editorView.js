@@ -41,9 +41,11 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                 else
                     this.render();    
                 
-                $(window).bind("resize", function(){
-                    _this.$el.find('div').remove();
-                    _this.render();
+                $(window).on("resize", function(e){
+                    if (e.target === this) {
+                        _this.$el.find('div').remove();
+                        _this.render();
+                    }
                 });
             },            
 
