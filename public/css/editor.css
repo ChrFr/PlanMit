@@ -48,19 +48,19 @@ body {
 }
 
 #lockedSymbol{    
-    background-image: url("/img/icons-png/locked-yellow.png"); 
+    background-image: url("../img/icons-png/locked-yellow.png"); 
 }
 
 #unlockedSymbol{
-    background-image: url("/img/icons-png/unlocked-yellow.png"); 
+    background-image: url("../img/icons-png/unlocked-yellow.png"); 
 }
 
 .fixed > .OSD > #lockedSymbol{
-    background-image: url("/img/icons-png/locked.png"); 
+    background-image: url("../img/icons-png/locked.png"); 
 }
 
 .fixed > .OSD > #unlockedSymbol{
-    background-image: url("/img/icons-png/unlocked.png"); 
+    background-image: url("../img/icons-png/unlocked.png"); 
 }
 
 .fixed > .OSD > #lockedSymbol:hover, .fixed > .OSD > #unlockedSymbol:hover {
@@ -86,13 +86,13 @@ body {
 
 #lefthandle{
     left: 0px;
-    background-image: url("/img/icons-png/triangle-white-left.png");
+    background-image: url("../img/icons-png/triangle-white-left.png");
     background-position: center 50%;
     border-radius: 0px 5px 5px 0px;
 }
 #righthandle{
     right: 0px;
-    background-image: url("/img/icons-png/triangle-white-right.png");
+    background-image: url("../img/icons-png/triangle-white-right.png");
     background-position: center 50%;
     border-radius: 5px 0px 0px 5px;
 }
