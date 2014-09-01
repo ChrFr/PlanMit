@@ -39,16 +39,21 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                     this.collection.fetch({reset: true});}
                 //else only render (and show modified edition rather than reset
                 else
-                    this.render();      
+                    this.render();    
+                
+                $(window).bind("resize", function(){
+                    _this.$el.find('div').remove();
+                    _this.render();
+                });
             },            
 
             // View Event Handlers
             events: {
 
             },        
-
+            
             // Renders the view's template to the UI
-            render: function() {            
+            render: function() {          
                 var canvas = this.$el.find('canvas')[0];                
                 this.measure = new this.MeasureDisplay(canvas, this.$el, 
                                             this.streetSize, this.creationMode);
@@ -362,7 +367,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                     
                     var width = parseInt(this.parent.css('width'));
                     var height = parseInt(this.parent.css('height')) +
-                                 this.marginTop + 
+                                 +this.marginTop + 
                                  this.marginBottom;
                     $(this.canvas).css('top', -this.marginTop );
                     $(this.canvas).css('width', width);

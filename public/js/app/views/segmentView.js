@@ -164,7 +164,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 var groundImage = document.createElement("div");
                 var attr = this.segment.attributes;
                 var height = parseInt($(imageContainer).css('height')); 
-                var groundHeight = height / 8;
+                var groundHeight = height / 5;
                 
                 if (!this.isConnector){
                     //render the ground on the bottom                

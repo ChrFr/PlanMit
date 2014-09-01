@@ -30,7 +30,8 @@ define(["jquery", "backbone", "text!templates/editMain.html",
                                                      el: '#resources',
                                                      images: this.images});
                                                      //target: '#editor'
-                this.resources.fetch({reset: true});
+                this.resources.fetch({reset: true});                
+                
 
             },
 
