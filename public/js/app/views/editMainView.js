@@ -13,7 +13,8 @@ define(["jquery", "backbone", "text!templates/editMain.html",
             el: "#mainFrame",
 
             // View constructor
-            initialize: function(options) {
+            initialize: function(options) {    
+                $(this.$el).appendTo('body');
                 var options = options || {};
                 this.resources = options.resources;  
                 this.edition = options.edition;
@@ -41,8 +42,7 @@ define(["jquery", "backbone", "text!templates/editMain.html",
             },
 
             // Renders the view's template to the UI
-            render: function() {     
-                 
+            render: function() {                      
                 // Setting the view's template property using the Underscore template method
                 this.template = _.template(template, {});
                 

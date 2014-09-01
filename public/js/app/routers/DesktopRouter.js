@@ -36,26 +36,45 @@ define(["jquery", "backbone", "views/navbarView",
                 "login": "login"
             },
 
-            welcome: function() {
-                new Welcome();
+            welcome: function() {                
+                this.cleanUp();
+                this.view = new Welcome({el: '#mainFrame'});
             },
             
             edit: function() {
-                new Edit({resources: this.resources, 
-                          edition: this.edition,
-                          images: this.images});
+                this.cleanUp();
+                this.view = new Edit({el: '#mainFrame',
+                                    resources: this.resources, 
+                                    edition: this.edition,
+                                    images: this.images});
             },
             
             admin: function() {
                 var user = this.session.get('user');
-                if(user && user.superuser)
-                    new Admin({resources: this.adminResources, 
+                if(user && user.superuser){
+                    this.resetView();
+                    this.view = new Admin({el: '#mainFrame',
+                               resources: this.adminResources, 
                                edition: this.adminEdition,
                                images: this.images});
+                    }
             },
             
             login: function() {
-                new Login({session: this.session});
+                this.cleanUp();
+                this.view = new Login({el: '#mainFrame',
+                                       session: this.session});   
+            },
+            
+            cleanUp: function(view){
+		if (this.view) {
+                    this.view.unbind();
+                    this.view.remove();
+                    $(window).off("resize");
+                }
+                if ($('#mainFrame').length === 0){
+                    $(document.createElement('div')).attr('id', 'mainFrame').appendTo('body');
+                }
             }
 
         });

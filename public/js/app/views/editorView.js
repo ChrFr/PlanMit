@@ -10,7 +10,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
             el: ".sink",
 
             // View constructor
-            initialize: function(options) {
+            initialize: function(options) {   
                 this.images = options.images;
                 this.resources = options.resources; 
                 this.creationMode = options.creationMode || false;
@@ -53,19 +53,19 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                     };
                 })();
                 
-                $(window).resize(function() {
+                $(window).resize(function() {                    
                     delay(function(){
                         _this.$el.find('div').remove();
                         _this.render();
                     }, 500);
                 });
-            },            
-
+            },       
+            
             // View Event Handlers
             events: {
 
             },        
-            
+                        
             // Renders the view's template to the UI
             render: function() {          
                 var canvas = this.$el.find('canvas')[0];                
