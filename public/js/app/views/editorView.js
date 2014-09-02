@@ -15,6 +15,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                 this.resources = options.resources; 
                 this.creationMode = options.creationMode || false;
                 this.fixElements = !this.creationMode;   
+                this.thumbSize = options.thumbSize || 100;
                 this.streetSize = options.startSize || this.collection.getStreetSize() || 1000;
                 this.zoom = 100;
                 this.width = this.$el.width;
@@ -39,12 +40,8 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                     this.collection.fetch({reset: true});}
                 //else only render (and show modified edition rather than reset
                 else
-                    this.render();    
-                /*
-                $(window).on("resize", function(e){
-                    if (e.target === this) {
-                    }
-                });*/
+                    this.render();  
+                
                 var delay = (function(){
                     var timer = 0;
                     return function(callback, ms){
@@ -53,11 +50,12 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                     };
                 })();
                 
-                $(window).resize(function() {                    
-                    delay(function(){
-                        _this.$el.find('div').remove();
-                        _this.render();
-                    }, 500);
+                $(window).resize(function(e) {  
+                    if (e.target === this)
+                        delay(function(){
+                            _this.$el.find('div').not('.contextMenu, .downfade').remove();
+                            _this.render();
+                        }, 500);
                 });
             },       
             
@@ -85,16 +83,15 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
             makeDroppable: function(){
                 var _this = this;
                 this.wrapper.droppable({
-                    tolerance: "pointer",
+                    tolerance: "fit",
                     cursor: 'auto',
                     over: function(e, dragged) {
-                        var clone = $(dragged.helper);  
+                        var clone = $(dragged.helper); 
+                        clone.removeClass('out');
                         var width = clone.data('size') * _this.pixelRatio();
-                        var draggable = dragged.draggable;
-                        clone.animate({height: _this.$el.css('height'),
-                                       width: width}, 250);    
+                        var draggedDiv = dragged.draggable;
                         _this.placeholder.setActive(true, clone, width);
-                        draggable.on( "drag", function( event, ui ) {
+                        draggedDiv.on( "drag", function( event, ui ) {
                             _this.placeholder.updatePos(event.clientX);
                         } );
                         return;
@@ -116,6 +113,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                                                                    steps: _this.steps,
                                                                    creationMode: _this.creationMode,
                                                                    left: left,
+                                                                   thumbSize: _this.thumbSize,
                                                                    height: parseInt(placeholder.div.css('height')),
                                                                    pixelRatio: _this.pixelRatio(),
                                                                    images: _this.images});
@@ -145,9 +143,8 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                         placeholder.setActive(false);
                     },
                     out: function(e, dragged){
-                        var clone = $(dragged.helper);    
-                        clone.animate({height: dragged.draggable.css('height')}, 100);
-                        clone.animate({height: dragged.draggable.css('width')}, 100);
+                        var clone = $(dragged.helper);                            
+                        clone.addClass('out');
                         _this.placeholder.setActive(false);
                     }
                 });
@@ -369,8 +366,8 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                 this.canvas = canvas;
                 this.streetSize = streetSize;
                 this.parent = parent;
-                this.marginTop = 30;
-                this.marginBottom = 50;
+                this.marginTop = 0;
+                this.marginBottom = 0;
                 this.gapTolerance = 1;
                 this.showRaster = showRaster || false;
                 
@@ -380,9 +377,9 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                 this.resize = function(){
                     
                     var width = parseInt(this.parent.css('width'));
-                    var height = parseInt(this.parent.css('height')) +
-                                 +this.marginTop + 
-                                 this.marginBottom;
+                    var height = parseInt(this.parent.css('height'))
+                                 //+ this.marginTop + 
+                                 //this.marginBottom;
                     $(this.canvas).css('top', -this.marginTop );
                     $(this.canvas).css('width', width);
                     $(this.canvas).css('height', height); 
@@ -398,9 +395,9 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                 this.drawScalingLine = function(segmentViewCollection){
                     var ratio = segmentViewCollection.pixelRatio;
                     var ctx = this.canvas.getContext("2d");
-                    var w = (this.showRaster) ? this.canvas.height - this.marginBottom : this.marginTop;
+                    //var w = (this.showRaster) ? this.canvas.height - this.marginBottom : this.marginTop;
                     //clear upper area
-                    ctx.clearRect(0, 0, this.canvas.width, w);
+                    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                     var firstSegment = segmentViewCollection.at(0);
                     var lastSegment = segmentViewCollection.at(segmentViewCollection.length - 1);
                     var streetStart = (firstSegment && firstSegment.segment.fixed) ? 
@@ -409,7 +406,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                         lastSegment.segment.startPos: this.streetSize;  
                     var size = streetEnd - streetStart;           
                     var middle = size / 2 + streetStart;
-                    var y = 12.5;
+                    var y = 40;
                     
                     ctx.strokeStyle = 'grey';
                     ctx.setLineDash([0]);
@@ -427,11 +424,11 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                     var step = 10;
                     var i = 0;
                     //draw a small line every meter
-                    for(var x = (streetStart * ratio); x <= (streetEnd * ratio); x += (step * ratio)){ 
+                    for(var x = (streetStart * ratio); x <= (streetEnd * ratio +1); x += (step * ratio)){ 
                         var length = 4;
                         var bigStep = ((i % 10) === 0) ? true: false;
                         ctx.beginPath();     
-                        ctx.strokeStyle = 'grey';
+                        ctx.strokeStyle = 'black';
                         ctx.setLineDash([0]);
                         if (bigStep){
                             length = 8;    
@@ -443,11 +440,12 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                         if (this.showRaster) {
                             ctx.beginPath();  
                             if (bigStep){
-                                ctx.setLineDash([1,2]);
+                                ctx.setLineDash([2,2]);
                             }
+                            
                             else {
                                 ctx.setLineDash([1,4]);
-                                ctx.strokeStyle = 'lightgrey';
+                                ctx.strokeStyle = 'grey';
                             }
                             ctx.moveTo(x, y);
                             ctx.lineTo(x, this.canvas.height - this.marginBottom); 
@@ -464,17 +462,17 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                 
                 this.drawInfoLine = function(segmentViewCollection){  
                     var ratio = segmentViewCollection.pixelRatio;  
-                    var originY = this.canvas.height - this.marginBottom;
+                    var originY = this.canvas.height - 50;
                     var ctx = this.canvas.getContext("2d");
                     //clear lower area
                     ctx.clearRect(0, originY, 
-                                  this.canvas.width, this.marginBottom);
+                                  this.canvas.width, 50);
                     var segmentView = {left: 0,
                                        width: 0,
                                        next: segmentViewCollection.first};
                     while(segmentView){                        
                         var next = (segmentView.next && segmentView.next.isConnector) ? segmentView.next.next: segmentView.next;
-                        var y = originY + this.marginBottom - 30.5;                        
+                        var y = originY + 12.5;                        
                         ctx.lineWidth = 1;                        
                         ctx.font = "bold 12px Arial";
                         ctx.strokeStyle = 'black';

@@ -9,11 +9,12 @@ define(["jquery", "backbone", "text!templates/segment.html"],
             // View constructor
             initialize: function(options) {
                 //options
-                this.cloneable = options.cloneable || false;
+                this.thumb = options.thumb || false;
+                this.thumbSize = options.thumbSize || 100;
+                this.height = options.height || this.thumbSize;
                 this.images = options.images;
                 this.segment = options.segment;
                 this.pixelRatio = options.pixelRatio || 1;
-                this.height = options.height || 100;
                 this.insertSorted = options.insertSorted || false;
                 this.creationMode = options.creationMode || false;
                 this.svgUnsupported = options.svgUnsupported || false;                
@@ -46,7 +47,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 this.width = this.segment.size * this.pixelRatio
                 $(div).css('width', this.width);         
                 $(div).css('height', this.height);
-                $(div).css('left', this.left);// + this.$el.offset().left);
+                $(div).css('left', this.left);
 
                 //give the div information about the segment it is viewing
                 $(div).data('segmentID', this.segment.attributes.id); 
@@ -59,13 +60,14 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 else {
                     $(div).addClass('segment');
                     this.makeDraggable();
-                    if (!this.cloneable && !this.isConnector){
+                    if (!this.thumb && !this.isConnector){
                        this.makeResizable();
                    }
                 };
                 
-                if (this.cloneable)
+                if (this.thumb){
                     this.renderThumbnail();
+                }
                 else
                     this.renderImage();                
                 this.OSD.render(this);
@@ -78,7 +80,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
         
                 render: function(view){
                     this.view = view;
-                    if (view.cloneable || view.isConnector)
+                    if (view.thumb || view.isConnector)
                         $(view.div).find('.OSD').hide();
                     else
                         $(view.div).hover(
@@ -158,7 +160,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 this.segment.startPos = parseFloat(startPos.toFixed(2))
             },
             
-            renderImage: function(){
+            renderImage: function(){                
+                $(this.div).removeClass('thumb');  
                 var imageContainer = $(this.div).find('#imageContainer');                 
                 var objectImage = document.createElement("div"); 
                 var groundImage = document.createElement("div");
@@ -200,8 +203,15 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 }               
             },
                         
-            renderThumbnail: function(){
-                var imageContainer = $(this.div).find('#imageContainer');             
+            renderThumbnail: function(div){
+                if (!div)
+                    div = this.div;
+                $(div).addClass('thumb');                    
+                $(div).css('width', this.thumbSize);               
+                $(div).css('height', this.thumbSize);        
+                var imageContainer = $(div).find('#imageContainer');    
+                $(div).children().not(imageContainer).remove();
+                imageContainer.empty();
                 var objectImage = document.createElement("div"); 
                 var groundImage = document.createElement("div");
                 var height = parseInt($(imageContainer).css('height')); 
@@ -279,7 +289,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
             makeDraggable: function(){
                 var _this = this;
                 var outside = true;
-                if (this.cloneable)
+                if (this.thumb)
                     $(this.div).draggable({
                         helper: 'clone',
                         cursor: "move", 
@@ -289,7 +299,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         //cursorAt: { top: 0, left: 0 },
                         start: function (e, ui) {    
                             var clone = $(ui.helper);
-                            clone.addClass('dragged');                            
+                            clone.addClass('dragged');   
                             clone.data('size', _this.segment.attributes.min_width); 
                             clone.data('isConnector', _this.isConnector); 
                         }, 
@@ -300,30 +310,22 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         cursor: "move", 
                         revertDuration: 200, 
                         appendTo: 'body',
-                        containment: 'body',
-                        scroll: false,
-                        cursorAt: { 
-                            top: parseInt($(_this.div).css('height'))/2, 
-                            left: -20
-                        },
+                        //containment: 'body',
+                        //scroll: false,
+                        cursorAt: { top: 0, left: 0 },
                         start: function (e, ui){
                             $(this).addClass('dragOrigin'); 
-                            //keep track if div is pulled in or out to delete
-                            $('#editorWrapper').on("dropout", function(e, ui) {
-                                outside = true;
-                            });
-                            $('#editorWrapper').on("drop", function(e, ui) {
-                                outside = false;
-                            });
                             var drag = $(ui.helper);
                             drag.addClass('dragged');
+                            _this.renderThumbnail(drag);                            
                             drag.data('segmentViewID', _this.cid); 
+                            drag.data('size', _this.segment.size); 
                             drag.data('isConnector', _this.isConnector); 
                         },
                         
                         stop: function (e, ui){
                             var dragged = $(ui.helper);
-                            if (outside){
+                            if (dragged.hasClass('out')){
                                 _this.delete();
                             }
                             else {

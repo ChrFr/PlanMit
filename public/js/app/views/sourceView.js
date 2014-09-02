@@ -30,7 +30,8 @@ define(["jquery", "backbone", "views/segmentView"],
                 this.collection.each(function(segment){
                     var segmentView = new SegmentView({el: _this.el,
                                                        segment: segment,
-                                                       cloneable: true,
+                                                       thumb: true,
+                                                       thumbSize: parseInt(_this.$el.css('height')) - 2,
                                                        images: _this.images});
                     segmentView.render();
                 });          

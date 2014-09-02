@@ -9,11 +9,14 @@ and open the template in the editor.
 */
 
 html, body {
+    font-family: 'Lato', sans-serif;
+    font-weight: 300;
     cursor: auto; 
     margin: 0;
     padding: 0;
     width: 100%;
     height: 100%;
+    overflow: hidden;
 }
 
 body {
@@ -26,16 +29,18 @@ body {
 
 #mainFrame{
     position:absolute;    
-    margin-top: 500px;
+    margin-top: 50px;
     cursor: auto; 
-    margin: 0;
     width: 100%;
     height: 100%;
+    height: calc(100% - 50px);
+    overflow: auto;
 }
 
 
 .textBar {
-    font-family: 'Open Sans Condensed', sans-serif;
+    //font-family: 'Open Sans Condensed', sans-serif;
+    //font-family: 'Poiret One', cursive;
     padding: 0em 3em 1em 3em;
     display: table-cell;
     font-size: 2em;
@@ -55,12 +60,11 @@ body {
 }
 
 .textBar > h1{
-    font-weight: bold;    
+    font-weight: 300;    
     text-align: left;
 }
 
 .centered > h1{
-    font-weight: bold;    
     text-align: center;
 }
 
@@ -87,11 +91,12 @@ body {
 }
 
 
-.OSDSymbol:hover{
+.OSDSymbol:hover{/*
     box-shadow: -0px -0px 8px #fecf1d,
                  0px -0px 8px #fecf1d,
                 -0px  0px 8px #fecf1d,
-                 0px  0px 8px #fecf1d;
+                 0px  0px 8px #fecf1d;*/
+    border: #fecf1d solid 2px;
 }
 
 #lockedSymbol{    
@@ -147,7 +152,8 @@ body {
 .segment {
     height: 100px;
     width: 100px;  
-    cursor: pointer;
+    cursor: pointer;    
+    z-index: 0;
 }
 
 .remove{
@@ -167,16 +173,47 @@ body {
     pointer-events: none;
 }
 
-.editor > .segment:hover {
+.contextMenu{
+    background-image: -webkit-linear-gradient(white 70%, transparent 100%); 
+    background-image: -moz-linear-gradient(white 70%, transparent 100%); 
+    background-image: -o-linear-gradient(white 70%, transparent 100%); 
+    background-image: linear-gradient(white 70%, transparent 100%);
+    z-index: 99999;
+    height: 70px;
+    width: 100%;
+    position: absolute;
+    pointer-events: none;
+}
+
+.downfade{
+    background-image: -webkit-linear-gradient(transparent 0%, white 30%); 
+    background-image: -moz-linear-gradient(transparent 0%, white 30%); 
+    background-image: -o-linear-gradient(transparent 0%, white 30%); 
+    background-image: linear-gradient(transparent 0%, white 30%);
+    z-index: 99999;
+    height: 70px;
+    width: 100%;
+    position: absolute;
+    bottom: 0px;
+    pointer-events: none;
+}
+
+.editor > .segment:hover {/*
     box-shadow: -0px -6px 8px #fecf1d,
                  0px -0px 0px #fecf1d,
                 -0px  0px 0px #fecf1d,
                  0px  6px 8px #fecf1d;
-    /*
+    
     box-shadow: 0  0px 6px 8px #fecf1d, 
                 0 -0px -6px 8px #fecf1d; */    
     //background: #fecf1d; 
-    background-color: rgba(255, 255, 0, 0.1);
+    //background-color: rgba(255, 255, 0, 0.7);
+    
+    background-image: -webkit-linear-gradient(transparent 0%, #fecf1d 100%); 
+    background-image: -moz-linear-gradient(transparent 0%, #fecf1d 100%); 
+    background-image: -o-linear-gradient(transparent 0%, #fecf1d 100%); 
+    background-image: linear-gradient(transparent 0%, #fecf1d 100%);
+    z-index: 1;
 }
 
 .source > .segment:hover {
@@ -184,30 +221,29 @@ body {
     border: solid #fecf1d;
 }
 
-.source > .segment >.OSD {
+.thumb > .OSD {
     display:  None;    
     visibility:  hidden;
 }
 
-.navbar{ 
-    
+.navbar{     
     position:absolute;
     width: 100%;
-    font-family: 'Open Sans Condensed', sans-serif;
+    //font-family: 'Poiret One', cursive;
+    //font-family: 'Open Sans Condensed', sans-serif;
     background-color: #fefefe;
     vertical-align: bottom;
-    font-size: 1em;
-    z-index: 99999;
+    z-index: 999999;
     border-bottom: 2px solid #383838;
+}
+.navbar-brand, .navbar-nav{ 
+    font-size: 1.5em;
 }
 
 #editorWrapper {
-    height: 90%;
+    height: 85%;
     width: 100%;
     margin-left: 0px;
-    padding-top: 30px;
-    padding-left: 5px;
-    padding-right: 5px;
     cursor: auto;
     z-index: 1;
     overflow-x: auto;
@@ -219,7 +255,7 @@ body {
     -ms-user-select: none;
     user-select: none;
     
-    background: url('../img/rome.png') no-repeat center center fixed; 
+    background: url('../img/wolken.png') no-repeat center center fixed; 
     background-size: cover;
 }
 
@@ -227,13 +263,13 @@ body {
     position:relative;
     height: 100%;
     width: 100%;
-    background: transparent;
+    margin: 0;
+    background: transparent;/*
     box-shadow: -1px -1px 2px #fecf1d,
                  1px -1px 2px #fecf1d,
                 -1px  1px 2px #fecf1d,
-                 1px  1px 2px #fecf1d;
+                 1px  1px 2px #fecf1d;*/
     z-index: 1;
-    margin: 0;
 }
 
 
@@ -251,21 +287,30 @@ body {
     position: absolute;
     background-color: white;
     width: 100%;
-    height: 10%;
+    height: 15%;
     bottom: 0px;
     overflow: auto; 
     cursor: auto;
-    z-index: 1;
-    margin: 5;
-    padding: 5;    
+    z-index: 1; 
 }
 
 .source > div {
     float: left;     
-    border-radius: 50px;
-    border: solid #c4edfd;
-    margin: 2;
-    padding: 20px;
+    height: 100%;
+    margin: auto 1em auto 1em;
+}
+
+.thumb {
+    border-radius: 50%;    
+    border: solid #383838;
+    padding: 1em;
+}
+
+.out {  
+    opacity: 0.8; 
+    border: solid #ff1400;
+    background: url(../img/icons-png/delete.png);     
+    background-size: 100%;
 }
 
 .editor > .placeholder {
@@ -296,10 +341,9 @@ body {
 }
 
 .dragged{
-    background: transparent;  
-    border-radius: 15px;
-    border: solid #fecf1d;
-    opacity: 1;
+    //background: #fecf1d; 
+    
+    //background-color: rgba(250, 230, 30, 0.8);
     z-index: 9900;
 }
 

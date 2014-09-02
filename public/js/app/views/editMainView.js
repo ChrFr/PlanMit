@@ -22,15 +22,17 @@ define(["jquery", "backbone", "text!templates/editMain.html",
                 // Calls the view's render method
                 this.render();    
                 
+                this.resourcesView = new SourceView({collection: this.resources,
+                                                     el: '#resources',
+                                                     images: this.images});
+                var sourceHeight = parseInt($(this.resourcesView.el).css('height'));
+                console.log(sourceHeight);
                 this.editorView = new EditorView({collection: this.edition,
                                                   el: '#editor',
                                                   resources: this.resources,
                                                   wrapper: "#editorWrapper",
-                                                  images: this.images});
-                this.resourcesView = new SourceView({collection: this.resources,
-                                                     el: '#resources',
-                                                     images: this.images});
-                                                     //target: '#editor'
+                                                  images: this.images,
+                                                  thumbSize: sourceHeight});
                 this.resources.fetch({reset: true});                
                 
 
