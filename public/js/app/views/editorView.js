@@ -14,7 +14,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                 this.images = options.images;
                 this.resources = options.resources; 
                 this.creationMode = options.creationMode || false;
-                this.fixElements = !this.creationMode;   
+                this.fixElements = !this.creationMode;                  
                 this.thumbSize = options.thumbSize || 100;
                 this.streetSize = options.startSize || this.collection.getStreetSize() || 1000;
                 this.zoom = 100;
@@ -40,23 +40,8 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                     this.collection.fetch({reset: true});}
                 //else only render (and show modified edition rather than reset
                 else
-                    this.render();  
+                    this.render();                  
                 
-                var delay = (function(){
-                    var timer = 0;
-                    return function(callback, ms){
-                        clearTimeout (timer);
-                        timer = setTimeout(callback, ms);
-                    };
-                })();
-                
-                $(window).resize(function(e) {  
-                    if (e.target === this)
-                        delay(function(){
-                            _this.$el.find('div').not('.contextMenu, .downfade').remove();
-                            _this.render();
-                        }, 500);
-                });
             },       
             
             // View Event Handlers
@@ -406,7 +391,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                         lastSegment.segment.startPos: this.streetSize;  
                     var size = streetEnd - streetStart;           
                     var middle = size / 2 + streetStart;
-                    var y = 40;
+                    var y = 13;
                     
                     ctx.strokeStyle = 'grey';
                     ctx.setLineDash([0]);
@@ -640,6 +625,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                                                        height: height,
                                                        steps: _this.steps,
                                                        creationMode: _this.creationMode,
+                                                       thumbSize: _this.thumbSize,
                                                        pixelRatio: ratio,
                                                        images: _this.images
                                                        });
@@ -710,12 +696,6 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                     }
                 }
                 
-                /*
-                //change handle position on window resize
-                $( window ).resize(function() {
-                  resizeScrollSlider();
-                });                */
-                
                 //init scrollbar size
                 setTimeout( resizeScrollSlider, 10 );//safari wants a timeout
                 
@@ -726,7 +706,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                     max: 500,
                     animate: true,
                     slide: function (e, ui) {
-                        $( "#zoom" ).val( ui.value );
+                        $( "#zoom" ).text( ui.value );
                     },
                     change: function(e, ui){
                         var currentWidth = parseInt(_this.$el.css('width'));

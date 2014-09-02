@@ -13,28 +13,42 @@ define(["jquery", "backbone", "text!templates/editMain.html",
             el: "#mainFrame",
 
             // View constructor
-            initialize: function(options) {    
+            initialize: function(options) {  
+                var _this = this;
                 $(this.$el).appendTo('body');
                 var options = options || {};
                 this.resources = options.resources;  
                 this.edition = options.edition;
                 this.images = options.images;  
+                this.resourcesView = null;
+                this.editorView = null;
                 // Calls the view's render method
                 this.render();    
+                this.resources.fetch({reset: true});  
                 
-                this.resourcesView = new SourceView({collection: this.resources,
-                                                     el: '#resources',
-                                                     images: this.images});
-                var sourceHeight = parseInt($(this.resourcesView.el).css('height'));
-                console.log(sourceHeight);
-                this.editorView = new EditorView({collection: this.edition,
-                                                  el: '#editor',
-                                                  resources: this.resources,
-                                                  wrapper: "#editorWrapper",
-                                                  images: this.images,
-                                                  thumbSize: sourceHeight});
-                this.resources.fetch({reset: true});                
+                var delay = (function(){
+                    var timer = 0;
+                    return function(callback, ms){
+                        clearTimeout (timer);
+                        timer = setTimeout(callback, ms);
+                    };
+                })();
                 
+                $(window).resize(function(e) {  
+                    if (e.target === this)
+                        delay(function(){
+                            if (_this.resourcesView){
+                                _this.resourcesView.unbind();
+                                _this.resourcesView.remove();
+                            };                            
+                            if (_this.editorView){
+                                _this.editorView.unbind();
+                                _this.editorView.remove();
+                            };
+                            _this.render();
+                            _this.resourcesView.render();
+                        }, 500);
+                });
 
             },
 
@@ -49,7 +63,18 @@ define(["jquery", "backbone", "text!templates/editMain.html",
                 this.template = _.template(template, {});
                 
                 // Dynamically updates the UI with the view's template
-                this.$el.html(this.template); 
+                this.$el.html(this.template);         
+                
+                this.resourcesView = new SourceView({collection: this.resources,
+                                                     el: '#resources',
+                                                     images: this.images});
+                var sourceHeight = parseInt($(this.resourcesView.el).css('height'));
+                this.editorView = new EditorView({collection: this.edition,
+                                                  el: '#editor',
+                                                  resources: this.resources,
+                                                  wrapper: "#editorWrapper",
+                                                  images: this.images,
+                                                  thumbSize: sourceHeight});
                 // Maintains chainability
                 return this;
 

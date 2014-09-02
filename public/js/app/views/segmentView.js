@@ -296,10 +296,14 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         appendTo: 'body',
                         containment: 'body',
                         scroll: false,
-                        //cursorAt: { top: 0, left: 0 },
+                        cursorAt: { top: 20, left: 20 },
                         start: function (e, ui) {    
                             var clone = $(ui.helper);
-                            clone.addClass('dragged');   
+                            clone.addClass('dragged'); 
+                            $(this).draggable("option", "cursorAt", {
+                                left: Math.floor(clone.width() / 2),
+                                top: Math.floor(clone.height() / 2)
+                            });   
                             clone.data('size', _this.segment.attributes.min_width); 
                             clone.data('isConnector', _this.isConnector); 
                         }, 
@@ -311,13 +315,17 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         revertDuration: 200, 
                         appendTo: 'body',
                         //containment: 'body',
-                        //scroll: false,
-                        cursorAt: { top: 0, left: 0 },
+                        scroll: false,
+                        cursorAt: { top: 20, left: 20 },
                         start: function (e, ui){
                             $(this).addClass('dragOrigin'); 
                             var drag = $(ui.helper);
                             drag.addClass('dragged');
-                            _this.renderThumbnail(drag);                            
+                            _this.renderThumbnail(drag);  
+                            $(this).draggable("option", "cursorAt", {
+                                left: Math.floor(drag.width() / 2),
+                                top: Math.floor(drag.height() / 2)
+                            }); 
                             drag.data('segmentViewID', _this.cid); 
                             drag.data('size', _this.segment.size); 
                             drag.data('isConnector', _this.isConnector); 

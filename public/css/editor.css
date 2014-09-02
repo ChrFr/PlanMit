@@ -174,15 +174,39 @@ body {
 }
 
 .contextMenu{
-    background-image: -webkit-linear-gradient(white 70%, transparent 100%); 
-    background-image: -moz-linear-gradient(white 70%, transparent 100%); 
-    background-image: -o-linear-gradient(white 70%, transparent 100%); 
-    background-image: linear-gradient(white 70%, transparent 100%);
+    background: white;
     z-index: 99999;
-    height: 70px;
+    height: 50px;
+    width: 100%;
+    position: relative;
+    font-size: 0.8em;
+}
+
+.contextMenu img{  
+    height: 20px;    
+    border-radius: 50%;  
+    border: 1px solid black;
+    padding: 3px;
+}
+
+.contextMenu a{    
+    color:#000;
+}
+
+.upfade, .downfade {   
+    z-index: 99999;
     width: 100%;
     position: absolute;
     pointer-events: none;
+}
+
+.upfade{
+    background-image: -webkit-linear-gradient(white 0%, transparent 100%); 
+    background-image: -moz-linear-gradient(white 0%, transparent 100%); 
+    background-image: -o-linear-gradient(white 0%, transparent 100%); 
+    background-image: linear-gradient(white 0%, transparent 100%);
+    height: 20px;
+    top: 0px;
 }
 
 .downfade{
@@ -190,12 +214,8 @@ body {
     background-image: -moz-linear-gradient(transparent 0%, white 30%); 
     background-image: -o-linear-gradient(transparent 0%, white 30%); 
     background-image: linear-gradient(transparent 0%, white 30%);
-    z-index: 99999;
     height: 70px;
-    width: 100%;
-    position: absolute;
     bottom: 0px;
-    pointer-events: none;
 }
 
 .editor > .segment:hover {/*
@@ -261,9 +281,10 @@ body {
 
 .editor {
     position:relative;
-    height: 100%;
+    height: calc(100% - 50px);
     width: 100%;
     margin: 0;
+    left: 0;
     background: transparent;/*
     box-shadow: -1px -1px 2px #fecf1d,
                  1px -1px 2px #fecf1d,
@@ -275,6 +296,7 @@ body {
 
 #editorCanvas {
     position: absolute;
+    left: 0;
     pointer-events: none;
     z-index: 999999;
 }
@@ -306,11 +328,17 @@ body {
     padding: 1em;
 }
 
+.dragged{
+    background: white;     
+    //background-color: rgba(250, 230, 30, 0.8);
+    z-index: 9999999;
+}
+
 .out {  
     opacity: 0.8; 
     border: solid #ff1400;
-    background: url(../img/icons-png/delete.png);     
-    background-size: 100%;
+    background: url(../img/icons-png/delete.png) center;     
+    background-size: 150%;
 }
 
 .editor > .placeholder {
@@ -340,16 +368,9 @@ body {
                 0px  6px 8px #d9d9d9;*/
 }
 
-.dragged{
-    //background: #fecf1d; 
-    
-    //background-color: rgba(250, 230, 30, 0.8);
-    z-index: 9900;
-}
-
 .dragOrigin{    
     background: #e3e3e3; 
-    border: dotted #000;    
+    //border: dotted #000;    
     opacity: .2;
 }
 
@@ -378,6 +399,12 @@ body {
     background-image: -moz-linear-gradient(left, transparent 0%, #fecf1d 100%); 
     background-image: -o-linear-gradient(left, transparent 0%, #fecf1d 100%); 
     background-image: linear-gradient(left, transparent 0%, #fecf1d 100%);
+}
+
+#zoomSlider{
+    float: right; 
+    margin: 0 0 0 2px;
+    width: 200px;
 }
 
 #scrollSlider{
