@@ -2,9 +2,9 @@
 // -------------
 
 // Include Mobile Specific JavaScript files here (or inside of your Mobile router)
-require(["jquery", "backbone", "routers/MobileRouter", "jquerymobile", "backbone.validateAll"],
+require(["jquery", "backbone", "routers/Router", "jquerymobile", "backbone.validateAll"],
 
-  function($, Backbone, MobileRouter) {
+  function($, Backbone, Router) {
 
     // Prevents all anchor click handling
     $.mobile.linkBindingEnabled = false;
@@ -12,8 +12,8 @@ require(["jquery", "backbone", "routers/MobileRouter", "jquerymobile", "backbone
     // Disabling this will prevent jQuery Mobile from handling hash changes
     $.mobile.hashListeningEnabled = false;
 
-    // Instantiates a new Mobile Router instance
-    new MobileRouter();
+    //Desktop and Mobile Router call the same Router by now, no difference made
+    new Router();
 
   }
 

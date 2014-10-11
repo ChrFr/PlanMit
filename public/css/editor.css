@@ -274,9 +274,7 @@ body {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    
-    background: url('../img/wolken.png') no-repeat center center fixed; 
-    background-size: cover;
+    background-color: white;
 }
 
 .editor {
@@ -291,6 +289,9 @@ body {
                 -1px  1px 2px #fecf1d,
                  1px  1px 2px #fecf1d;*/
     z-index: 1;
+    
+    background: url('../img/wolken.png') no-repeat center center fixed; 
+    background-size: cover;
 }
 
 

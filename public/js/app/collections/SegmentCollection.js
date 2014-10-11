@@ -48,7 +48,7 @@ define(["jquery","backbone","models/SegmentModel"],
                 type: 'GET',
                 url: _this.url,
                 success: function(data) {
-                    _this.fromJSON(data[0]);
+                    _this.fromJSON(data);
                     if (options.reset)
                         _this.trigger('reset');
                 }

@@ -2,12 +2,12 @@
 // --------------
 
 // Includes Desktop Specific JavaScript files here (or inside of your Desktop router)
-require(["jquery", "backbone", "routers/DesktopRouter",
+require(["jquery", "backbone", "routers/Router",
     "jqueryui", "bootstrap", "backbone.validateAll"],
 
-  function($, Backbone, DesktopRouter) {
-    // Instantiates a new Desktop Router instance
-    new DesktopRouter();
+  function($, Backbone, Router) {
+    //Desktop and Mobile Router call the same Router by now, no difference made
+    new Router();
   }
 
 );

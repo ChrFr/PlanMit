@@ -1,11 +1,13 @@
 // Jasmine Unit Testing Suite
 // --------------------------
-define(["jquery", "backbone", "text!templates/heading.html", "views/View","models/Model", "collections/Collection", "routers/DesktopRouter", "routers/MobileRouter", "jasminejquery"],
+define(["jquery", "backbone", "routers/Router"],
 
-    function($, Backbone, headerText, View, Model, Collection, DesktopRouter, MobileRouter) {
+    function($, Backbone, Router) {
 
         // Test suite that includes all of the Jasmine unit tests   
-        describe("Backbone-Require-Boilerplate (BRB)", function() {
+        describe("PlanMit", function() {
+            
+        /*
 
             // Backbone View Suite: contains all tests related to views
             describe("Backbone views", function() {
@@ -82,77 +84,311 @@ define(["jquery", "backbone", "text!templates/heading.html", "views/View","model
             });
 
         }); // End of the Collection test suite
+        */
 
-        // Backbone Desktop Router Suite: contains all tests related to Desktop routers
-        describe("Backbone desktop routers", function () {
+        // test the routes
+        describe("Backbone Router", function () {
 
-            // Runs before every Desktop Router spec
+            // Runs before every Router spec
             beforeEach(function () {
-
-                // Stops the router from listening to hashchange events (Required because Backbone will only allow you to run Backbone.history.start() once for each page load.)
+                // Stops the router from listening to hashchange events 
+                // (Required because Backbone will only allow you to run Backbone.history.start() once for each page load.)
                 Backbone.history.stop();
-
-                // Instantiates a new Router instance
-                this.router = new DesktopRouter();
-
-                // Creates a Jasmine spy
-                this.routeSpy = jasmine.createSpy("home");
-
-                // When the route index method is called, the Jasmine spy is also called
-                this.router.on("route:index", this.routeSpy);
-
+                
+                this.router = new Router();
+                // create Jasmine spies and call them, if the route methods are called
+                this.welcomeSpy = jasmine.createSpy("welcome");   
+                this.router.on("route:welcome", this.welcomeSpy);
+                //this.editSpy = jasmine.createSpy("edit");   
+                //this.router.on("route:edit", this.editSpy);
+                this.loginSpy = jasmine.createSpy("edit");   
+                this.router.on("route:login", this.loginSpy);
             });
 
-            it("should call the desktop router home method when there is no hash on the url", function() {
-
-                // Navigates to a different route
-                this.router.navigate("elsewhere");
-
-                // Navigates to the default route
+            it("should call the router welcome method when there is no hash in the url", function() {
+                // some dummy route without hashtag
+                this.router.navigate("dummy_route");
+                // default route
                 this.router.navigate("", { trigger: true });
-
                 // Expects the Jasmine spy to have been called
-                expect(this.routeSpy).toHaveBeenCalled();
-
+                expect(this.welcomeSpy).toHaveBeenCalled();
             });
-
-        }); // End of the Desktop Router test suite
-
-        // Backbone Mobile Router Suite: contains all tests related to Mobile routers
-        describe("Backbone mobile routers", function () {
-
-            // Runs before every Mobile Router spec
-            beforeEach(function () {
-
-                // Stops the router from listening to hashchange events (Required because Backbone will only allow you to run Backbone.history.start() once for each page load.)
-                Backbone.history.stop();
-
-                // Instantiates a new Router instance
-                this.router = new MobileRouter();
-
-                // Creates a Jasmine spy
-                this.routeSpy = jasmine.createSpy("home");
-
-                // When the route index method is called, the Jasmine spy is also called
-                this.router.on("route:index", this.routeSpy);
-
-            });
-
-            it("should call the mobile router home method when there is no hash on the url", function() {
-
-                // Navigates to a different route
-                this.router.navigate("elsewhere");
-
-                // Navigates to the default route
-                this.router.navigate("", { trigger: true });
-
+            /* crashes, because some DOM Objects are not created within jasmine
+            it("test the editor route #edit", function() {
+                // navigate to the edit route
+                this.router.navigate("#edit", { trigger: true });
                 // Expects the Jasmine spy to have been called
-                expect(this.routeSpy).toHaveBeenCalled();
+                expect(this.editSpy).toHaveBeenCalled();
+            });  */
+            
+            it("should call the login route at url #login", function() {
+                // navigate to the login route
+                this.router.navigate("#login", { trigger: true });
+                // Expects the Jasmine spy to have been called
+                expect(this.loginSpy).toHaveBeenCalled();
+            });
+          
+            it("should receive a session-token at the start and shouldn't be logged in", function() {
+                var session = this.router.session;
+                //session is created
+                expect(session.attributes).not.toBeNull();                  
+                //async test if csrf token is submitted and user is not logged in
+                waits(500);
+                runs(function() {            
+                    expect(this.router.session.attributes.csrf).toEqual(jasmine.any(String)); 
+                    expect(session.get('user')).toBeUndefined();
+                });                
+            });
+                       
 
+        }); // End of the Router test suite
+        
+         // test the routes
+        describe("Server API", function () {
+            beforeEach(function () {                
+                this.availableSegments = [];
+            });
+            //call a URL with GET Method
+            function getAjax(url, callback) {
+                $.ajax({
+                    type: "GET",
+                    url: url,
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    statusCode: {
+                        200: function(response) {
+                            callback(response);
+                        },
+                        304: function(response) {
+                            callback(response);
+                        }
+                    }
+                });
+            };
+            //create a callback function for Ajax, that checks the response for
+            //it's fields (if array is expected, checks all values of the array)
+            var newCallback = function(callbackSpy, expectedFields, expectArray){
+                var callback = function(response){
+                    var checkFields = function(element){
+                        _.each(expectedFields, function(field){
+                            expect(element[field]).toBeDefined()
+                    });};
+                    if (expectArray){
+                        expect(response).toEqual(jasmine.any(Array));
+                        _.each(response, function(element){
+                            checkFields(element);
+                    });}
+                    else
+                        checkFields(response);
+                    callbackSpy();
+                }
+                return callback;
+            };
+            
+            it("should respond a list of JSON Objects with id, name and actual_size after requesting /api/images", function () {                
+                var callbackSpy = jasmine.createSpy('callback');    
+                var callback = newCallback(callbackSpy, ['id', 'name', 'actual_size'], true);
+                getAjax("/api/images", callback);
+                waitsFor(function() {
+                    return callbackSpy.callCount > 0;
+                }, "The Ajax call timed out.", 5000);
+                runs(function() {
+                    expect(callbackSpy).toHaveBeenCalled();
+                });
+            });
+            
+            it("should respond a single JSON Object with id, name and actual_size after requesting /api/images/x with x = first listed image", function () {                
+                var callbackSpy = jasmine.createSpy('callback');    
+                var callback = newCallback(callbackSpy, ['id', 'name', 'actual_size'], false);
+                getAjax("/api/images", function(response){
+                    if (response.length > 0){
+                        getAjax("/api/images/" + response[0].id, callback);
+                    }
+                }); 
+                waitsFor(function() {
+                    return callbackSpy.callCount > 0;
+                }, "The Ajax call timed out.", 5000);
+                runs(function() {
+                    expect(callbackSpy).toHaveBeenCalled();
+                });
+            });
+            
+            it("should respond after requesting /api/images/x/svg with x = first listed image", function () {                
+                var callbackSpy = jasmine.createSpy('callback');
+                getAjax("/api/images", function(response){
+                    if (response.length > 0){
+                        getAjax("/api/images/" + response[0].id + "/svg", callbackSpy);
+                    }
+                }); 
+                waitsFor(function() {
+                    return callbackSpy.callCount > 0;
+                }, "The Ajax call timed out.", 5000);
+                runs(function() {
+                    expect(callbackSpy).toHaveBeenCalled();
+                });
+            });
+            
+            it("should respond after requesting /api/images/x/png with x = first listed image", function () {                
+                var callbackSpy = jasmine.createSpy('callback');
+                getAjax("/api/images", function(response){
+                    if (response.length > 0){
+                        getAjax("/api/images/" + response[0].id + "/png", callbackSpy);
+                    }
+                }); 
+                waitsFor(function() {
+                    return callbackSpy.callCount > 0;
+                }, "The Ajax call timed out.", 5000);
+                runs(function() {
+                    expect(callbackSpy).toHaveBeenCalled();
+                });
+            });
+            
+            it("should respond after requesting /api/images/x/thumb with x = first listed image", function () {                
+                var callbackSpy = jasmine.createSpy('callback');
+                getAjax("/api/images", function(response){
+                    if (response.length > 0){
+                        getAjax("/api/images/" + response[0].id + "/thumb", callbackSpy);
+                    }
+                }); 
+                waitsFor(function() {
+                    return callbackSpy.callCount > 0;
+                }, "The Ajax call timed out.", 5000);
+                runs(function() {
+                    expect(callbackSpy).toHaveBeenCalled();
+                });
+            });
+            
+            it("should respond a list of JSON Objects with id, name, description, image_id, image_ground_id, min_width, max_width, standard_width and rules after requesting /api/segments", function () {                
+                var callbackSpy = jasmine.createSpy('callback');    
+                var callback = newCallback(callbackSpy, ['id', 'name', 'description', 
+                    'image_id', 'image_ground_id', 'min_width', 'max_width', 'standard_width', 'rules'], true);
+                getAjax("/api/segments", callback);
+                waitsFor(function() {
+                    return callbackSpy.callCount > 0;
+                }, "The Ajax call timed out.", 5000);
+                runs(function() {
+                    expect(callbackSpy).toHaveBeenCalled();
+                });
+            });
+            
+            it("should respond a single JSON Object with id, name, description, image_id... after requesting /api/segments/x with x = first listed segment", function () {                
+                var callbackSpy = jasmine.createSpy('callback');    
+                var callback = newCallback(callbackSpy, ['id', 'name', 'description', 
+                    'image_id', 'image_ground_id', 'min_width', 'max_width', 'standard_width', 'rules'], false);
+                getAjax("/api/segments", function(response){
+                    if (response.length > 0){
+                        getAjax("/api/segments/" + response[0].id, callback);
+                    }
+                });
+                waitsFor(function() {
+                    return callbackSpy.callCount > 0;
+                }, "The Ajax call timed out.", 5000);
+                runs(function() {
+                    expect(callbackSpy).toHaveBeenCalled();
+                });
+            });
+            
+            it("should respond a list of JSON Objects with id, name, description, ignore_segments and default_template after requesting /api/projects", function () {                
+                var callbackSpy = jasmine.createSpy('callback');    
+                var callback = newCallback(callbackSpy, ['id', 'name', 'description', 
+                    'ignore_segments', 'default_template'], true);
+                getAjax("/api/projects", callback);
+                waitsFor(function() {
+                    return callbackSpy.callCount > 0;
+                }, "The Ajax call timed out.", 5000);
+                runs(function() {
+                    expect(callbackSpy).toHaveBeenCalled();
+                });
+            });
+            
+            it("should respond a single JSON Object with id, name, description, ignore_segments and default_template after requesting /api/projects/x with x = first listed project", function () {                
+                var callbackSpy = jasmine.createSpy('callback');    
+                var callback = newCallback(callbackSpy, ['id', 'name', 'description', 
+                    'ignore_segments', 'default_template'], false);
+                getAjax("/api/projects", function(response){
+                    if (response.length > 0){
+                        getAjax("/api/projects/" + response[0].id, callback);
+                    }
+                }); 
+                waitsFor(function() {
+                    return callbackSpy.callCount > 0;
+                }, "The Ajax call timed out.", 5000);
+                runs(function() {
+                    expect(callbackSpy).toHaveBeenCalled();
+                });
+            });
+            
+            it("should respond a list of JSON Objects with id, name, description, image_id, image_ground_id, min_width, max_width, standard_width and rules after requesting /api/projects/1/segments", function () {                
+                var callbackSpy = jasmine.createSpy('callback');    
+                var callback = newCallback(callbackSpy, ['id', 'name', 'description', 
+                    'image_id', 'image_ground_id', 'min_width', 'max_width', 'standard_width', 'rules'], true);
+                getAjax("/api/projects/1/segments", callback);
+                waitsFor(function() {
+                    return callbackSpy.callCount > 0;
+                }, "The Ajax call timed out.", 5000);
+                runs(function() {
+                    expect(callbackSpy).toHaveBeenCalled();
+                });
+            });
+            
+            it("should respond a single JSON Object with id, name, description... after requesting /api/projects/1/segments/x with x = first listed segment", function () {                
+                var callbackSpy = jasmine.createSpy('callback');    
+                var callback = newCallback(callbackSpy, ['id', 'name', 'description', 
+                    'image_id', 'image_ground_id', 'min_width', 'max_width', 'standard_width', 'rules'], false);
+                getAjax("/api/projects/1/segments/", function(response){
+                    if (response.length > 0){
+                        getAjax("/api/projects/1/segments/" + response[0].id, callback);
+                    }
+                });                
+                waitsFor(function() {
+                    return callbackSpy.callCount > 0;
+                }, "The Ajax call timed out.", 5000);
+                runs(function() {
+                    expect(callbackSpy).toHaveBeenCalled();
+                });
+            });
+            
+            it("should send a new token in response of requesting /api/session", function () {                
+                var callbackSpy = jasmine.createSpy('callback'); 
+                var callback = function(response){
+                    expect(response.csrf).toEqual(jasmine.any(String));
+                    callbackSpy();
+                };
+                getAjax("/api/session", callback);
+                waitsFor(function() {
+                    return callbackSpy.callCount > 0;
+                }, "The Ajax call timed out.", 5000);
+                runs(function() {
+                    expect(callbackSpy).toHaveBeenCalled();
+                });
+            });
+            
+            it("should respond with error code when posting to /api/login with false credentials", function () {                
+                var callbackSpy = jasmine.createSpy('callback'); 
+                $.ajax({
+                    type: "POST",
+                    url: "/api/session/",
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    data: {name: "dfdghfghfx", password: "fghjgfd"},
+                    statusCode: {
+                        400: function() {
+                            callbackSpy();
+                        }
+                    }
+                });
+                getAjax("/api/session", callbackSpy);
+                waitsFor(function() {
+                    return callbackSpy.callCount > 0;
+                }, "The Ajax call timed out.", 5000);
+                runs(function() {
+                    expect(callbackSpy).toHaveBeenCalled();
+                });
             });
 
-        }); // End of the Mobile Router test suite
+        }); // End of the Server API test suite
 
-    }); // End of the BRB test suite
+
+    }); // End of the PlanMit test suite
 
 });

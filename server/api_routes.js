@@ -46,7 +46,7 @@ module.exports = function(){
 
     var projects = {
         list: function(req, res){
-          pgQuery('SELECT * FROM projects', function(result){
+          pgQuery('SELECT * FROM projects', [], function(result){
               return res.send(result);
           });
         },
@@ -59,7 +59,7 @@ module.exports = function(){
                 //merge the project object with the borders from db                
                 if (result.length === 0)
                     return res.send(404);
-                return res.send(result);
+                return res.send(result[0]);
             });
         },
 
@@ -140,8 +140,7 @@ module.exports = function(){
                     if (result.length === 0)
                         return res.send(404);
                     var segment = result[0];
-                    _pg('SELECT ignore_segments FROM projects WHERE id=' 
-                        + req.params.pid,
+                    _pg('SELECT ignore_segments FROM projects WHERE id=$1', [req.params.pid], 
                     function(result){     
                         if (result.length === 0)
                             return res.send(segment);
@@ -162,6 +161,7 @@ module.exports = function(){
                         'FROM segment_types) AS rule ON segments.type = rule.type' +
                         ' WHERE id=$1', [req.params.sid],
                 function(result){
+                    console.log(result)
                     //merge the project object with the borders from db                
                     if (result.length === 0)
                         return res.send(404);                    
@@ -194,9 +194,10 @@ module.exports = function(){
         getSVG: function(req, res){   
             pgQuery('SELECT img_svg from images WHERE id=$1', [req.params.iid],
             function(result){
+                console.log(result);
                 if (result.length === 0)
                     return res.send(404);
-                return res.send(result[0].img_svg);
+                return res.status(200).send(result[0].img_svg);
             });
         },
 
@@ -257,7 +258,7 @@ module.exports = function(){
                     }
                 }; 
                 req.session.user = null;
-                res.statusCode = 404;
+                res.statusCode = 400;
                 return res.end('invalid user or password');             
             });
         },
