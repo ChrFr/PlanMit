@@ -1,10 +1,10 @@
-// SegmentSource.js
+// SegmentCollection.js
 // Collection of the edible Segments, represents a Template for the traffic
 // planner
 // -------------
-define(["jquery","backbone","models/SegmentModel"],
+define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"],
 
-  function($, Backbone, SegmentModel) {
+  function($, Backbone, SegmentModel, RuleCollection) {
 
     // Creates a new Backbone Collection class object
     var SegmentEdition = Backbone.Collection.extend({
@@ -16,6 +16,10 @@ define(["jquery","backbone","models/SegmentModel"],
         initialize: function(project_id){
             this.count = 1;
             this.projectID = project_id || 1;   
+            this.ruleCollection = new RuleCollection();
+            var _this = this;
+            this.ruleCollection.fetch({success: function() {
+                _this.ruleCollection.parseAll();}});
         },
         
         comparator: function(model) {

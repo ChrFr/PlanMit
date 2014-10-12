@@ -1,5 +1,5 @@
-// SegmentModel.js
-// the model of a single segment
+// ImageModel.js
+// the model of a single image
 // --------
 define(["jquery", "backbone"],
 

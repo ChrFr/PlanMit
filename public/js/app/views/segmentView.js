@@ -183,10 +183,13 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     $(objectImage).css('left', '0');
                     $(objectImage).css('right', '0');
                     $(objectImage).css('margin', '0 auto');  
-                    $(imageContainer).append(objectImage);   
-                    this.loadImage(attr.image_id, objectImage, this.pixelRatio,
-                        {adjustHeight: true, maxHeight: height - groundHeight});
-                    this.loadImage(attr.image_ground_id, groundImage, 
+                    $(imageContainer).append(objectImage);  
+                    var groundModel = this.images.get(attr.image_ground_id);
+                    var imageModel = this.images.get(attr.image_id);
+                    if(imageModel)
+                        this.loadImage(imageModel, objectImage, this.pixelRatio,
+                            {adjustHeight: true, maxHeight: height - groundHeight});
+                    this.loadImage(groundModel, groundImage, 
                         this.pixelRatio, {stretch: true});
                     
                     $(imageContainer).zIndex(1);
@@ -196,8 +199,9 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     $(objectImage).addClass('image');
                     $(objectImage).css('height', groundHeight);
                     $(objectImage).css('bottom', 0);
-                    $(imageContainer).append(objectImage);     
-                    this.loadImage(attr.image_id, objectImage, this.pixelRatio,
+                    $(imageContainer).append(objectImage); 
+                    var imageModel = this.images.get(attr.image_id);
+                    this.loadImage(imageModel, objectImage, this.pixelRatio,
                     {stretch: true});
                     $(imageContainer).zIndex(9000);
                 }               
@@ -222,26 +226,27 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 $(groundImage).css('width', width);           
                 $(groundImage).css('height', height);
                 $(groundImage).addClass('image');
+                var groundModel = this.images.get(attr.image_ground_id);
                 $(imageContainer).append(groundImage);  
-                    this.loadImage(attr.image_ground_id, groundImage);    
+                    this.loadImage(groundModel, groundImage);    
                 }
                 
                 //image of the object on top of the ground
                 $(objectImage).css('width', width);           
                 $(objectImage).css('height', height);
                 $(objectImage).addClass('image');
-                $(imageContainer).append(objectImage);                 
-                
-                this.loadImage(attr.image_id, objectImage, {thumb: true});
+                $(imageContainer).append(objectImage);  
+                var imageModel = this.images.get(attr.image_id) || groundModel;  
+                this.loadImage(imageModel, objectImage, {thumb: true});
                 $(imageContainer).append(imageContainer);                      
             },
             
-            loadImage: function(imageID, div, pixelRatio, options){
+            loadImage: function(imageModel, div, pixelRatio, options){
                 var options = options || {};
-                var r = pixelRatio || 1;
-                var image = this.images.get(imageID)
+                var r = pixelRatio || 1;      
+                if (!imageModel) return;
                 if (!this.svgUnsupported){
-                    image.getImage('svg', function(svg_data, actual_size){  
+                    imageModel.getImage('svg', function(svg_data, actual_size){  
                         if (actual_size)
                             $(div).css('width', actual_size * r);
                         $(div).html(svg_data);
@@ -403,7 +408,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     resize: function(e, ui){        
                         var width = parseInt($(div).css('width'));                         
                         var left = parseInt($(div).css('left'));
-                        
+                        /*
                         //snap to neighbour
                         if (maxWidth - width < snapTolerance) {  
                             if ($(div).data('ui-resizable').axis === 'w'){
@@ -412,7 +417,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             };
                             width = maxWidth;
                             $(div).css('width', width); 
-                        }
+                        }*/
                             
                         _this.setWidth(width);
                         _this.setLeft(left);                    

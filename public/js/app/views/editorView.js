@@ -27,7 +27,6 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                     var startSize = options.startSize || 0;
                     _this.streetSize = (startSize < streetSize) ? streetSize: startSize;
                     _this.render();
-                    
                 });  
                 
                 //only 5cm steps (more precise is not executable while
@@ -106,6 +105,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                                 segmentView.setLeft(left);
                                 _this.collection.addSegment(clonedSegment);
                                 _this.segmentViewList.insert(segmentView);
+                                console.log(_this.segmentViewList)
                             };                            
                             dropped.helper.remove();
                         }

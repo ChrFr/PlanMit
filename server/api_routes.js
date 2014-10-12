@@ -283,6 +283,27 @@ module.exports = function(){
         },
     };
     
+    
+    var rules = {
+        list: function(req, res){            
+            pgQuery('SELECT id, rule, error_msg from rules', [],
+            function(result){
+                if (result.length === 0)
+                    return res.send(404);
+                return res.send(result);
+            });
+        },
+
+        get: function(req, res){
+            pgQuery('SELECT id, rule, error_msg from rules WHERE id=$1', [req.params.rid],
+            function(result){
+                if (result.length === 0)
+                    return res.send(404);
+                return res.send(result[0]);
+            });
+        },
+    };
+    
     app.map({
         '/projects': {
             get: projects.list,
@@ -334,7 +355,13 @@ module.exports = function(){
                 post: session.register,
                 delete: session.unsuscribe
             },       
-        }
+        },
+        '/rules': {
+             get: rules.list,
+            '/:rid': {
+                get: rules.get,
+            }
+        },
     });
     
     return app;

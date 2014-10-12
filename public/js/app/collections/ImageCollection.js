@@ -1,4 +1,4 @@
-// SegmentSource.js
+// ImageCollection.js
 // -------------
 define(["jquery","backbone","models/ImageModel"],
 
