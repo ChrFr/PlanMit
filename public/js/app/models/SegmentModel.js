@@ -12,10 +12,17 @@ define(["jquery", "backbone"],
             initialize: function(dbID) {
                 this.url += dbID || 1;
                 this.startPos = 0;
+                this.set('valid', true);
             },
 
-            validate: function(attrs) {
-                console.log('validation');
+            checkRules: function(neighbours) {
+                var rules = this.get('ruleModels');
+                var valid = true;
+                if (rules)
+                    _.each(rules, function(rule){                        
+                        if (!rule.validate(neighbours))
+                            valid=false;
+                    });
             }
         });
 

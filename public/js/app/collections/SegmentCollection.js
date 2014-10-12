@@ -16,10 +16,15 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
         initialize: function(project_id){
             this.count = 1;
             this.projectID = project_id || 1;   
-            this.ruleCollection = new RuleCollection();
-            var _this = this;
-            this.ruleCollection.fetch({success: function() {
-                _this.ruleCollection.parseAll();}});
+            this.ruleCollection = new RuleCollection();         
+            this.ruleCollection.fetch();
+        },
+        
+        checkRules: function(){
+            var models = this.models;
+            _.each(models, function(model){
+                model.checkRules(models); 
+            });
         },
         
         comparator: function(model) {
@@ -29,15 +34,21 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
         addSegment: function(segment) { 
             //avoid models to have the same id (overwritten otherwise)
             //id is not used elsewhere
+            var _this = this;
             segment.id = this.count;
-            this.add(segment);   
-            this.count++;
+            this.add(segment);
+            var ruleModels = [];
+            _.each(segment.get('rules'), function(ruleID){                
+                ruleModels.push(_this.ruleCollection.get(ruleID));
+            })
+            segment.set('ruleModels', ruleModels);
+            this.count++;            
         },
                 
         getSegmentByID: function(id) {
             var segment = null;
             this.each(function(seg){
-                if (id === seg.attributes.id){
+                if (id === seg.get('id')){
                     segment = seg;
                     return false;
                 }
@@ -74,10 +85,11 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
                 segment.size = dbSegment.size;
                 segment.fixed = dbSegment.fixed;
                 deferreds.push(segment.fetch({success: function(){
-                        _this.addSegment(segment);}}));
+                    _this.addSegment(segment);}}));
             });
             $.when.apply($, deferreds).done(function() {
-              _this.trigger('reset');  
+                _this.trigger('reset');  
+                _this.checkRules();
             });
         },
         

@@ -105,7 +105,6 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                                 segmentView.setLeft(left);
                                 _this.collection.addSegment(clonedSegment);
                                 _this.segmentViewList.insert(segmentView);
-                                console.log(_this.segmentViewList)
                             };                            
                             dropped.helper.remove();
                         }
@@ -275,15 +274,18 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                     var _this = this;
                     segmentView.on("moved", function(){                            
                         _this.relocate(this);
+                        _this.collection.checkRules();
                     });
                     segmentView.on("resized", function(){
                         _this.measureDisplay.drawInfoLine(_this);
                     });
                     segmentView.on("delete", function(){  
                         _this.remove(this, true);
+                        _this.collection.checkRules();
                     });
                     segmentView.on("update", function(){  
                         _this.measureDisplay.draw(_this);
+                        _this.collection.checkRules();
                     });                    
                     segmentView.pixelRatio = this.pixelRatio;  
                     this.length++;
