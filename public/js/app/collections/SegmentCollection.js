@@ -21,9 +21,9 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
         },
         
         checkRules: function(){
-            var models = this.models;
-            _.each(models, function(model){
-                model.checkRules(models); 
+            var streetProfile = this.toJSON();
+            _.each(this.models, function(model){
+                model.checkRules(streetProfile); 
             });
         },
         
@@ -98,7 +98,7 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
             $.ajax({
                 type: 'POST',
                 url: _this.url,
-                data: _this.toJSON(),
+                data: JSON.stringify(_this.toJSON()),
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
             });            
@@ -119,7 +119,7 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
                 };
                 i++;
             });
-            return JSON.stringify({'template': edition});
+            return {'template': edition};
         },
         
         getStreetSize: function(){

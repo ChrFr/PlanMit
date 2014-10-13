@@ -161,7 +161,6 @@ module.exports = function(){
                         'FROM segment_types) AS rule ON segments.type = rule.type' +
                         ' WHERE id=$1', [req.params.sid],
                 function(result){
-                    console.log(result)
                     //merge the project object with the borders from db                
                     if (result.length === 0)
                         return res.send(404);                    

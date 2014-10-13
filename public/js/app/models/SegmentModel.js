@@ -15,13 +15,20 @@ define(["jquery", "backbone"],
                 this.set('valid', true);
             },
 
-            checkRules: function(neighbours) {
+            checkRules: function(streetProfile) {
                 var rules = this.get('ruleModels');
+                var position = this.startPos;
+                var size = this.size;
                 var valid = true;
+                var errorMessages = [];
                 if (rules)
-                    _.each(rules, function(rule){                        
-                        if (!rule.validate(neighbours))
+                    //the rules are logically connected with "and"
+                    _.each(rules, function(rule){     
+                        var ret = rule.validate(position, size, streetProfile);
+                        if (!ret[0]){
+                            errorMessages.push(ret[1]);
                             valid=false;
+                        }                            
                     });
             }
         });
