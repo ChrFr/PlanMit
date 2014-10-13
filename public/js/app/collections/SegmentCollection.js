@@ -21,16 +21,33 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
         },
         
         checkRules: function(){
-            var streetProfile = this.toJSON();
+            var _this = this;
+            var streetProfile = this.createStreetProfile();
             _.each(this.models, function(model){
-                model.checkRules(streetProfile); 
+                var ident = {
+                    pos: _this.indexOf(model),
+                    left: model.startPos,
+                    right: model.startPos + model.size
+                };                    
+                model.checkRules(ident, streetProfile); 
             });
+        },
+        
+        createStreetProfile: function(){     
+            var streetProfile = [];
+            this.each(function(segment){
+                streetProfile.push ({
+                    left: segment.startPos,
+                    right: segment.size + segment.startPos,
+                    type: segment.get('type')});
+            });
+            return streetProfile;
         },
         
         comparator: function(model) {
             return model.startPos;
         },
-    
+            
         addSegment: function(segment) { 
             //avoid models to have the same id (overwritten otherwise)
             //id is not used elsewhere
