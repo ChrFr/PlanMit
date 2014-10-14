@@ -8,7 +8,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
 
             // View constructor
             initialize: function(options) {
-                //options
+                var _this = this;
+                //options                
                 this.thumb = options.thumb || false;
                 this.thumbSize = options.thumbSize || 100;
                 this.height = options.height || this.thumbSize;
@@ -25,13 +26,14 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 this.next = null;
                 this.prev = null;
                 this.width = options.width || this.segment.size * this.pixelRatio;
-                this.steps = options.steps || 1;
-                //this.render();
+                this.steps = options.steps || 1;                
+                this.segment.on("change:status", function(){
+                    _this.renderStatus()
+                });
             },            
 
             // View Event Handlers
             events: {
-
             },
                         
             // Renders the view's template to the UI
@@ -71,8 +73,18 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 else
                     this.renderImage();                
                 this.OSD.render(this);
+                this.renderStatus();
                 return this;
 
+            },
+            
+            renderStatus: function(){ 
+                var status = this.segment.get('status');
+                $(this.div).find('.statusIcon').hide(); 
+                if (status === 0) 
+                    $(this.div).find('#statusWarning').show();
+                else if (status === 1) 
+                    $(this.div).find('#statusOK').show();
             },
             
             OSD: {
@@ -93,17 +105,17 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         
                     //toggle lock on segments 
                     if (view.segment.fixed){
-                        $(view.div).find('#lockedSymbol').show();
+                        $(view.div).find('#lockedIcon').show();
                         if (!view.creationMode){                        
                             $(view.div).find('#lefthandle').hide();                    
                             $(view.div).find('#righthandle').hide();
                         };
                     }
                     else{  
-                        $(view.div).find('#unlockedSymbol').show();
+                        $(view.div).find('#unlockedIcon').show();
                     };
                     //locked clicked -> unlock
-                    $(view.div).find('#lockedSymbol').click(function(){ 
+                    $(view.div).find('#lockedIcon').click(function(){ 
                         if (view.creationMode){
                             view.segment.fixed = false;     
                             //just telling the measure display to redraw
@@ -116,14 +128,14 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             $(view.div).draggable({ disabled: false });                            
                         }
                         if (!view.segment.fixed){
-                            $(view.div).find('#lockedSymbol').hide();
-                            $(view.div).find('#unlockedSymbol').show(); 
+                            $(view.div).find('#lockedIcon').hide();
+                            $(view.div).find('#unlockedIcon').show(); 
                         }                        
                     });              
                     //unlocked click -> lock
-                    $(view.div).find('#unlockedSymbol').click(function(){
-                        $(view.div).find('#unlockedSymbol').hide();
-                        $(view.div).find('#lockedSymbol').show();
+                    $(view.div).find('#unlockedIcon').click(function(){
+                        $(view.div).find('#unlockedIcon').hide();
+                        $(view.div).find('#lockedIcon').show();
                         //toggle fixed status of segment in creation mode
                         if (view.creationMode){
                             view.segment.fixed = true;        

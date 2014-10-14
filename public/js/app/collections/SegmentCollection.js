@@ -16,11 +16,13 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
         initialize: function(project_id){
             this.count = 1;
             this.projectID = project_id || 1;   
-            this.ruleCollection = new RuleCollection();         
-            this.ruleCollection.fetch();
+            this.ruleCollection = new RuleCollection();  
         },
         
-        checkRules: function(){
+        checkRules: function(){ 
+            var NOTCHECKED = -1;
+            var TRUE = 1;
+            var FALSE = 0;
             var _this = this;
             var streetProfile = this.createStreetProfile();
             _.each(this.models, function(model){
@@ -28,8 +30,54 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
                     pos: _this.indexOf(model),
                     left: model.startPos,
                     right: model.startPos + model.size
-                };                    
-                model.checkRules(ident, streetProfile); 
+                };  
+                var errorMsgs = [];
+                var status = NOTCHECKED;
+                //check the sizes
+                var standardWidth = model.get('standard_width');
+                var maxWidth = model.get('max_width');
+                if (maxWidth){
+                    if (model.size > maxWidth){
+                        status = FALSE;
+                        errorMsgs.push('Das Segment ist viel zu breit! Die Maximalbreite beträgt ' +
+                                maxWidth + ' cm!')
+                    }
+                    else
+                        status = TRUE;
+                }
+                else if (standardWidth) {
+                        if (model.size > standardWidth){
+                        status = FALSE;
+                        errorMsgs.push('Das Segment ist unnötig breit! Empfohlen sind ' +
+                                standardWidth + ' cm!');
+                        }
+                        else
+                            status = TRUE;
+                    };
+                
+                //check the rules
+                var ruleIDs = model.get('rules');
+                if (ruleIDs && ruleIDs.length > 0){
+                    //check all rules, that are defined for this segment
+                    //(linked logically with "and"), different extended logic as in 
+                    //FunctionMappper: if one is false, everything is false, "not checked"
+                    //doesn't help, "not checked" is stronger than true though, you
+                    //only get a true, if all are checked and true
+                    _.each(ruleIDs, function(ruleID){
+                        var rule = _this.ruleCollection.get(ruleID);
+                        var stattmp = rule.validator.start(ident, streetProfile);
+                        if (stattmp === FALSE){
+                            status = FALSE
+                            errorMsgs.push(rule.get('error_msg'));
+                        }                        
+                        else if (stattmp === NOTCHECKED && status !== FALSE)
+                            status = NOTCHECKED;
+                        else if (stattmp === TRUE && status !== FALSE)
+                            status = TRUE;
+                    })  
+                };
+                model.set('errorMsgs', errorMsgs);
+                model.set('status', status);
             });
         },
         
@@ -54,11 +102,6 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
             var _this = this;
             segment.id = this.count;
             this.add(segment);
-            var ruleModels = [];
-            _.each(segment.get('rules'), function(ruleID){                
-                ruleModels.push(_this.ruleCollection.get(ruleID));
-            })
-            segment.set('ruleModels', ruleModels);
             this.count++;            
         },
                 

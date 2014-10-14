@@ -68,6 +68,37 @@ body {
     text-align: center;
 }
 
+.statusIcon {    
+   // position: absolute;
+    position: relative; 
+    margin: 0 auto; 
+    width: 60px;
+    height: 60px;    
+    border-radius: 30px 30px 30px 30px;   
+    top:10%;
+    display: none;       
+    background-size: auto 70%;    
+    background-position: center center;
+    background-repeat: no-repeat;
+    z-index: 9999;
+}
+
+#statusOK{
+    background-image: url("../img/icons-png/haken.png"); 
+}
+
+#statusOK:hover{
+    background-color: #5be12a;
+}
+
+#statusWarning{
+    background-image: url("../img/icons-png/warnung.png"); 
+}
+
+#statusWarning:hover{
+    background-color: #ff1400;
+}
+
 .OSD {
     position:absolute;
     top: 0;
@@ -77,7 +108,7 @@ body {
     display: none;
 }
 
-.OSDSymbol{
+.OSDIcon{
     position: absolute;
     width: 40px;
     height: 40px;    
@@ -91,7 +122,7 @@ body {
 }
 
 
-.OSDSymbol:hover{/*
+.OSDIcon:hover{/*
     box-shadow: -0px -0px 8px #fecf1d,
                  0px -0px 8px #fecf1d,
                 -0px  0px 8px #fecf1d,
@@ -99,23 +130,23 @@ body {
     border: #fecf1d solid 2px;
 }
 
-#lockedSymbol{    
+#lockedIcon{    
     background-image: url("../img/icons-png/locked-yellow.png"); 
 }
 
-#unlockedSymbol{
+#unlockedIcon{
     background-image: url("../img/icons-png/unlocked-yellow.png"); 
 }
 
-.fixed > .OSD > #lockedSymbol{
+.fixed > .OSD > #lockedIcon{
     background-image: url("../img/icons-png/locked.png"); 
 }
 
-.fixed > .OSD > #unlockedSymbol{
+.fixed > .OSD > #unlockedIcon{
     background-image: url("../img/icons-png/unlocked.png"); 
 }
 
-.fixed > .OSD > #lockedSymbol:hover, .fixed > .OSD > #unlockedSymbol:hover {
+.fixed > .OSD > #lockedIcon:hover, .fixed > .OSD > #unlockedIcon:hover {
     box-shadow: -0px -0px 0px #fecf1d,
                  0px -0px 0px #fecf1d,
                 -0px  0px 0px #fecf1d,
@@ -137,16 +168,16 @@ body {
 }
 
 #lefthandle{
-    left: 0px;
+    left: -30px;
     background-image: url("../img/icons-png/triangle-white-left.png");
     background-position: center 50%;
-    border-radius: 0px 5px 5px 0px;
+    border-radius: 100% 0px 0px 100%;
 }
 #righthandle{
-    right: 0px;
+    right: -30px;
     background-image: url("../img/icons-png/triangle-white-right.png");
     background-position: center 50%;
-    border-radius: 5px 0px 0px 5px;
+    border-radius: 0px 100% 100% 0;
 }
 
 .segment {

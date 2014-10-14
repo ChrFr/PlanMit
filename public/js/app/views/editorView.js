@@ -59,8 +59,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                 this.renderControls()
                 this.makeDroppable();
                 if (this.collection.length > 0)
-                    this.renderEdition(); 
-                               
+                    this.renderEdition();                 
                 return this;
             },
             
@@ -90,8 +89,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                                 var segment = _this.resources.getSegmentByID(draggedDiv.data('segmentID')); 
                                 var clonedSegment = segment.clone();
                                 var left = placeholder.left;
-                                clonedSegment.size = dropped.helper.data('size');
-                                
+                                clonedSegment.size = dropped.helper.data('size');                                
                                 var segmentView = new SegmentView({el: _this.el,
                                                                    segment: clonedSegment,
                                                                    steps: _this.steps,
@@ -105,6 +103,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                                 segmentView.setLeft(left);
                                 _this.collection.addSegment(clonedSegment);
                                 _this.segmentViewList.insert(segmentView);
+                                _this.collection.checkRules();
                             };                            
                             dropped.helper.remove();
                         }
@@ -155,9 +154,10 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                         segmentView.width = width;
                         segmentView.render();
                         segmentView = segmentView.next;
-                    };
+                    };        
+                    this.collection.checkRules(); 
                     this.measureDisplay.resize();
-                    this.measureDisplay.draw(this);
+                    this.measureDisplay.draw(this);    
                 };
                                 
                 this.at = function(pos){
@@ -286,7 +286,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                     segmentView.on("update", function(){  
                         _this.measureDisplay.draw(_this);
                         _this.collection.checkRules();
-                    });                    
+                    });           
                     segmentView.pixelRatio = this.pixelRatio;  
                     this.length++;
                     this.measureDisplay.draw(this);
