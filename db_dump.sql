@@ -4,7 +4,7 @@
 
 -- Dumped from database version 9.3.5
 -- Dumped by pg_dump version 9.3.5
--- Started on 2014-10-14 18:18:57 CEST
+-- Started on 2014-10-17 01:16:52 CEST
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -22,7 +22,7 @@ CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
 
 --
--- TOC entry 2064 (class 0 OID 0)
+-- TOC entry 2066 (class 0 OID 0)
 -- Dependencies: 184
 -- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
 --
@@ -95,7 +95,7 @@ CREATE SEQUENCE images_id_seq
 ALTER TABLE public.images_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2065 (class 0 OID 0)
+-- TOC entry 2067 (class 0 OID 0)
 -- Dependencies: 171
 -- Name: images_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -136,7 +136,7 @@ CREATE SEQUENCE projects_id_seq
 ALTER TABLE public.projects_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2066 (class 0 OID 0)
+-- TOC entry 2068 (class 0 OID 0)
 -- Dependencies: 173
 -- Name: projects_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -174,7 +174,7 @@ CREATE SEQUENCE rules_id_seq
 ALTER TABLE public.rules_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2067 (class 0 OID 0)
+-- TOC entry 2069 (class 0 OID 0)
 -- Dependencies: 182
 -- Name: rules_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -214,7 +214,7 @@ CREATE SEQUENCE segment_types_id_seq
 ALTER TABLE public.segment_types_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2068 (class 0 OID 0)
+-- TOC entry 2070 (class 0 OID 0)
 -- Dependencies: 175
 -- Name: segment_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -245,7 +245,7 @@ CREATE TABLE segments (
 ALTER TABLE public.segments OWNER TO postgres;
 
 --
--- TOC entry 2069 (class 0 OID 0)
+-- TOC entry 2071 (class 0 OID 0)
 -- Dependencies: 176
 -- Name: COLUMN segments.image_id; Type: COMMENT; Schema: public; Owner: postgres
 --
@@ -254,7 +254,7 @@ COMMENT ON COLUMN segments.image_id IS 'ID des Bildes zur Frontal- und Thumbnail
 
 
 --
--- TOC entry 2070 (class 0 OID 0)
+-- TOC entry 2072 (class 0 OID 0)
 -- Dependencies: 176
 -- Name: COLUMN segments.image_top_id; Type: COMMENT; Schema: public; Owner: postgres
 --
@@ -263,7 +263,7 @@ COMMENT ON COLUMN segments.image_top_id IS 'ID des Bildes für Vogelperspektive'
 
 
 --
--- TOC entry 2071 (class 0 OID 0)
+-- TOC entry 2073 (class 0 OID 0)
 -- Dependencies: 176
 -- Name: COLUMN segments.image_ground_id; Type: COMMENT; Schema: public; Owner: postgres
 --
@@ -287,7 +287,7 @@ CREATE SEQUENCE segments_id_seq
 ALTER TABLE public.segments_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2072 (class 0 OID 0)
+-- TOC entry 2074 (class 0 OID 0)
 -- Dependencies: 177
 -- Name: segments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -297,18 +297,18 @@ ALTER SEQUENCE segments_id_seq OWNED BY segments.id;
 
 --
 -- TOC entry 178 (class 1259 OID 16718)
--- Name: user_templates; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
+-- Name: user_designs; Type: TABLE; Schema: public; Owner: postgres; Tablespace: 
 --
 
-CREATE TABLE user_templates (
+CREATE TABLE user_designs (
     id integer NOT NULL,
     project_id integer NOT NULL,
     user_id integer,
-    template json
+    design json
 );
 
 
-ALTER TABLE public.user_templates OWNER TO postgres;
+ALTER TABLE public.user_designs OWNER TO postgres;
 
 --
 -- TOC entry 179 (class 1259 OID 16724)
@@ -326,12 +326,12 @@ CREATE SEQUENCE user_templates_id_seq
 ALTER TABLE public.user_templates_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2073 (class 0 OID 0)
+-- TOC entry 2075 (class 0 OID 0)
 -- Dependencies: 179
 -- Name: user_templates_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
 
-ALTER SEQUENCE user_templates_id_seq OWNED BY user_templates.id;
+ALTER SEQUENCE user_templates_id_seq OWNED BY user_designs.id;
 
 
 --
@@ -366,7 +366,7 @@ CREATE SEQUENCE users_id_seq
 ALTER TABLE public.users_id_seq OWNER TO postgres;
 
 --
--- TOC entry 2074 (class 0 OID 0)
+-- TOC entry 2076 (class 0 OID 0)
 -- Dependencies: 181
 -- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -419,7 +419,7 @@ ALTER TABLE ONLY segments ALTER COLUMN id SET DEFAULT nextval('segments_id_seq':
 -- Name: id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
-ALTER TABLE ONLY user_templates ALTER COLUMN id SET DEFAULT nextval('user_templates_id_seq'::regclass);
+ALTER TABLE ONLY user_designs ALTER COLUMN id SET DEFAULT nextval('user_templates_id_seq'::regclass);
 
 
 --
@@ -431,7 +431,7 @@ ALTER TABLE ONLY users ALTER COLUMN id SET DEFAULT nextval('users_id_seq'::regcl
 
 
 --
--- TOC entry 2043 (class 0 OID 16689)
+-- TOC entry 2045 (class 0 OID 16689)
 -- Dependencies: 170
 -- Data for Name: images; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -456,7 +456,7 @@ COPY images (id, name, img_svg, img_png, actual_size, img_thumb) FROM stdin;
 
 
 --
--- TOC entry 2075 (class 0 OID 0)
+-- TOC entry 2077 (class 0 OID 0)
 -- Dependencies: 171
 -- Name: images_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -465,18 +465,18 @@ SELECT pg_catalog.setval('images_id_seq', 2, true);
 
 
 --
--- TOC entry 2045 (class 0 OID 16697)
+-- TOC entry 2047 (class 0 OID 16697)
 -- Dependencies: 172
 -- Data for Name: projects; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY projects (id, name, description, width, ignore_segments, default_template) FROM stdin;
-1	Testprojekt	Dies ist ein Testprojekt	10	\N	[{"id":2,"start_pos":0,"size":800,"fixed":true},{"id":3,"start_pos":2595,"size":800,"fixed":true}]
+1	Testprojekt	Dies ist ein Testprojekt	10	\N	[{"id":2,"start_pos":0,"size":800,"fixed":true},{"id":6,"start_pos":1215,"size":225},{"id":3,"start_pos":2595,"size":800,"fixed":true}]
 \.
 
 
 --
--- TOC entry 2076 (class 0 OID 0)
+-- TOC entry 2078 (class 0 OID 0)
 -- Dependencies: 173
 -- Name: projects_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -485,7 +485,7 @@ SELECT pg_catalog.setval('projects_id_seq', 1, false);
 
 
 --
--- TOC entry 2056 (class 0 OID 16781)
+-- TOC entry 2058 (class 0 OID 16781)
 -- Dependencies: 183
 -- Data for Name: rules; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -498,20 +498,21 @@ COPY rules (id, rule, error_msg) FROM stdin;
 5	{"not": [{"neighbour": { "type": 9}}]}	Darf nicht direkt an Gehweg angrenzen! Es muss ein Trennstreifen dazwischen sein!
 6	{"not": [{"neighbour": { "type": 6}}]}	Darf nicht direkt an Radweg angrenzen! Es muss ein Trennstreifen dazwischen sein!
 7	{"not": [{"neighbour": { "type": 5}}]}	Die Fahrbahn darf nicht direkt angrenzen! Es muss ein Trennstreifen dazwischen sein!
+8	{"or":[{"neighbour": {"type": 9, "distance": 1, "direction": "left"}}, {"and": [{"neighbour": {"type": 8,  "distance": 1, "direction": "left"}}, {"neighbour": {  "type": 9,  "distance": 2, "direction": "left"}}]}]}	An Gebäuden werden Gehwege als Zugang benötigt!
 \.
 
 
 --
--- TOC entry 2077 (class 0 OID 0)
+-- TOC entry 2079 (class 0 OID 0)
 -- Dependencies: 182
 -- Name: rules_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('rules_id_seq', 2, true);
+SELECT pg_catalog.setval('rules_id_seq', 3, true);
 
 
 --
--- TOC entry 2047 (class 0 OID 16705)
+-- TOC entry 2049 (class 0 OID 16705)
 -- Dependencies: 174
 -- Data for Name: segment_types; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -519,7 +520,6 @@ SELECT pg_catalog.setval('rules_id_seq', 2, true);
 COPY segment_types (id, name, description, category, rules) FROM stdin;
 11	Fahrbahnmarkierung	\N	4	\N
 8	Grünstreifen	\N	3	\N
-3	Gebäude rechts	\N	1	\N
 7	Radweg rechts	\N	2	\N
 10	Trennstreifen	\N	4	{2}
 6	Radweg links	\N	2	{4,5}
@@ -527,11 +527,12 @@ COPY segment_types (id, name, description, category, rules) FROM stdin;
 4	Fahrspur links	\N	2	{5,6}
 2	Gebäude links	\N	1	{1}
 9	Gehweg	\N	2	{4,7}
+3	Gebäude rechts	\N	1	{8}
 \.
 
 
 --
--- TOC entry 2078 (class 0 OID 0)
+-- TOC entry 2080 (class 0 OID 0)
 -- Dependencies: 175
 -- Name: segment_types_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -540,7 +541,7 @@ SELECT pg_catalog.setval('segment_types_id_seq', 1, true);
 
 
 --
--- TOC entry 2049 (class 0 OID 16713)
+-- TOC entry 2051 (class 0 OID 16713)
 -- Dependencies: 176
 -- Data for Name: segments; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -561,7 +562,7 @@ COPY segments (id, name, description, available, type, image_id, image_top_id, i
 
 
 --
--- TOC entry 2079 (class 0 OID 0)
+-- TOC entry 2081 (class 0 OID 0)
 -- Dependencies: 177
 -- Name: segments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -570,26 +571,27 @@ SELECT pg_catalog.setval('segments_id_seq', 5, true);
 
 
 --
--- TOC entry 2051 (class 0 OID 16718)
+-- TOC entry 2053 (class 0 OID 16718)
 -- Dependencies: 178
--- Data for Name: user_templates; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: user_designs; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY user_templates (id, project_id, user_id, template) FROM stdin;
+COPY user_designs (id, project_id, user_id, design) FROM stdin;
+1	1	1	[{"id":2,"start_pos":0,"size":800,"fixed":true},{"id":11,"start_pos":1190,"size":250},{"id":11,"start_pos":1440,"size":250},{"id":11,"start_pos":1690,"size":250},{"id":3,"start_pos":2595,"size":800,"fixed":true}]
 \.
 
 
 --
--- TOC entry 2080 (class 0 OID 0)
+-- TOC entry 2082 (class 0 OID 0)
 -- Dependencies: 179
 -- Name: user_templates_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('user_templates_id_seq', 1, false);
+SELECT pg_catalog.setval('user_templates_id_seq', 1, true);
 
 
 --
--- TOC entry 2053 (class 0 OID 16726)
+-- TOC entry 2055 (class 0 OID 16726)
 -- Dependencies: 180
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
@@ -601,7 +603,7 @@ COPY users (id, name, email, password, superuser) FROM stdin;
 
 
 --
--- TOC entry 2081 (class 0 OID 0)
+-- TOC entry 2083 (class 0 OID 0)
 -- Dependencies: 181
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
@@ -619,6 +621,15 @@ ALTER TABLE ONLY images
 
 
 --
+-- TOC entry 1931 (class 2606 OID 16793)
+-- Name: project_user_unique; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
+--
+
+ALTER TABLE ONLY user_designs
+    ADD CONSTRAINT project_user_unique UNIQUE (project_id, user_id);
+
+
+--
 -- TOC entry 1925 (class 2606 OID 16749)
 -- Name: projects_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
@@ -628,7 +639,7 @@ ALTER TABLE ONLY projects
 
 
 --
--- TOC entry 1935 (class 2606 OID 16789)
+-- TOC entry 1937 (class 2606 OID 16789)
 -- Name: rules_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -655,16 +666,16 @@ ALTER TABLE ONLY segments
 
 
 --
--- TOC entry 1931 (class 2606 OID 16755)
+-- TOC entry 1933 (class 2606 OID 16755)
 -- Name: user_templates_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
-ALTER TABLE ONLY user_templates
+ALTER TABLE ONLY user_designs
     ADD CONSTRAINT user_templates_pkey PRIMARY KEY (id);
 
 
 --
--- TOC entry 1933 (class 2606 OID 16757)
+-- TOC entry 1935 (class 2606 OID 16757)
 -- Name: users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres; Tablespace: 
 --
 
@@ -673,7 +684,7 @@ ALTER TABLE ONLY users
 
 
 --
--- TOC entry 2063 (class 0 OID 0)
+-- TOC entry 2065 (class 0 OID 0)
 -- Dependencies: 6
 -- Name: public; Type: ACL; Schema: -; Owner: postgres
 --
@@ -684,7 +695,7 @@ GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
 
--- Completed on 2014-10-14 18:18:57 CEST
+-- Completed on 2014-10-17 01:16:52 CEST
 
 --
 -- PostgreSQL database dump complete
