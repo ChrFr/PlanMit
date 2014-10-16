@@ -34,6 +34,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
 
             // View Event Handlers
             events: {
+                'click #statusWarning' : 'showErrormessage'
             },
                         
             // Renders the view's template to the UI
@@ -80,11 +81,15 @@ define(["jquery", "backbone", "text!templates/segment.html"],
             
             renderStatus: function(){ 
                 var status = this.segment.get('status');
-                $(this.div).find('.statusIcon').hide(); 
+                $(this.div).find('#statusWarning').hide(); 
                 if (status === 0) 
                     $(this.div).find('#statusWarning').show();
                 else if (status === 1) 
                     $(this.div).find('#statusOK').show();
+            },
+            
+            showErrormessage: function(){
+                alert(this.segment.get('errorMsgs'));
             },
             
             OSD: {

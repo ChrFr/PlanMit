@@ -1,25 +1,23 @@
 // DesktopRouter.js
 // ----------------
 define(["jquery", "backbone", "views/navbarView",
-    "views/welcomeView", "views/editMainView", "views/adminView",
+    "views/welcomeView", "views/editMainView",
     "views/loginView", "models/LoginModel",
-    "collections/SegmentCollection", "collections/SegmentSource",
+    "collections/SegmentCollection",
     "collections/ImageCollection"],
 
-    function($, Backbone, Navbar, Welcome, Edit, Admin, Login,
-             LoginModel, SegmentCollection, SegmentSource, ImageCollection) {
+    function($, Backbone, Navbar, Welcome, Edit, Login,
+             LoginModel, SegmentCollection, ImageCollection) {
 
         var DesktopRouter = Backbone.Router.extend({
             
             initialize: function() {
-                //load a project
+                //router keeps track of session, project and edition, so they 
+                //stay the same, if you switch Views
                 this.session = new LoginModel();
-                this.resources = new SegmentSource();
-                this.edition = new SegmentCollection();
+                this.edition = null;
                 this.images = new ImageCollection();
                 this.images.fetch();
-                this.adminResources = new SegmentSource({showAll: true});
-                this.adminEdition = new SegmentCollection();
                 //navbar is always seen
                 this.navbar = new Navbar({session: this.session});
                 // Tells Backbone to start watching for hashchange events
@@ -39,21 +37,31 @@ define(["jquery", "backbone", "views/navbarView",
                 this.view = new Welcome({el: '#mainFrame'});
             },
             
-            edit: function() {
-                this.cleanUp();      
-                var user = this.session.get('user');      
-                if(user && user.superuser){
-                    this.cleanUp();
-                    this.view = new Admin({el: '#mainFrame',
-                               resources: this.adminResources, 
-                               edition: this.adminEdition,
-                               images: this.images});
+            edit: function() {     
+                var _this = this;
+                //no edition loaded yet -> load project default and show editor
+                //AFTER the default finished loading
+                if(!this.edition){
+                    this.blocked = true;
+                    this.edition = new SegmentCollection();
+                    this.edition.fetch({success: function(){ 
+                        _this.blocked = false;  
+                        _this.showEditMain();
+                    }});
                 }
-                else
-                    this.view = new Edit({el: '#mainFrame',
-                                        resources: this.resources, 
-                                        edition: this.edition,
-                                        images: this.images});
+                //show editor with edition currently worked on
+                else if (!this.blocked)
+                    this.showEditMain();
+            },
+            
+            showEditMain: function(){ 
+                this.cleanUp();       
+                this.view = new Edit({
+                    el: '#mainFrame',
+                    edition: this.edition,
+                    images: this.images,
+                    session: this.session
+                });
             },
             
             login: function() {

@@ -210,7 +210,6 @@ body {
     height: 50px;
     width: 100%;
     position: relative;
-    font-size: 0.8em;
 }
 
 .contextMenu img{  
@@ -220,8 +219,19 @@ body {
     padding: 3px;
 }
 
-.contextMenu a{    
-    color:#000;
+.contextMenu .menuEntry{
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-top: 10px;
+    background-color: white;
+    line-height: 1.428571429;
+    font-size: 0.8em;
+    text-transform: none;
+    border: none;
+    font-weight: 300;
+    font-size: 15px;
+    line-height: 1.428571429;
+    color: #383838;
 }
 
 .upfade, .downfade {   
@@ -433,7 +443,7 @@ body {
     background-image: linear-gradient(left, transparent 0%, #fecf1d 100%);
 }
 
-#zoomSlider{
+#zoomSlider, #scaleSlider{
     float: right; 
     margin: 0 0 0 2px;
     width: 200px;

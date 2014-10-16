@@ -13,39 +13,50 @@
         <div id='rightFade' class='fade'></div>
         <div class="contextMenu container-fluid" style="position: relative;">
              <div class="navbar-header" style="z-index: 9999999">                    
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#context-collapse">  
+                <button type="button" class="navbar-toggle menuEntry" data-toggle="collapse" data-target="#context-collapse">  
                     <img src="../../../img/icons-png/plus-black.png" > 
                     mehr
-                </button>
-                <a class="navbar-brand" href="#">Prüfen</a>
+                </button>     
+                <button id="uploadButton" class="menuEntry">                            
+                    <img src="../../../img/icons-png/arrow-u-black.png" >
+                    Hochladen
+                </button> 
               </div>
 
               <div class="collapse navbar-collapse" id="context-collapse" style="background-color: white;">
                 <ul class="nav navbar-nav">
-                    <li class="" > 
-                        <a href="#" id="upload">                            
-                            <img src="../../../img/icons-png/arrow-u-black.png" >
-                            Hochladen
-                        </a>
-                    </li>
                     <li class="dropdown">    
+                        <button id="resetButton" class="menuEntry">                    
+                            <img src="../../../img/icons-png/reset.png" >
+                            Zurücksetzen                       
+                        </button>    
+                        <!--
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">                    
                             <img src="../../../img/icons-png/reset.png" >
                             Zurücksetzen 
                             <b class="caret"></b>                        
-                        </a>
+                        </a>                        
+                        
                         <ul class="dropdown-menu"> 
                             <li class="" id="resetDefault">Auf default zurücksetzen</li>
                             <li class="" id="resetUser">Auf letzten Stand setzen</li>
                         </ul>
+                        -->
                     </li>  
                     <li class="" style="float: left"> 
-                        <a href="#" id="upload" >                   
+                        <div id="ChangeZoom" class="menuEntry">                   
                             <img src="../../../img/icons-png/lupe.png">                            
                             Zoom
                             <div id="zoomSlider" class="slider"></div>
                             <label id="zoom">100</label>
-                        </a>
+                        </div>
+                    </li>
+                    <li class="" style="float: left"> 
+                        <div id="ChangeWidth" class="menuEntry">                                    
+                            Breite
+                            <div id="scaleSlider" class="slider" ></div>
+                            <label id="scale"></label>
+                        </div>
                     </li>
                 </ul>
               </div>

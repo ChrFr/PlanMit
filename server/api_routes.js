@@ -193,7 +193,6 @@ module.exports = function(){
         getSVG: function(req, res){   
             pgQuery('SELECT img_svg from images WHERE id=$1', [req.params.iid],
             function(result){
-                console.log(result);
                 if (result.length === 0)
                     return res.send(404);
                 return res.status(200).send(result[0].img_svg);

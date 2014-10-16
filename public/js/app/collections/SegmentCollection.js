@@ -20,6 +20,7 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
         },
         
         checkRules: function(){ 
+            console.log(this.length)
             var NOTCHECKED = -1;
             var TRUE = 1;
             var FALSE = 0;
@@ -124,6 +125,8 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
                 url: _this.url,
                 success: function(data) {
                     _this.fromJSON(data);
+                    if (options.success)
+                        options.success();
                     if (options.reset)
                         _this.trigger('reset');
                 }
@@ -149,11 +152,11 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
             });
             $.when.apply($, deferreds).done(function() {
                 _this.trigger('reset');  
-                _this.checkRules();
+                //_this.checkRules();
             });
         },
         
-        save: function() {
+        updateProject: function() {
             var _this = this;
             $.ajax({
                 type: 'POST',
@@ -163,6 +166,17 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
                 dataType: "json",
             });            
         },  
+        
+        updateUserTemplate: function() {
+            var _this = this;
+            $.ajax({
+                type: 'POST',
+                url: _this.url,
+                data: JSON.stringify(_this.toJSON()),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+            });            
+        }, 
         
         toJSON: function(){
             var edition = [];

@@ -13,14 +13,15 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
             initialize: function(options) {   
                 this.images = options.images;
                 this.resources = options.resources; 
-                this.creationMode = options.creationMode || false;
-                this.fixElements = !this.creationMode;                  
+                this.adminMode = options.adminMode || false;
+                this.fixElements = !this.adminMode;                  
                 this.thumbSize = options.thumbSize || 100;
                 this.streetSize = options.startSize || this.collection.getStreetSize() || 1000;
-                this.zoom = 100;
+                this.zoom = 100;                
                 this.width = this.$el.width;
                 this.wrapper = $(options.wrapper);
                 var _this = this;
+                this.resources.fetch({reset: true});
                 _.bindAll(this, 'render', 'renderEdition');                 
                 this.collection.bind("reset", function(){                    
                     var streetSize = this.getStreetSize();                    
@@ -35,10 +36,10 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                 
                  //only fetch the edition from db (incl. overwrite), 
                 //if no models are overwritten (meaning it is not already load)
-                if (this.collection.length === 0){
-                    this.collection.fetch({reset: true});}
+                //if (this.collection.length === 0){
+                  //  this.collection.fetch({reset: true});}
                 //else only render (and show modified edition rather than reset
-                else
+                //else
                     this.render();                  
                 
             },       
@@ -52,14 +53,14 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
             render: function() {          
                 var canvas = this.$el.find('canvas')[0];                
                 this.measure = new this.MeasureDisplay(canvas, this.$el, 
-                                            this.streetSize, this.creationMode);
+                                            this.streetSize, this.adminMode);
                 this.segmentViewList = new this.SegmentViewList(this.$el, this.collection, this.steps, this.measure);
                 this.placeholder = new this.Placeholder(this.segmentViewList, this.$el);
                 this.segmentViewList.changeScale(this.pixelRatio());  
                 this.renderControls()
                 this.makeDroppable();
                 if (this.collection.length > 0)
-                    this.renderEdition();                 
+                    this.renderEdition();   
                 return this;
             },
             
@@ -93,7 +94,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                                 var segmentView = new SegmentView({el: _this.el,
                                                                    segment: clonedSegment,
                                                                    steps: _this.steps,
-                                                                   creationMode: _this.creationMode,
+                                                                   adminMode: _this.adminMode,
                                                                    left: left,
                                                                    thumbSize: _this.thumbSize,
                                                                    height: parseInt(placeholder.div.css('height')),
@@ -154,7 +155,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                         segmentView.width = width;
                         segmentView.render();
                         segmentView = segmentView.next;
-                    };        
+                    };      
                     this.collection.checkRules(); 
                     this.measureDisplay.resize();
                     this.measureDisplay.draw(this);    
@@ -277,7 +278,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                         _this.collection.checkRules();
                     });
                     segmentView.on("resized", function(){
-                        _this.measureDisplay.drawInfoLine(_this);
+                        //_this.measureDisplay.drawInfoLine(_this);
                     });
                     segmentView.on("delete", function(){  
                         _this.remove(this, true);
@@ -328,7 +329,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                     this.first = null;
                     this.measureDisplay.draw(this);
                 };
-
+                
                 //replace a single view to maintain sort order
                 this.relocate = function(segmentView){
                     this.remove(segmentView);
@@ -613,6 +614,11 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                  this.segmentViewList.clear();
                  this.collection.reset();
             },
+                        
+            resetToDefault: function(){
+                this.clear();
+                this.collection.fetch({reset:true});
+            },
             
             //divide the edit view into no editable divs and editable divs 
             //(last ones are registered to shapeshift) depending on the
@@ -626,7 +632,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                                                        segment: segment,
                                                        height: height,
                                                        steps: _this.steps,
-                                                       creationMode: _this.creationMode,
+                                                       adminMode: _this.adminMode,
                                                        thumbSize: _this.thumbSize,
                                                        pixelRatio: ratio,
                                                        images: _this.images
@@ -721,7 +727,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                 });
                 $("#zoom").val($('#zoomSlider').slider( "value" ));                
                 
-                if (this.creationMode){
+                if (this.adminMode){
                     $('#scaleSlider').slider({
                         value: _this.streetSize,
                         step: 1,
