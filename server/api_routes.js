@@ -47,31 +47,32 @@ module.exports = function(){
     var projects = {
         list: function(req, res){
           pgQuery('SELECT * FROM projects', [], function(result){
-              return res.send(result);
+              return res.status(200).send(result);
           });
         },
 
         //return all project specific segments and projects base attributes
         get: function(req, res){ 
-            var _pg = pgQuery;
             pgQuery('SELECT * FROM projects WHERE id=$1', [req.params.pid], 
             function(result){
                 //merge the project object with the borders from db                
                 if (result.length === 0)
                     return res.send(404);
-                return res.send(result[0]);
+                return res.status(200).send(result[0]);
             });
         },
 
         post: function(req, res){
+            if(!(req.session.user && req.session.user.superuser))
+               return res.send(403);     
             var post = "UPDATE projects SET default_template=$1 WHERE id=$2";
             pgQuery(post, [JSON.stringify(req.body.template), req.params.pid],
                 function(result){
-                    return res.send(result);
+                    return res.status(200).send(result);
                 });
         },
 
-        delete: function(req, res){}
+        delete: function(req, res){},
     };
 
     var segments = {        
@@ -108,7 +109,7 @@ module.exports = function(){
                     function(result){
                         if (result.length === 0)
                             return res.send(404);
-                        return res.send(result);
+                        return res.status(200).send(result);
                     });
                     return;
                 });
@@ -122,7 +123,7 @@ module.exports = function(){
                     //merge the project object with the borders from db                
                     if (result.length === 0)
                         return res.send(404);                    
-                    return res.send(result);
+                    return res.status(200).send(result);
                 });                       
             }
                 
@@ -143,14 +144,14 @@ module.exports = function(){
                     _pg('SELECT ignore_segments FROM projects WHERE id=$1', [req.params.pid], 
                     function(result){     
                         if (result.length === 0)
-                            return res.send(segment);
+                            return res.status(200).send(segment);
                         var ignored = result[0].ignore_segments || [];
                         //look if found segment is ignored by project
                         for (var i = 0; i < ignored.length; i++){
                             if (segment.id === ignored[i])                       
                                 return res.send(404);
                         }
-                        return res.send(segment);
+                        return res.status(200).send(segment);
                     })
                     return;
                 });
@@ -164,7 +165,7 @@ module.exports = function(){
                     //merge the project object with the borders from db                
                     if (result.length === 0)
                         return res.send(404);                    
-                    return res.send(result[0]);
+                    return res.status(200).send(result[0]);
                 });   
             }
         }
@@ -177,7 +178,7 @@ module.exports = function(){
             function(result){
                 if (result.length === 0)
                     return res.send(404);
-                return res.send(result);
+                return res.status(200).send(result);
             });
         },
 
@@ -186,7 +187,7 @@ module.exports = function(){
             function(result){
                 if (result.length === 0)
                     return res.send(404);
-                return res.send(result[0]);
+                return res.status(200).send(result[0]);
             });
         },
 
@@ -204,7 +205,7 @@ module.exports = function(){
             function(result){
                 if (result.length === 0)
                     return res.send(404);
-                return res.send(result[0].img_png);
+                return res.status(200).send(result[0].img_png);
             });
         },
         
@@ -213,7 +214,7 @@ module.exports = function(){
             function(result){
                 if (result.length === 0)
                     return res.send(404);
-                return res.send(result[0].img_thumb);
+                return res.status(200).send(result[0].img_thumb);
             });
         },
     };
@@ -221,7 +222,7 @@ module.exports = function(){
     var session = {
         
         getToken: function(req, res){
-            return res.send({csrf: req.csrfToken()});
+            return res.status(200).send({csrf: req.csrfToken()});
         },
         
         getStatus: function(req, res){
@@ -248,6 +249,7 @@ module.exports = function(){
                         res.statusCode = 200;
                         req.session.user = {name: result[i].name,
                                             email: result[i].email,
+                                            id: result[i].id,
                                             superuser: result[i].superuser};
                         return res.json({
                             auth : true,
@@ -279,6 +281,62 @@ module.exports = function(){
         
         unsuscribe: function(req, res){ 
         },
+        
+        listTemplates: function(req, res){
+            if(!(req.session.user))
+               return res.send(403);  
+            var user_id = req.session.user.id
+            pgQuery('SELECT * FROM user_templates WHERE user_id=$1', [user_id], function(result){
+                if (result.length === 0)
+                    return res.send(404);
+                return res.status(200).send(result[0]);
+            });
+            
+        },
+
+        getProjectTemplate: function(req, res){ 
+            var user = req.session.user;
+            if(!(user))
+               return res.send(403);  
+            pgQuery('SELECT * FROM user_templates WHERE user_id=$1 and project_id=$2', [user.id, req.params.pid], 
+            function(result){
+                //merge the project object with the borders from db                
+                if (result.length === 0)
+                    return res.send(404);
+                return res.status(200).send(result[0]);
+            });
+        },
+                
+        uploadTemplate: function(req, res){ 
+            var template = JSON.stringify(req.body.template);
+            var project_id = req.params.pid;
+            var user = req.session.user;
+            if(!(user))
+               return res.send(403);  
+           /* doesn't seem to work in postgres
+            var replace = "INSERT INTO user_templates (project_id, user_id, template)"+
+                    "SET VALUES($1,$2,$3) ON DUPLICATE KEY UPDATE "+
+                    "template = VALUES(template);";
+                    */
+            pgQuery('SELECT * FROM user_designs WHERE user_id=$1 and project_id=$2', [user.id, req.params.pid], 
+            function(result){                
+                var _pg = pgQuery;
+                if (result.length === 0)
+                    _pg('INSERT INTO user_designs (project_id, user_id, design) VALUES ($1, $2, $3)', 
+                    [project_id, user.id, template],
+                    function(result){
+                        return res.status(200).send(result);             
+                    });     
+                else{
+                    var id = result[0].id;
+                    _pg('UPDATE user_designs SET design=$1 WHERE user_id=$2 and project_id=$3', 
+                        [template, user.id, project_id],
+                        function(result){
+                            return res.status(200).send(result);          
+                        });   
+                }
+            });       
+        }
     };
     
     
@@ -288,7 +346,7 @@ module.exports = function(){
             function(result){
                 if (result.length === 0)
                     return res.send(404);
-                return res.send(result);
+                return res.status(200).send(result);
             });
         },
 
@@ -297,7 +355,7 @@ module.exports = function(){
             function(result){
                 if (result.length === 0)
                     return res.send(404);
-                return res.send(result[0]);
+                return res.status(200).send(result[0]);
             });
         },
     };
@@ -316,7 +374,7 @@ module.exports = function(){
                         get: segments.get,
                         delete: segments.delete
                     }
-                }
+                }  
             }
         },
         '/images':{
@@ -352,7 +410,14 @@ module.exports = function(){
             '/register': {        
                 post: session.register,
                 delete: session.unsuscribe
-            },       
+            }, 
+            '/templates':{
+                get: session.listTemplates,
+                '/:pid': {
+                    get: session.getProjectTemplate,
+                    post: session.uploadTemplate
+                }
+            }
         },
         '/rules': {
              get: rules.list,

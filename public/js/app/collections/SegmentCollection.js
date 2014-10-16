@@ -13,14 +13,19 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
         model: SegmentModel,
         url: 'api/projects/1',
         
-        initialize: function(project_id){
+        initialize: function(projectID){
             this.count = 1;
-            this.projectID = project_id || 1;   
+            this.projectID = projectID || 1;  
             this.ruleCollection = new RuleCollection();  
         },
         
+        changeProject: function(projectID){
+            this.projectID = projectID;
+            this.url = 'api/projects/' + projectID;
+            this.fetch({reset: true});
+        },
+        
         checkRules: function(){ 
-            console.log(this.length)
             var NOTCHECKED = -1;
             var TRUE = 1;
             var FALSE = 0;
@@ -30,7 +35,8 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
                 var ident = {
                     pos: _this.indexOf(model),
                     left: model.startPos,
-                    right: model.startPos + model.size
+                    right: model.startPos + model.size,
+                    type: model.get('type')
                 };  
                 var errorMsgs = [];
                 var status = NOTCHECKED;
@@ -157,6 +163,7 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
         },
         
         updateProject: function() {
+            console.log('super')
             var _this = this;
             $.ajax({
                 type: 'POST',
@@ -168,10 +175,11 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
         },  
         
         updateUserTemplate: function() {
+            var url = '/api/session/templates/' + this.projectID;
             var _this = this;
             $.ajax({
                 type: 'POST',
-                url: _this.url,
+                url: url,
                 data: JSON.stringify(_this.toJSON()),
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",

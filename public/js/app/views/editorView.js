@@ -647,7 +647,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                     this.streetSize;
             },
                                            
-            renderControls: function(){        
+            renderControls: function(){ 
                 var _this = this;
                 var editorWrapper = $("#editorWrapper" );
                 editorWrapper.css( "overflow", "hidden" );
@@ -710,11 +710,11 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                 $('#zoomSlider').slider({
                     value: _this.zoom,
                     step: 10,
-                    min: 10,
-                    max: 500,
+                    min: 50,
+                    max: 200,
                     animate: true,
                     slide: function (e, ui) {
-                        $( "#zoom" ).text( ui.value );
+                        $( "#zoomLable" ).text( ui.value );
                     },
                     change: function(e, ui){
                         var currentWidth = parseInt(_this.$el.css('width'));
@@ -725,9 +725,10 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                         resizeScrollSlider();
                     }
                 });
-                $("#zoom").val($('#zoomSlider').slider( "value" ));                
+                $("#zoomLable").text($('#zoomSlider').slider( "value" ));  
                 
                 if (this.adminMode){
+                    $('#changeWidth').show();
                     $('#scaleSlider').slider({
                         value: _this.streetSize,
                         step: 1,
@@ -735,7 +736,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                         max: 10000,
                         animate: true,
                         slide: function (e, ui) {
-                            $( "#scale" ).val( ui.value );
+                            $("#scaleLable").text( ui.value / 100 + 'm');
                         },
                         change: function(e, ui){                            
                             _this.streetSize = ui.value;
@@ -744,8 +745,10 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                             resizeScrollSlider;
                         }
                     });
-                $("#scale").val($('#scaleSlider').slider( "value" ));
+                    $("#scaleLable").text($('#scaleSlider').slider("value")/ 100 + 'm');
                 }
+                else
+                    $('#changeWidth').hide();
             }
                  
         });

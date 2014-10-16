@@ -17,7 +17,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 this.segment = options.segment;
                 this.pixelRatio = options.pixelRatio || 1;
                 this.insertSorted = options.insertSorted || false;
-                this.creationMode = options.creationMode || false;
+                this.adminMode = options.adminMode || false;
                 this.svgUnsupported = options.svgUnsupported || false;                
                 this.isConnector = (this.segment.get('type') === 1) ? true: false; 
                 //processed attributes
@@ -34,7 +34,6 @@ define(["jquery", "backbone", "text!templates/segment.html"],
 
             // View Event Handlers
             events: {
-                'click #statusWarning' : 'showErrormessage'
             },
                         
             // Renders the view's template to the UI
@@ -58,7 +57,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 $(div).data('isConnector', this.isConnector); 
                 
                 //fix element or make it drag- and resizable
-                if (this.segment.fixed && !this.creationMode)
+                if (this.segment.fixed && !this.adminMode)
                     $(div).addClass('fixed');
                 else {
                     $(div).addClass('segment');
@@ -81,15 +80,24 @@ define(["jquery", "backbone", "text!templates/segment.html"],
             
             renderStatus: function(){ 
                 var status = this.segment.get('status');
-                $(this.div).find('#statusWarning').hide(); 
+                $(this.div).find('.statusIcon').hide();
+                var warnIcon = $(this.div).find('#statusWarning');
+                var okIcon = $(this.div).find('#statusOK');
+                warnIcon.hide(); 
                 if (status === 0) 
-                    $(this.div).find('#statusWarning').show();
+                    warnIcon.show();
                 else if (status === 1) 
-                    $(this.div).find('#statusOK').show();
+                    okIcon.show();
+                var _this = this;
+                warnIcon.unbind('click');
+                warnIcon.click(function(){
+                    _this.showErrormessage();
+                });
             },
             
             showErrormessage: function(){
-                alert(this.segment.get('errorMsgs'));
+                var msg = this.segment.get('errorMsgs');
+                alert(msg);
             },
             
             OSD: {
@@ -111,7 +119,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     //toggle lock on segments 
                     if (view.segment.fixed){
                         $(view.div).find('#lockedIcon').show();
-                        if (!view.creationMode){                        
+                        if (!view.adminMode){                        
                             $(view.div).find('#lefthandle').hide();                    
                             $(view.div).find('#righthandle').hide();
                         };
@@ -121,7 +129,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     };
                     //locked clicked -> unlock
                     $(view.div).find('#lockedIcon').click(function(){ 
-                        if (view.creationMode){
+                        if (view.adminMode){
                             view.segment.fixed = false;     
                             //just telling the measure display to redraw
                             view.trigger('update');
@@ -142,7 +150,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         $(view.div).find('#unlockedIcon').hide();
                         $(view.div).find('#lockedIcon').show();
                         //toggle fixed status of segment in creation mode
-                        if (view.creationMode){
+                        if (view.adminMode){
                             view.segment.fixed = true;        
                             //just telling the measure display to redraw 
                             //no actual resize done 
@@ -238,14 +246,14 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 var height = parseInt($(imageContainer).css('height')); 
                 var width = parseInt($(imageContainer).css('width')); 
                 var attr = this.segment.attributes;
-                if (attr.connector){
-                //render the ground on the bottom  
-                $(groundImage).css('width', width);           
-                $(groundImage).css('height', height);
-                $(groundImage).addClass('image');
                 var groundModel = this.images.get(attr.image_ground_id);
-                $(imageContainer).append(groundImage);  
-                    this.loadImage(groundModel, groundImage);    
+                if (attr.connector){
+                    //render the ground on the bottom  
+                    $(groundImage).css('width', width);           
+                    $(groundImage).css('height', height);
+                    $(groundImage).addClass('image');                    
+                    $(imageContainer).append(groundImage);  
+                        this.loadImage(groundModel, groundImage);    
                 }
                 
                 //image of the object on top of the ground
@@ -253,7 +261,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 $(objectImage).css('height', height);
                 $(objectImage).addClass('image');
                 $(imageContainer).append(objectImage);  
-                var imageModel = this.images.get(attr.image_id) || groundModel;  
+                var imageModel = this.images.get(attr.image_id) || groundModel; 
                 this.loadImage(imageModel, objectImage, {thumb: true});
                 $(imageContainer).append(imageContainer);                      
             },

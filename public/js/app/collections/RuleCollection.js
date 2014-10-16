@@ -89,8 +89,10 @@ define(["jquery","backbone","models/RuleModel"],
                     for(var i = pos - 1; i >= posNeighbour; i--){
                         iSeg = streetProfile[i];
                         //gap found on the way -> can't check
-                        if(iSeg.right < prev.left - _this.TOLERANCE)
+                        if(iSeg.right < prev.left - _this.TOLERANCE){
                             return _this.NOTCHECKED;
+                        }
+                        prev = iSeg;
                             
                     };
                     //iterated without finding gaps -> time to check for type

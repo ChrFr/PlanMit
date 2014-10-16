@@ -39,7 +39,7 @@ define(["jquery", "backbone", "views/navbarView",
             
             edit: function() {     
                 var _this = this;
-                //no edition loaded yet -> load project default and show editor
+                //no edition loaded yet -> load default project and show editor
                 //AFTER the default finished loading
                 if(!this.edition){
                     this.blocked = true;
