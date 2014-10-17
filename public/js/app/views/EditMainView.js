@@ -50,7 +50,6 @@ define(["jquery", "backbone", "text!templates/editMain.html",
                                 _this.editorView.remove();
                             };
                             _this.render();
-                            _this.resourcesView.render();
                         }, 500);
                 });
 
@@ -83,6 +82,7 @@ define(["jquery", "backbone", "text!templates/editMain.html",
                 var _this = this;
                    
                 var _this = this;
+                $('#uploadButton').unbind('click');
                 $('#uploadButton').click(function() {
                     var btn = $(this)
                     btn.prop('disabled',true);
@@ -97,13 +97,14 @@ define(["jquery", "backbone", "text!templates/editMain.html",
                     else
                         _this.edition.updateUserTemplate();
                 });
+                $('#resetButton').unbind('click');
                 $('#resetButton').click(function() { 
                     var btn = $(this)
                     btn.prop('disabled',true);
                     setTimeout(function(){ 
                         btn.prop('disabled',false);
                     },2000);      
-                    _this.resetToDefault();
+                    _this.editorView.resetToDefault();
                 });
                 // Maintains chainability
                 return this;
