@@ -64,6 +64,17 @@ body {
     text-align: left;
 }
 
+.textBar > .roundDiv{
+    border-radius: 50%; 
+    width: 300px; 
+    height: 300px; 
+    float:left; 
+    border: solid #1f1f1f; 
+    background-color: #1f1f1f;
+    margin: 20px;
+}
+
+
 .centered > h1{
     text-align: center;
 }
@@ -347,7 +358,7 @@ body {
     position: absolute;
 }
 
-.source{
+#sourceWrapper{
     position: absolute;
     background-color: white;
     width: 100%;
@@ -356,6 +367,11 @@ body {
     overflow: auto; 
     cursor: auto;
     z-index: 1; 
+    padding-bottom: 1%;
+}
+
+.source{
+    height: 100%;
 }
 
 .source > div {
