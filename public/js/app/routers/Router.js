@@ -1,12 +1,12 @@
 // DesktopRouter.js
 // ----------------
-define(["jquery", "backbone", "views/navbarView",
-    "views/welcomeView", "views/editMainView",
-    "views/loginView", "models/LoginModel",
+define(["jquery", "backbone", "views/NavbarView",
+    "views/WelcomeView", "views/EditMainView",
+    "views/LoginView", "views/ProjectView", "models/LoginModel",
     "collections/SegmentCollection",
     "collections/ImageCollection"],
 
-    function($, Backbone, Navbar, Welcome, Edit, Login,
+    function($, Backbone, Navbar, Welcome, Edit, Login, Projects,
              LoginModel, SegmentCollection, ImageCollection) {
 
         var DesktopRouter = Backbone.Router.extend({
@@ -29,7 +29,8 @@ define(["jquery", "backbone", "views/navbarView",
                 // when there is no hash on the url, the welcome page is called
                 "": "welcome",
                 "edit": "edit",
-                "login": "login"
+                "login": "login",
+                "projects": "projects"
             },
 
             welcome: function() {                
@@ -70,6 +71,11 @@ define(["jquery", "backbone", "views/navbarView",
                                        session: this.session});   
             },
             
+            projects: function() {
+                this.cleanUp();                
+                this.view = new Projects({el: '#mainFrame'});   
+            },
+                        
             cleanUp: function(){
 		if (this.view) {
                     this.view.unbind();

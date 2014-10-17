@@ -1,4 +1,4 @@
-// View.js
+// WelcomeView.js
 // -------
 define(["jquery", "backbone", "text!templates/welcome.html"],
 

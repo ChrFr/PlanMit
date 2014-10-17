@@ -1,6 +1,6 @@
 // SourceView.js
 // -------
-define(["jquery", "backbone", "views/segmentView"],
+define(["jquery", "backbone", "views/SegmentView"],
 
     function($, Backbone, SegmentView){
 

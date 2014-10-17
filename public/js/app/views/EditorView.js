@@ -1,6 +1,6 @@
 // editorView.js
 // -------
-define(["jquery", "backbone", "views/segmentView", "touchpunch"],
+define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
 
     function($, Backbone, SegmentView){
 
@@ -731,7 +731,7 @@ define(["jquery", "backbone", "views/segmentView", "touchpunch"],
                     $('#changeWidth').show();
                     $('#scaleSlider').slider({
                         value: _this.streetSize,
-                        step: 1,
+                        step: 5,
                         min: 1000,
                         max: 10000,
                         animate: true,

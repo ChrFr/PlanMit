@@ -2,7 +2,7 @@
 // edit Window containing view on resources and the editor
 // -------
 define(["jquery", "backbone", "text!templates/editMain.html", 
-    "views/sourceView", "views/editorView", "collections/SegmentSource"],
+    "views/SourceView", "views/EditorView", "collections/SegmentSource"],
 
     function($, Backbone, template, SourceView,
              EditorView, SegmentSource){
