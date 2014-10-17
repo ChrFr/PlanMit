@@ -1,11 +1,14 @@
+### PlanMit - a simple tool to design a street
 
-This project uses Backbone-Require-Boilerplate (BRB) provided by Greg Franko.
+This project was developed during my Bachelor Thesis in cooperation with the.
+It uses Backbone-Require-Boilerplate (BRB) provided by Greg Franko.
 https://github.com/BoilerplateMVC/Backbone-Require-Boilerplate
+
 also uses jQuery Touch Punch http://touchpunch.furf.com/
 
 additionally requires: node-postgres for PostgreSQL Connection
 
-installation guide:
+### Installation guide:
 
 - install Node.js (Linux: sudo apt-get install nodejs)  
 - optional: install nodemon ("npm install nodemon -g")
@@ -14,3 +17,8 @@ installation guide:
 - to configure the postgres connection, edit the ./server/dbconfig_example.js and rename it to dbconfig.js
 - to start the server, type "nodemon" inside the main folder (or "node /server/server.js" if nodemon is not installed)
 - finally the index page can be accessed under http://localhost:8001
+
+### License
+
+Copyright (c) 2014 Christoph Franke
+Licensed under the MIT license.
