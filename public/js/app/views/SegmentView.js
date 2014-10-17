@@ -420,7 +420,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         //max width for resizing to the left
                         startLeft = _this.left;
                         startRight = startLeft + _this.width;
-                        if ($(e.toElement).attr('id') === 'lefthandle'){
+                        var dir = e.toElement ? e.toElement : e.originalEvent.target;
+                        if ($(dir).attr('id') === 'lefthandle'){
                             //connectors are ignored
                             var prev = (_this.prev && _this.prev.isConnector) ? _this.prev.prev: _this.prev;
                             //no segment infront? take the left border of the editor (=0)
@@ -429,7 +430,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             maxWidth = space + _this.width;                 
                         }
                         //max width for resizing to the right
-                        else if ($(e.toElement).attr('id') === 'righthandle'){
+                        else if ($(dir).attr('id') === 'righthandle'){
                             var next = (_this.next && _this.next.isConnector) ? _this.next.next: _this.next;
                             //is there a segment to the right?
                             if (next) {
@@ -443,7 +444,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             maxWidth = space + _this.width;  
                         };
                         var minWidth = _this.segment.attributes.min_width *
-                                _this.pixelRatio;
+                            _this.pixelRatio;
+                        //console.log(maxWidth)
                         $(div).resizable( "option", "maxWidth", maxWidth );
                         $(div).resizable( "option", "minWidth", minWidth );
                     },
@@ -451,7 +453,6 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     resize: function(e, ui){        
                         var width = parseInt($(div).css('width'));                         
                         var left = parseInt($(div).css('left'));
-                        /*
                         //snap to neighbour
                         if (maxWidth - width < snapTolerance) {  
                             if ($(div).data('ui-resizable').axis === 'w'){
@@ -460,7 +461,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             };
                             width = maxWidth;
                             $(div).css('width', width); 
-                        }*/
+                        }
                             
                         _this.setWidth(width);
                         _this.setLeft(left);                    

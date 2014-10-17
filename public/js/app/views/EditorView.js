@@ -10,10 +10,12 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
             el: ".sink",
 
             // View constructor
-            initialize: function(options) {   
+            initialize: function(options) {  
+                //check if svg is supported or png is preferred by project
                 var svgSupported = document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#Image", "1.1");
-                if(this.collection.project.preferPNG && !svgSupported)
+                if(this.collection.project.preferPNG || !svgSupported)
                     this.pngPreferred = true;
+                
                 this.images = options.images;
                 this.resources = options.resources; 
                 this.adminMode = options.adminMode || false;
@@ -54,7 +56,7 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                         
             // Renders the view's template to the UI
             render: function() {   
-                var canvas = this.$el.find('canvas')[0];                
+                var canvas = $('canvas')[0];                
                 this.measure = new this.MeasureDisplay(canvas, this.$el, 
                                             this.streetSize, this.adminMode);
                 this.segmentViewList = new this.SegmentViewList(this.$el, this.collection, this.steps, this.measure);
@@ -355,6 +357,7 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
             },
             
             MeasureDisplay: function(canvas, parent, streetSize, showRaster){
+                console.log(canvas)
                 this.canvas = canvas;
                 this.streetSize = streetSize;
                 this.parent = parent;
@@ -389,7 +392,7 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                     var ctx = this.canvas.getContext("2d");
                     //var w = (this.showRaster) ? this.canvas.height - this.marginBottom : this.marginTop;
                     //clear upper area
-                    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);                    
                     var firstSegment = segmentViewList.at(0);
                     var lastSegment = segmentViewList.at(segmentViewList.length - 1);
                     var streetStart = (firstSegment && firstSegment.segment.fixed) ? 
@@ -399,16 +402,14 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                     var size = streetEnd - streetStart;           
                     var middle = size / 2 + streetStart;
                     var y = 13;
-                    
                     ctx.strokeStyle = 'grey';
-                    ctx.setLineDash([0]);
-                    //horizontal line
+                    //ctx.setLineDash([0]);
+                    //horizontal line 
                     ctx.beginPath();
                     ctx.moveTo(streetStart * ratio, y);
                     ctx.lineTo(streetEnd * ratio, y); 
                     ctx.lineWidth = 1;
                     ctx.stroke();  
-
                     //vertical lines and raster                            
                     ctx.font = "8px Arial";                            
                     ctx.fillStyle = 'grey';
@@ -421,7 +422,7 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                         var bigStep = ((i % 10) === 0) ? true: false;
                         ctx.beginPath();     
                         ctx.strokeStyle = 'black';
-                        ctx.setLineDash([0]);
+                        //ctx.setLineDash([0]);
                         if (bigStep){
                             length = 8;    
                             ctx.fillText(i / 10, x, y + 13);
@@ -432,11 +433,11 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                         if (this.showRaster) {
                             ctx.beginPath();  
                             if (bigStep){
-                                ctx.setLineDash([2,2]);
+                                //ctx.setLineDash([2,2]);
                             }
                             
                             else {
-                                ctx.setLineDash([1,4]);
+                                //ctx.setLineDash([1,4]);
                                 ctx.strokeStyle = 'grey';
                             }
                             ctx.moveTo(x, y);
@@ -472,14 +473,14 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                         //horizontal line
                         ctx.beginPath();
                         var segRight = segmentView.left + segmentView.width;
-                        ctx.setLineDash([5]);
+                        //ctx.setLineDash([5]);
                         ctx.moveTo(segmentView.left, y);
                         ctx.lineTo(segRight, y); 
                         ctx.stroke();    
 
                         //vertical lines
                         ctx.beginPath();
-                        ctx.setLineDash([1,2]);
+                       // ctx.setLineDash([1,2]);
                         ctx.moveTo(segmentView.left, y);
                         ctx.lineTo(segmentView.left, originY); 
                         ctx.moveTo(segRight, y);
@@ -494,7 +495,7 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                             ctx.rect(middle - 25 , y - 10, 50, 20);
                             ctx.fillStyle = 'white';
                             ctx.fill();
-                            ctx.setLineDash([0]);
+                            //ctx.setLineDash([0]);
                             ctx.stroke();
                             ctx.fillStyle = 'black';
                             ctx.textAlign = 'center';
@@ -510,7 +511,7 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                         if (gap > this.gapTolerance){     
                             var middle = segRight + gap / 2;
                             ctx.beginPath();
-                            ctx.setLineDash([1, 2]);
+                            //ctx.setLineDash([1, 2]);
                             ctx.strokeStyle = 'grey';
                             ctx.moveTo(segRight, y - 10);
                             ctx.lineTo(nextLeft, y - 10); 
