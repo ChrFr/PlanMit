@@ -304,9 +304,10 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             if (divWidth > parentWidth){
                                 $(div).css("left", -(divWidth - parentWidth / 2));
                                 $(div).css("right", -(divWidth - parentWidth / 2));
-                            }
-                                
-                        };     
+                            }   
+                        };
+                        if (options.stretch)
+                            svg.setAttribute("preserveAspectRatio", 'xMinYMax');                             
                     });
                 }
                 //png preferred
