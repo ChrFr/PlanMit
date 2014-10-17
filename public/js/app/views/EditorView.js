@@ -11,6 +11,9 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
 
             // View constructor
             initialize: function(options) {   
+                var svgSupported = document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#Image", "1.1");
+                if(this.collection.project.preferPNG && !svgSupported)
+                    this.pngPreferred = true;
                 this.images = options.images;
                 this.resources = options.resources; 
                 this.adminMode = options.adminMode || false;
@@ -99,7 +102,8 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                                                                    thumbSize: _this.thumbSize,
                                                                    height: parseInt(placeholder.div.css('height')),
                                                                    pixelRatio: _this.pixelRatio(),
-                                                                   images: _this.images});
+                                                                   images: _this.images,
+                                                                   pngPreferred: this.pngPreferred});
                                 segmentView.render();
                                 segmentView.setLeft(left);
                                 _this.collection.addSegment(clonedSegment);
@@ -635,7 +639,8 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                                                        adminMode: _this.adminMode,
                                                        thumbSize: _this.thumbSize,
                                                        pixelRatio: ratio,
-                                                       images: _this.images
+                                                       images: _this.images,
+                                                       pngPreferred: this.pngPreferred
                                                        });
                     segmentView.render();
                     _this.segmentViewList.insert(segmentView);

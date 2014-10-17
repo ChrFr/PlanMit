@@ -37,7 +37,7 @@ module.exports = function(){
                 //call `done()` to release the client back to the pool
                 done();
                 if(err) {
-                    console.log(queryString)
+                    console.log(err)
                     return callback([]);
                 }
                 return callback(result.rows);
@@ -221,12 +221,14 @@ module.exports = function(){
             });
         },
 
-        getPNG: function(req, res){   
-            pgQuery('SELECT img_png from images WHERE id=$1', [req.params.iid],
+        getPNG: function(req, res){ 
+            //base64 encoded by postgresql not readable by url-data, plain text now
+            //pgQuery("SELECT encode((SELECT img_png from images WHERE id=$1), 'base64')", [req.params.iid],
+            pgQuery("SELECT img_png from images WHERE id=$1", [req.params.iid],
             function(result){
                 if (result.length === 0)
                     return res.send(404);
-                return res.status(200).send(result[0].img_png);
+                return res.status(200).send(result[0]);
             });
         },
         

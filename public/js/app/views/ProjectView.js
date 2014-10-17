@@ -49,7 +49,7 @@ define(["jquery", "backbone", "text!templates/project.html"],
                         button.prop('disabled', true);
                         button.text('Ausgewählt');
                     }
-                });
+                });   
                 // Maintains chainability
                 return this;
             },

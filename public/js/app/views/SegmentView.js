@@ -18,7 +18,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 this.pixelRatio = options.pixelRatio || 1;
                 this.insertSorted = options.insertSorted || false;
                 this.adminMode = options.adminMode || false;
-                this.svgUnsupported = options.svgUnsupported || false;                
+                this.pngPreferred = options.pngPreferred || false;                
                 this.isConnector = (this.segment.get('type') === 1) ? true: false; 
                 //processed attributes
                 this.left = options.left || this.segment.startPos * this.pixelRatio;
@@ -254,25 +254,24 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     $(groundImage).addClass('image');                    
                     $(imageContainer).append(groundImage);  
                         this.loadImage(groundModel, groundImage);    
-                }
-                
+                }                
                 //image of the object on top of the ground
                 $(objectImage).css('width', width);           
                 $(objectImage).css('height', height);
                 $(objectImage).addClass('image');
                 $(imageContainer).append(objectImage);  
                 var imageModel = this.images.get(attr.image_id) || groundModel; 
-                this.loadImage(imageModel, objectImage, {thumb: true});
+                this.loadImage(imageModel, objectImage, null, {thumb: true});
                 $(imageContainer).append(imageContainer);                      
             },
             
             loadImage: function(imageModel, div, pixelRatio, options){
                 var options = options || {};
-                var r = pixelRatio || 1;      
+                var r = pixelRatio || 1;  
                 if (!imageModel) return;
-                if (!this.svgUnsupported){
+                if (!this.pngPreferred){
                     imageModel.getImage('svg', function(svg_data, actual_size){  
-                        if (actual_size)
+                        if (actual_size && !options.thumb)
                             $(div).css('width', actual_size * r);
                         $(div).html(svg_data);
                         var svg = $(div).find('svg')[0]; 
@@ -308,12 +307,30 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             }
                                 
                         };     
-                        if (options.stretch){           
-                            svg.setAttribute("preserveAspectRatio", 'none');
-                        }
-                        svg.setAttribute("position", "absolute");
                     });
-                };
+                }
+                //png preferred
+                else {    
+                    if (options.thumb)   
+                        //WARNING getImage('thumb') THIS DOESN'T WORK RIGHT !!!!!!! 
+                        imageModel.getImage('png', function(png_data, actual_size){ 
+                            if (actual_size && !options.thumb)
+                                $(div).css('width', actual_size * r); 
+                            var maxHeight = options.maxHeight;                        
+                            $(div).css("height", maxHeight);          
+                            $(div).css("background","url('data:image/png;base64,"+ png_data.img_png +"') bottom center no-repeat"); 
+                            $(div).css("background-size", "auto 100%"); 
+                        });
+                    else
+                        imageModel.getImage('png', function(png_data, actual_size){ 
+                            if (actual_size && !options.thumb)
+                                $(div).css('width', actual_size * r); 
+                            var maxHeight = options.maxHeight;                        
+                            $(div).css("height", maxHeight);          
+                            $(div).css("background","url('data:image/png;base64,"+ png_data.img_png +"') bottom center no-repeat"); 
+                            $(div).css("background-size","100% auto");                            
+                        });
+                }                                
             },
                         
             makeDraggable: function(){
