@@ -80,7 +80,13 @@ define(["jquery", "backbone", "text!templates/login.html"],
                 $('#loginStatus').find('#password').val(user.password);
                 if (user.superuser)
                     $('#loginStatus').find('#status').text('Sie sind als Superuser angemeldet');
+            },
+            
+            close: function () {
+                this.unbind(); // Unbind all local event bindings
+                this.remove(); // Remove view from DOM
             }
+            
         });
         
         // Returns the View class

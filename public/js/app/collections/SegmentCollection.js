@@ -7,21 +7,22 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
   function($, Backbone, SegmentModel, RuleCollection) {
 
     // Creates a new Backbone Collection class object
-    var SegmentEdition = Backbone.Collection.extend({
+    var SegmentCollection = Backbone.Collection.extend({
 
         // Tells the Backbone Collection that all of it's models will be of type Model (listed up top as a dependency)
         model: SegmentModel,
-        url: 'api/projects/1',
+        url: '',
         
-        initialize: function(projectID){
+        initialize: function(project){
             this.count = 1;
-            this.projectID = projectID || 1;  
-            this.ruleCollection = new RuleCollection();  
+            this.project = project;  
+            this.ruleCollection = new RuleCollection();              
         },
         
-        changeProject: function(projectID){
-            this.projectID = projectID;
-            this.url = 'api/projects/' + projectID;
+        changeProject: function(project){
+            this.project = project;
+            //this.url = 'api/projects/' + projectID;
+            this.reset();
             this.fetch({reset: true});
         },
         
@@ -124,19 +125,12 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
         },
         
         fetch: function(options) {            
-            this.url = 'api/projects/' + this.projectID;
-            var _this = this;
-            $.ajax({
-                type: 'GET',
-                url: _this.url,
-                success: function(data) {
-                    _this.fromJSON(data);
-                    if (options.success)
-                        options.success();
-                    if (options.reset)
-                        _this.trigger('reset');
-                }
-            });
+            var defaultTemplate = this.project.get('default_template');
+            this.fromJSON(defaultTemplate);            
+            if (options.success)
+                options.success();
+            if (options.reset)
+                this.trigger('reset');
         },    
         
         //models are load seperately (not as whole collection), because only
@@ -148,7 +142,7 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
             this.name = json.name;
             this.description = json.description;
             var deferreds = [];
-            _.each(json.default_template, function(dbSegment){
+            _.each(json, function(dbSegment){
                 var segment = new SegmentModel(dbSegment.id);
                 segment.startPos = dbSegment.start_pos;
                 segment.size = dbSegment.size;
@@ -157,17 +151,16 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
                     _this.addSegment(segment);}}));
             });
             $.when.apply($, deferreds).done(function() {
-                _this.trigger('reset');  
-                //_this.checkRules();
+                _this.trigger('reset'); 
             });
         },
         
         updateProject: function() {
-            console.log('super')
+            var url = '/api/projects/' + this.project.get('id');            
             var _this = this;
             $.ajax({
                 type: 'POST',
-                url: _this.url,
+                url: url,
                 data: JSON.stringify(_this.toJSON()),
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
@@ -175,7 +168,7 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
         },  
         
         updateUserTemplate: function() {
-            var url = '/api/session/templates/' + this.projectID;
+            var url = '/api/session/templates/' + this.project.get('id');
             var _this = this;
             $.ajax({
                 type: 'POST',
@@ -212,8 +205,8 @@ define(["jquery","backbone","models/SegmentModel", "collections/RuleCollection"]
         
     });
 
-    // Returns the Model class
-    return SegmentEdition;
+    // Returns the Collection
+    return SegmentCollection;
 
   }
 

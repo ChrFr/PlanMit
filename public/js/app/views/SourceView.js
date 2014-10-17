@@ -38,6 +38,12 @@ define(["jquery", "backbone", "views/SegmentView"],
                 
                 return this;
 
+            },
+            
+            close: function () {
+                this.unbind(); // Unbind all local event bindings
+                this.remove(); // Remove view from DOM
+
             }
                 
         });

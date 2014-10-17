@@ -1,8 +1,12 @@
 <!-- HTML Template -->
-<div class="textBar">
-    <div class="roundDiv centered" style="padding: 60px">
+<div class="textBar">    
+    <!-- styles are for testing, will be moved to css -->
+    <button type="button" class="chooseProjectButton" data-button='{"id": <%- id %>}' style="position: absolute; left: 0px; margin:5px">
+        Auswählen
+    </button>
+    <div class="roundDiv centered" style="padding: 60px; margin-top: 70px">
         Google Maps ist noch nicht implementiert
     </div>
-    <h1><%- projectName %></h1>    
-    blabla
+    <h1><%- name %>, <%- location %></h1>    
+    <p><%- description %></p>
 </div>

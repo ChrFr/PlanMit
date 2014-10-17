@@ -50,7 +50,7 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
             },        
                         
             // Renders the view's template to the UI
-            render: function() {          
+            render: function() {   
                 var canvas = this.$el.find('canvas')[0];                
                 this.measure = new this.MeasureDisplay(canvas, this.$el, 
                                             this.streetSize, this.adminMode);
@@ -321,8 +321,8 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
 
                 this.clear = function(){
                     var segmentView = this.first;
-                    while(segmentView){ 
-                        segmentView.off("delete");                          
+                    while(segmentView){  
+                        segmentView.unbind();
                         segmentView.delete();
                         segmentView = segmentView.next;
                     };
@@ -749,6 +749,14 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                 }
                 else
                     $('#changeWidth').hide();
+            },
+            
+            close: function () {
+                this.segmentViewList.clear();
+                this.unbind(); // Unbind all local event bindings
+                this.collection.unbind();
+                this.remove(); // Remove view from DOM
+
             }
                  
         });

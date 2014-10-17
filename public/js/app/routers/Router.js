@@ -3,19 +3,22 @@
 define(["jquery", "backbone", "views/NavbarView",
     "views/WelcomeView", "views/EditMainView",
     "views/LoginView", "views/ProjectView", "models/LoginModel",
-    "collections/SegmentCollection",
-    "collections/ImageCollection"],
+    "collections/SegmentCollection", "collections/ImageCollection",
+    "collections/ProjectCollection"],
 
     function($, Backbone, Navbar, Welcome, Edit, Login, Projects,
-             LoginModel, SegmentCollection, ImageCollection) {
+             LoginModel, SegmentCollection, ImageCollection, ProjectCollection) {
 
         var DesktopRouter = Backbone.Router.extend({
             
             initialize: function() {
-                //router keeps track of session, project and edition, so they 
+                //router keeps track of session and edition, so they 
                 //stay the same, if you switch Views
                 this.session = new LoginModel();
-                this.edition = null;
+                this.edition = new SegmentCollection();                
+                this.projects = null;
+                
+                //images are kept here, so they don't need to be reloaded on view-change
                 this.images = new ImageCollection();
                 this.images.fetch();
                 //navbar is always seen
@@ -30,7 +33,7 @@ define(["jquery", "backbone", "views/NavbarView",
                 "": "welcome",
                 "edit": "edit",
                 "login": "login",
-                "projects": "projects"
+                "projects": "chooseProject"
             },
 
             welcome: function() {                
@@ -38,21 +41,21 @@ define(["jquery", "backbone", "views/NavbarView",
                 this.view = new Welcome({el: '#mainFrame'});
             },
             
-            edit: function() {     
-                var _this = this;
-                //no edition loaded yet -> load default project and show editor
-                //AFTER the default finished loading
-                if(!this.edition){
-                    this.blocked = true;
-                    this.edition = new SegmentCollection();
-                    this.edition.fetch({success: function(){ 
-                        _this.blocked = false;  
-                        _this.showEditMain();
-                    }});
+            edit: function() {   
+                if(!this.edition.project){
+                    alert('Sie müssen zuerst ein Projekt auswählen!');
+                    this.navigate("#projects", {trigger: true});
                 }
-                //show editor with edition currently worked on
-                else if (!this.blocked)
-                    this.showEditMain();
+                else{
+                    //show editor with edition currently worked on
+                    this.cleanUp();       
+                    this.view = new Edit({
+                        el: '#mainFrame',
+                        edition: this.edition,
+                        images: this.images,
+                        session: this.session
+                    });
+                }
             },
             
             showEditMain: function(){ 
@@ -67,19 +70,41 @@ define(["jquery", "backbone", "views/NavbarView",
             
             login: function() {
                 this.cleanUp();                
-                this.view = new Login({el: '#mainFrame',
-                                       session: this.session});   
+                this.view = new Login({
+                    el: '#mainFrame',
+                    session: this.session});   
             },
             
-            projects: function() {
-                this.cleanUp();                
-                this.view = new Projects({el: '#mainFrame'});   
+            chooseProject: function() {                    
+                var _this = this;
+                //no projects loaded yet -> load projects and show project view
+                //AFTER the projects finished loading
+                if(!this.projects){
+                    this.blocked = true;
+                    this.projects = new ProjectCollection();
+                    this.projects.fetch({success: function(){ 
+                        _this.blocked = false;  
+                        _this.showProjects();
+                    }});
+                }
+                //show editor with edition currently worked on
+                else if (!this.blocked)
+                    this.showProjects();
             },
+            
+            showProjects: function(){
+                this.cleanUp();  
+                this.view = new Projects({
+                    el: '#mainFrame',
+                    collection: this.projects,
+                    edition: this.edition
+                });   
+            },
+            
                         
             cleanUp: function(){
 		if (this.view) {
-                    this.view.unbind();
-                    this.view.remove();
+                    this.view.close();
                     $(window).off("resize");
                 }
                 if ($('#mainFrame').length === 0){

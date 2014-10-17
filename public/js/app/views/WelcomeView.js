@@ -24,6 +24,11 @@ define(["jquery", "backbone", "text!templates/welcome.html"],
                 this.$el.html(this.template);
                 // Maintains chainability
                 return this;
+            },        
+            
+            close: function () {
+                this.unbind(); // Unbind all local event bindings
+                this.remove(); // Remove view from DOM
             }
 
         });

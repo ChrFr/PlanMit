@@ -108,7 +108,14 @@ define(["jquery", "backbone", "text!templates/editMain.html",
                 });
                 // Maintains chainability
                 return this;
-            },            
+            },       
+                        
+            close: function () {
+                this.editorView.close(); 
+                this.resourcesView.close();
+                this.unbind();
+                this.remove();
+            }
 
         });
 

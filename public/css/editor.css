@@ -54,6 +54,10 @@ body {
     width: 100%;
 }
 
+.selectedProject {
+    background-color: #007c6a;
+}
+
 .centered {    
     display: inline-block;
     text-align: center;
