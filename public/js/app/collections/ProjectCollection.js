@@ -13,6 +13,22 @@ define(["jquery","backbone","models/ProjectModel"],
         
         initialize: function(){
         },
+        
+        createProject: function(options){
+            var newProject = new ProjectModel({
+                name: 'Name',
+                location: 'Ort',
+                description: 'Hier Beschreibungstext des Projektes einfügen',
+                default_template: '[]',
+                longitude: 0,
+                latitude: 0,
+                ignore_segments: []
+            });
+            newProject.save(null, {success: function(response){
+                if (options.success)
+                    options.success(response);
+            }});
+        }
                 
     });
 

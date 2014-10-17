@@ -37,6 +37,7 @@ module.exports = function(){
                 //call `done()` to release the client back to the pool
                 done();
                 if(err) {
+                    console.log(queryString)
                     return callback([]);
                 }
                 return callback(result.rows);
@@ -61,14 +62,34 @@ module.exports = function(){
                 return res.status(200).send(result[0]);
             });
         },
+        
+        create: function(req, res){            
+            if(!(req.session.user && req.session.user.superuser))
+               return res.send(403);  
+            var insert = "INSERT INTO projects (name, location, description, "+
+                    "default_template, longitude, latitude, ignore_segments) VALUES" +
+                    "($1, $2, $3, $4, $5, $6, $7) RETURNING *" 
+            // +" RETURNING id" returning id should give id of new row, 
+            //throws unique constraint error instead! so no return of id this way
+            pgQuery(insert, [req.body.name, req.body.location, req.body.description, 
+                req.body.default_template, req.body.longitude, req.body.latitude, 
+                req.body.ignore_segments],
+                function(result){
+                    res.status(200);
+                    return res.send({id: result[0].id});
+                });
+        },
 
         post: function(req, res){
-            if(!(req.session.user && req.session.user.superuser))
-               return res.send(403);     
+            if(!(req.session.user && req.session.user.superuser)){
+               res.status('Sie haben keine Berechtigung neue Projekte zu erstellen!')
+               return res.send(403);    
+           }
             var post = "UPDATE projects SET default_template=$1 WHERE id=$2";
             pgQuery(post, [JSON.stringify(req.body.template), req.params.pid],
                 function(result){
-                    return res.status(200).send(result);
+                    res.status(200);
+                    return res.send(result);
                 });
         },
 
@@ -363,6 +384,7 @@ module.exports = function(){
     app.map({
         '/projects': {
             get: projects.list,
+            post: projects.create,
             delete: projects.delete,
             '/:pid': {
                 get: projects.get,

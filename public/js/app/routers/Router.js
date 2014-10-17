@@ -57,17 +57,7 @@ define(["jquery", "backbone", "views/NavbarView",
                     });
                 }
             },
-            
-            showEditMain: function(){ 
-                this.cleanUp();       
-                this.view = new Edit({
-                    el: '#mainFrame',
-                    edition: this.edition,
-                    images: this.images,
-                    session: this.session
-                });
-            },
-            
+                        
             login: function() {
                 this.cleanUp();                
                 this.view = new Login({
@@ -93,11 +83,12 @@ define(["jquery", "backbone", "views/NavbarView",
             },
             
             showProjects: function(){
-                this.cleanUp();  
+                this.cleanUp();
                 this.view = new Projects({
                     el: '#mainFrame',
                     collection: this.projects,
-                    edition: this.edition
+                    edition: this.edition,
+                    session: this.session
                 });   
             },
             

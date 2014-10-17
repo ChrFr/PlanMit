@@ -43,8 +43,8 @@ body {
     //font-family: 'Poiret One', cursive;
     padding: 0em 3em 1em 3em;
     display: table-cell;
-    font-size: 2em;
-    margin-top: 5em;
+    font-size: 1.5em;
+    margin-top: 3.5em;
     color: white;
     display: inline-block;
     text-align:justify;
@@ -78,9 +78,31 @@ body {
     margin: 20px;
 }
 
+.textBar > button{                        
+    position: absolute; 
+    left: 0px;
+    width: 300px;
+    margin-top: 10px;
+    background-color: #007c6a;
+    color: white;    
+    border: none;
+    text-align: right;
+}
 
 .centered > h1{
     text-align: center;
+}
+
+#newProjectButton{                         
+    position: absolute;
+    left: 0px;
+    width: 300px;
+    top: 10px;
+    font-size: 1.5em;
+    color: white;    
+    background-color: #007c6a; 
+    border: none;
+    text-align: right;
 }
 
 .statusIcon {    

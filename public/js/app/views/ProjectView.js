@@ -9,9 +9,10 @@ define(["jquery", "backbone", "text!templates/project.html"],
             // View constructor
             initialize: function(options) {         
                 // Calls the view's render method
-                this.render(); 
                 this.edition = options.edition;
                 this.templateList = [];
+                this.session = options.session;
+                this.render(); 
             },
 
             // View Event Handlers
@@ -21,8 +22,14 @@ define(["jquery", "backbone", "text!templates/project.html"],
 
             // Renders the view's template to the UI
             render: function() {
-                this.templateList = [];
                 var _this = this;
+                if(this.session.get('user') && this.session.get('user').superuser){
+                    var btn = $('<button/>').text('Neues Projekt erstellen')
+                    btn.attr('id', 'newProjectButton'); 
+                    btn.click(function(){_this.newProject()});
+                    $(this.el).append(btn);
+                }
+                this.templateList = [];
                 var projtmpl = _.template(template);
                 var activeProject = this.collection.active;
                 // Setting the view's template property using the Underscore template method
@@ -54,7 +61,6 @@ define(["jquery", "backbone", "text!templates/project.html"],
                 allButtons.prop('disabled',false);                
                 $('.textBar').removeClass('selectedProject');
                 allButtons.text('Auswählen');
-                
                 //select the project
                 var button = $(event.target);
                 button.prop('disabled', true);
@@ -64,6 +70,18 @@ define(["jquery", "backbone", "text!templates/project.html"],
                 var project = this.collection.get(projectID);
                 this.collection.active = project;
                 this.edition.changeProject(project);
+            },
+            
+            newProject: function(){
+                var _this = this;            
+                this.collection.createProject({success: function(response){ 
+                    _this.collection.fetch({success: function(){
+                        while (_this.$el[0].firstChild) {
+                            _this.$el[0].removeChild(_this.$el[0].firstChild);
+                        }
+                        _this.render()
+                    }});  
+                }});
             },
             
             close: function () {
