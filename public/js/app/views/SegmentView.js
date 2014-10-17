@@ -39,7 +39,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
             // Renders the view's template to the UI
             render: function() {                  
                 if (this.div)
-                    this.div.remove();
+                    $(this.div).remove();
                 if (!(this.segment)) return this;
                 this.template = _.template(template, {}); 
                 var div = document.createElement("div");   
@@ -394,7 +394,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
             },
             
             delete: function(){                
-                this.div.remove();
+                $(this.div).remove();
                 this.trigger('delete');
             },
             

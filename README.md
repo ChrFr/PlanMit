@@ -7,8 +7,6 @@ This project was developed during my Bachelor Thesis in cooperation with the pla
 It uses Backbone-Require-Boilerplate (BRB) provided by Greg Franko (https://github.com/BoilerplateMVC/Backbone-Require-Boilerplate) and 
 jQuery Touch Punch (http://touchpunch.furf.com/).
 
-additionally requires: node-postgres for server-side PostgreSQL Connection
-
 ### Installation guide:
 
 - install Node.js (Linux: sudo apt-get install nodejs)  
@@ -24,4 +22,4 @@ additionally requires: node-postgres for server-side PostgreSQL Connection
 ### License
 
 Copyright (c) 2014 Christoph Franke
-Licensed under the MIT license.
+Licensed under the GPL license.

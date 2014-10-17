@@ -29,6 +29,8 @@ define(["jquery", "backbone"],
             },
 
             login : function(data){
+			
+				console.log('hallo')
                 var _this = this;
                 var login = $.ajax({
                     url : this.url + '/login',
