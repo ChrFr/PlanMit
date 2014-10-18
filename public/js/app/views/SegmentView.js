@@ -34,6 +34,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
 
             // View Event Handlers
             events: {
+				//no events in here, cause div is created dynamic				
             },
                         
             // Renders the view's template to the UI
@@ -54,8 +55,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 //give the div information about the segment it is viewing
                 $(div).data('segmentID', this.segment.attributes.id); 
                 $(div).data('segmentViewID', this.cid);
-                $(div).data('isConnector', this.isConnector); 
-                
+                $(div).data('isConnector', this.isConnector);                 
                 //fix element or make it drag- and resizable
                 if (this.segment.fixed && !this.adminMode)
                     $(div).addClass('fixed');
@@ -66,6 +66,16 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                        this.makeResizable();
                    }
                 };
+				
+				$(div).click(function() {
+					if ($(div).hasClass('selectedDiv'))
+						$(div).removeClass('selectedDiv');
+					else {	
+						$(".selectedDiv").find(".OSD").hide()
+						$(".selectedDiv").removeClass('selectedDiv');
+						$(div).addClass('selectedDiv');
+					}
+				});
                 
                 if (this.thumb){
                     this.renderThumbnail();
@@ -105,15 +115,19 @@ define(["jquery", "backbone", "text!templates/segment.html"],
         
                 render: function(view){
                     this.view = view;
+					var osdDiv = $(view.div).find('.OSD');
+					//could be moved to css, but gets complicated there
+					//because of many cases
                     if (view.thumb || view.isConnector)
-                        $(view.div).find('.OSD').hide();
+                        osdDiv.hide();
                     else
                         $(view.div).hover(
                             function() {
-                                $(view.div).find('.OSD').show(); 
+                                osdDiv.show(); 
                             }, 
                             function() {
-                                $(view.div).find('.OSD').hide();
+								if (!$(view.div).hasClass("selectedDiv"))
+									osdDiv.hide();
                         });
                         
                     //toggle lock on segments 

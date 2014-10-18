@@ -39,19 +39,12 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                 //actually building streets)
                 this.steps = 5;
                 
-                 //only fetch the edition from db (incl. overwrite), 
-                //if no models are overwritten (meaning it is not already load)
-                //if (this.collection.length === 0){
-                  //  this.collection.fetch({reset: true});}
-                //else only render (and show modified edition rather than reset
-                //else
-                    this.render();                  
-                
+                this.render();         
             },       
             
             // View Event Handlers
             events: {
-
+				//no click for controls events in here, renderControls takes this part (problems with rerendering)
             },        
                         
             // Renders the view's template to the UI
@@ -357,7 +350,6 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
             },
             
             MeasureDisplay: function(canvas, parent, streetSize, showRaster){
-                console.log(canvas)
                 this.canvas = canvas;
                 this.streetSize = streetSize;
                 this.parent = parent;
@@ -652,67 +644,53 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                 return parseInt($(this.$el[0]).css('width')) / 
                     this.streetSize;
             },
-                                           
+			                                           
             renderControls: function(){ 
                 var _this = this;
                 var editorWrapper = $("#editorWrapper" );
                 editorWrapper.css( "overflow", "hidden" );
-                $('.fade').css('height', this.$el.height());
+                $('.fadeControl').css('height', this.$el.height());
                 var left = editorWrapper.offset().left;
-                $('#leftFade').css('left', left);
-                $('#rightFade').css('left', left + editorWrapper.width() 
-                        - $('#rightFade').width() + 11);
-                
-                var scrollSlider = $('#scrollSlider');
-                var scrollbar =  $('#scrollSlider').find(".scroll-bar").slider({
-                    slide: function( event, ui ) {
-                        var proportion = editorWrapper.width() / _this.$el.width();
-                        if (proportion < 1) {
-                            _this.$el.css( "margin-left", -ui.value);
-                            if(ui.value > 0)
-                                $('#leftFade').show()       
-                            else
-                                $('#leftFade').hide() 
-                            if(ui.value < scrollbar.slider("option", "max"))
-                                $('#rightFade').show()       
-                            else
-                                $('#rightFade').hide()   
-                        } 
-                    }
-                });
+				var scrolling = false;
+				
+                $('#rightFade').mousedown(function(){startScrolling('right');})
+					.mouseover(function(){startScrolling('right');});;
+                $('#leftFade').mousedown(function(){startScrolling('left');})
+					.mouseover(function(){startScrolling('left');});
+				$('.fadeControl').mouseup(function(){stopScrolling();})
+					.mouseout(function(){stopScrolling();});
+                updateScrollControls();   
 
-                function resizeScrollSlider(){  
-                    $('.fade').hide()
-                    var proportion = editorWrapper.width() / _this.$el.width();                                     
-                    if (proportion > 1) {
-                        _this.$el.css( "margin-left", 0 );
-                        scrollSlider.hide();                         
-                    }
-                    else {
-                        var overflow = _this.$el.width() - editorWrapper.width(); 
-                        if (overflow < 0)
-                            overflow = 0;           
-                        scrollSlider.show();
-                        var editorPos = _this.$el.css( "margin-left" ) === "auto" ? 0 :
-                            parseInt( _this.$el.css( "margin-left" ) ); 
-                        var handleSize = editorWrapper.width() * proportion;
-                        scrollbar.slider( "value", -editorPos);
-                        scrollbar.css('width', scrollSlider.width() - handleSize);
-                        scrollbar.slider("option", "max", overflow);   
-                        scrollbar.find( ".ui-slider-handle" ).css({
-                            width: handleSize,
-                            "margin-left": -handleSize / 2                     
-                        });   
-                        if(-editorPos > 0)
-                            $('#leftFade').show()  
-                        if(-editorPos < overflow)
-                            $('#rightFade').show()       
-                    }
-                }
-                
-                //init scrollbar size
-                setTimeout( resizeScrollSlider, 10 );//safari wants a timeout
-                
+				function startScrolling(direction){
+					if (!scrolling){
+						scrolling = true;
+						var editorPos = _this.$el.css( "margin-left" ) === "auto" ? 0 :
+							parseInt( _this.$el.css( "margin-left" ) ); 
+						var overflow = _this.$el.width() - editorWrapper.width(); 
+						var prefix = direction === 'right' ? '-=': '+=';
+						var pixel = direction === 'right' ? overflow: Math.abs(editorPos);
+						_this.$el.animate({"margin-left": prefix + pixel}, 2000);
+					}
+				};
+				
+				function stopScrolling(){
+					_this.$el.stop();
+					scrolling = false;
+					updateScrollControls();
+				};
+			
+				function updateScrollControls(){  
+					//var editorWrapper = $("#editorWrapper" );
+					var overflow = _this.$el.width() - editorWrapper.width(); 					
+					$(".fadeControl").hide();    
+					var editorPos = _this.$el.css( "margin-left" ) === "auto" ? 0 :
+						parseInt( _this.$el.css( "margin-left" ) );  
+					if(-editorPos > 0)
+						$('#leftFade').show()  
+					if(-editorPos < overflow)
+						$('#rightFade').show()  					
+				};				
+                                
                 $('#zoomSlider').slider({
                     value: _this.zoom,
                     step: 10,
@@ -728,7 +706,7 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                         _this.zoom = ui.value;                        
                         _this.$el.css('width', unzoomedWidth * _this.zoom/100);                        
                         _this.segmentViewList.changeScale(_this.pixelRatio()); 
-                        resizeScrollSlider();
+                        updateScrollControls();
                     }
                 });
                 $("#zoomLable").text($('#zoomSlider').slider( "value" ));  
@@ -748,7 +726,7 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                             _this.streetSize = ui.value;
                             _this.measure.streetSize = ui.value;
                             _this.segmentViewList.changeScale(_this.pixelRatio());  
-                            resizeScrollSlider;
+                            updateScrollControls();
                         }
                     });
                     $("#scaleLable").text($('#scaleSlider').slider("value")/ 100 + 'm');
