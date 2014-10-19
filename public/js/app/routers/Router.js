@@ -1,4 +1,4 @@
-// DesktopRouter.js
+// Router.js
 // ----------------
 define(["jquery", "backbone", "views/NavbarView",
     "views/WelcomeView", "views/EditMainView",
@@ -9,7 +9,12 @@ define(["jquery", "backbone", "views/NavbarView",
     function($, Backbone, Navbar, Welcome, Edit, Login, Projects,
              LoginModel, SegmentCollection, ImageCollection, ProjectCollection) {
 
-        var DesktopRouter = Backbone.Router.extend({
+        /**
+        * Routes the applications URL's when using hash tags. 
+        * <p>
+        * @return   the DesktopRouterClass
+        */
+        var Router = Backbone.Router.extend({
             
             initialize: function() {
                 //router keeps track of session and edition, so they 
@@ -36,11 +41,13 @@ define(["jquery", "backbone", "views/NavbarView",
                 "projects": "chooseProject"
             },
 
+            //call the welcome screen
             welcome: function() {                
                 this.cleanUp();
                 this.view = new Welcome({el: '#mainFrame'});
             },
             
+            //call the editor screen
             edit: function() {   
                 if(!this.edition.project){
                     alert('Sie müssen zuerst ein Projekt auswählen!');
@@ -57,7 +64,8 @@ define(["jquery", "backbone", "views/NavbarView",
                     });
                 }
             },
-                        
+            
+            //call the login screen
             login: function() {
                 this.cleanUp();                
                 this.view = new Login({
@@ -65,6 +73,7 @@ define(["jquery", "backbone", "views/NavbarView",
                     session: this.session});   
             },
             
+            //prepare the call of the project screen
             chooseProject: function() {                    
                 var _this = this;
                 //no projects loaded yet -> load projects and show project view
@@ -80,8 +89,9 @@ define(["jquery", "backbone", "views/NavbarView",
                 //show editor with edition currently worked on
                 else if (!this.blocked)
                     this.showProjects();
-            },
+            },            
             
+            //call the project screen
             showProjects: function(){
                 this.cleanUp();
                 this.view = new Projects({
@@ -92,7 +102,7 @@ define(["jquery", "backbone", "views/NavbarView",
                 });   
             },
             
-                        
+            //remove the mainframe and it's children, close the current view
             cleanUp: function(){
 		if (this.view) {
                     this.view.close();
@@ -105,9 +115,6 @@ define(["jquery", "backbone", "views/NavbarView",
 
         });
 
-        // Returns the DesktopRouter class
-        return DesktopRouter;
-
+        return Router;
     }
-
 );

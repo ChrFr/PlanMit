@@ -1,7 +1,11 @@
 // ProjectModel.js
 // --------
 define(["jquery", "backbone"],
-
+    /**
+    * Represents a single project.
+    * 
+    * @return  the ProjectModel class
+    */   
     function($, Backbone) {
 
         var ProjectModel = Backbone.Model.extend({
@@ -10,7 +14,6 @@ define(["jquery", "backbone"],
 
             initialize: function() {
             },
-
         });
 
         return ProjectModel;

@@ -2,6 +2,15 @@
 // -------
 define(["jquery", "backbone", "text!templates/project.html"],
 
+    /**
+    * A View on the available projects (ProjectCollection)
+    *
+    * @param options.el          the tag of the DOM Element, the view will be rendered in
+    * @param options.collection  a ProjectCollection containing all available projects
+    * @param options.edition     a SegmentCollection containing the street profile currently worked on
+    * @return                    the ProjectView class
+    * @see                       a list of projects
+    */ 
     function($, Backbone, template){
         var ProjectView = Backbone.View.extend({
             // The DOM Element associated with this view
@@ -54,6 +63,7 @@ define(["jquery", "backbone", "text!templates/project.html"],
                 return this;
             },
             
+            //change the Project
             changeProject: function(event){
                 //reset layout of the list of projects, not nice to work with
                 //jquery that lot, but time pressures
@@ -72,6 +82,7 @@ define(["jquery", "backbone", "text!templates/project.html"],
                 this.edition.changeProject(project);
             },
             
+            //create a new project
             newProject: function(){
                 var _this = this;            
                 this.collection.createProject({success: function(response){ 

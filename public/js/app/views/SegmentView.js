@@ -1,32 +1,52 @@
-// SourceView.js
+// SegmentView.js
 // -------
 define(["jquery", "backbone", "text!templates/segment.html"],
 
+    /**
+    * A View on a single segment (SegmentModel). Renders ground and object Image into
+    * a newly created div-container. Registers the div to jQuery UI, making it 
+    * resizable and draggable. Translates and passes all manipulations to the segment.
+    *
+    * @param options.el           the tag of the parent DOM Element, the div-Container with the rendered segment will be appended to
+    * @param options.left         the left position of the newly created div (in pixel), relative to the parent container (options.el), default: start position of segment * pixelRatio
+    * @param options.segment      the SegmentModel, that will be rendered
+    * @param options.images       an ImageCollection with the images of the segments
+    * @param options.adminMode    boolean, is a user with extended rights logged in? (if not: fixed elements can't be moved)
+    * @param options.pixelRatio   the pixel/cm ratio, default: 1
+    * @param options.steps        the accuracy (in cm), the size and position will be saved in the segment
+    * @param options.thumb        boolean, shall the image be rendered as a thumbnail? default: false
+    * @param options.thumbSize    the size of the thumbnail (in pixel), default: 100
+    * @param options.height       the height of the div-Container the segment will be rendered in (in pixel), default: thumbSize
+    * @param options.width        the width of the div-Container the segment will be rendered in (in pixel), default: size of segment * pixelRatio
+    * @param options.pngPreferred boolean, if true PNG graphics will be rendered, else SVG graphics will be rendered
+    * @return                     the SegmentView class
+    * @see                        a draggable and resizable segment with rendered object image, ground image and OSD
+    */ 
     function($, Backbone, template){
 
         var SegmentView = Backbone.View.extend({
 
-            // View constructor
+            // constructor
             initialize: function(options) {
-                var _this = this;
-                //options                
+                var _this = this;   
                 this.thumb = options.thumb || false;
                 this.thumbSize = options.thumbSize || 100;
                 this.height = options.height || this.thumbSize;
                 this.images = options.images;
                 this.segment = options.segment;
                 this.pixelRatio = options.pixelRatio || 1;
-                this.insertSorted = options.insertSorted || false;
                 this.adminMode = options.adminMode || false;
-                this.pngPreferred = options.pngPreferred || false;                
-                this.isConnector = (this.segment.get('type') === 1) ? true: false; 
-                //processed attributes
+                this.pngPreferred = options.pngPreferred || false;  
                 this.left = options.left || this.segment.startPos * this.pixelRatio;
+                this.width = options.width || this.segment.size * this.pixelRatio;
+                this.steps = options.steps || 1;         
+                                              
+                this.isConnector = (this.segment.get('type') === 1) ? true: false; 
                 this.div = null;
                 this.next = null;
                 this.prev = null;
-                this.width = options.width || this.segment.size * this.pixelRatio;
-                this.steps = options.steps || 1;                
+                
+                //render the validation status, if it changes
                 this.segment.on("change:status", function(){
                     _this.renderStatus()
                 });
@@ -34,7 +54,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
 
             // View Event Handlers
             events: {
-				//no events in here, cause div is created dynamic				
+		//no events in here, cause div and handles are created dynamic				
             },
                         
             // Renders the view's template to the UI
@@ -65,18 +85,17 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     if (!this.thumb && !this.isConnector){
                        this.makeResizable();
                    }
-                };
-				
-				$(div).click(function() {
-					if ($(div).hasClass('selectedDiv'))
-						$(div).removeClass('selectedDiv');
-					else {	
-						$(".selectedDiv").find(".OSD").hide()
-						$(".selectedDiv").removeClass('selectedDiv');
-						$(div).addClass('selectedDiv');
-					}
-				});
-                
+                };			
+                //select segment, if clicked
+                $(div).click(function() {
+                    if ($(div).hasClass('selectedDiv'))
+                        $(div).removeClass('selectedDiv');
+                    else {	
+                        $(".selectedDiv").find(".OSD").hide()
+                        $(".selectedDiv").removeClass('selectedDiv');
+                        $(div).addClass('selectedDiv');
+                    }
+                });                
                 if (this.thumb){
                     this.renderThumbnail();
                 }
@@ -88,6 +107,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
 
             },
             
+            //renders the validation information of the segment
             renderStatus: function(){ 
                 var status = this.segment.get('status');
                 $(this.div).find('.statusIcon').hide();
@@ -105,30 +125,33 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 });
             },
             
+            //shows the error message, as a result of the validation
             showErrormessage: function(){
                 var msg = this.segment.get('errorMsgs');
                 alert(msg);
             },
             
+            //renders an Onscreen Display with the resize and fixing controls
+            //shows on hover or if clicked
             OSD: {
                 view: null,
         
                 render: function(view){
                     this.view = view;
-					var osdDiv = $(view.div).find('.OSD');
-					//could be moved to css, but gets complicated there
-					//because of many cases
+                    var osdDiv = $(view.div).find('.OSD');
+                    //could be moved to css, but gets complicated there
+                    //because of many cases
                     if (view.thumb || view.isConnector)
                         osdDiv.hide();
                     else
-                        $(view.div).hover(
-                            function() {
-                                osdDiv.show(); 
-                            }, 
-                            function() {
-								if (!$(view.div).hasClass("selectedDiv"))
-									osdDiv.hide();
-                        });
+                    $(view.div).hover(
+                        function() {
+                            osdDiv.show(); 
+                        }, 
+                        function() {
+                            if (!$(view.div).hasClass("selectedDiv"))
+                            osdDiv.hide();
+                    });
                         
                     //toggle lock on segments 
                     if (view.segment.fixed){
@@ -181,6 +204,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 },    
             },
             
+            //sets the width (in pixel) of the SegmentModel, translates
+            //into cm first
             setWidth: function(width){
                 this.width = width;   
                 var size = this.width / this.pixelRatio;
@@ -190,6 +215,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 this.segment.size = parseInt(size);
             },
             
+            //sets the left position (in pixel) of the SegmentModel, translates
+            //into cm first
             setLeft: function(left){
                 this.left = left;   
                 var startPos = this.left / this.pixelRatio;
@@ -199,7 +226,8 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 this.segment.startPos = parseFloat(startPos.toFixed(2))
             },
             
-            renderImage: function(){                
+            //renders the images of ground and object
+            renderImage: function(){   
                 $(this.div).removeClass('thumb');  
                 var imageContainer = $(this.div).find('#imageContainer');                 
                 var objectImage = document.createElement("div"); 
@@ -233,6 +261,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                     
                     $(imageContainer).zIndex(1);
                 }
+                //isConnector, render image of connecting element
                 else {                                 
                     $(objectImage).css('width', '100%');
                     $(objectImage).addClass('image');
@@ -246,6 +275,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 }               
             },
                         
+            //renders a thumbnail into the given div-container            
             renderThumbnail: function(div){
                 if (!div)
                     div = this.div;
@@ -279,9 +309,15 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 $(imageContainer).append(imageContainer);                      
             },
             
+            //loads the image of the given imageModel into the given div
+            //with the given pixelRatio
+            //if options.stretch: the image is stretched to fit the div
+            //if options.adjustHeight: the image is cut at the given options.maxHeight
+            //if options.thumb: a thumbnail is rendered instead of big image
             loadImage: function(imageModel, div, pixelRatio, options){
                 var options = options || {};
                 var r = pixelRatio || 1;  
+                //no image model-> break
                 if (!imageModel) return;
                 if (!this.pngPreferred){
                     imageModel.getImage('svg', function(svg_data, actual_size){  
@@ -347,10 +383,10 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                         });
                 }                                
             },
-                        
+            
+            //register the div to jQuery UI, making it draggable
             makeDraggable: function(){
                 var _this = this;
-                var outside = true;
                 if (this.thumb)
                     $(this.div).draggable({
                         helper: 'clone',
@@ -391,8 +427,7 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                             drag.data('segmentViewID', _this.cid); 
                             drag.data('size', _this.segment.size); 
                             drag.data('isConnector', _this.isConnector); 
-                        },
-                        
+                        },                        
                         stop: function (e, ui){
                             var dragged = $(ui.helper);
                             if (dragged.hasClass('out')){
@@ -407,11 +442,13 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                 };
             },
             
+            //delete the view and its container
             delete: function(){                
                 $(this.div).remove();
                 this.trigger('delete');
             },
-            
+                        
+            //register the div to jQuery UI, making it resizable
             makeResizable: function(){
                 var _this = this;
                 var div = this.div;                
@@ -492,7 +529,6 @@ define(["jquery", "backbone", "text!templates/segment.html"],
                
         });
 
-        // Returns the View class
         return SegmentView;
 
     }

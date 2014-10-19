@@ -2,22 +2,23 @@
 // -------------
 define(["jquery","backbone","models/ImageModel"],
 
-  function($, Backbone, ImageModel) {
+    /**
+    * A Collection of ImageModels
+    * <p>
+    * @return   the ImageCollection class
+    */ 
+    function($, Backbone, ImageModel) {
 
-    // Creates a new Backbone Collection class object
-    var SegmentSource = Backbone.Collection.extend({
-        
-        model: ImageModel,
-        url: 'api/images/',
-        
-        initialize: function(options){
-        },
-                        
-    });
+      var ImageCollection = Backbone.Collection.extend({
 
-    // Returns the Model class
-    return SegmentSource;
+          model: ImageModel,
+          url: 'api/images/',
 
-  }
+          initialize: function(options){
+          },
 
+      });
+
+      return ImageCollection;
+    }
 );

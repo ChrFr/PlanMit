@@ -1,8 +1,12 @@
-// SegmentModel.js
-// the model of a single segment
+// LoginModel.js
 // --------
 define(["jquery", "backbone"],
 
+    /**
+    * Holds the informations about a session. Manages the CSRF-Token.
+    * 
+    * @return  the LoginModel class
+    */    
     function($, Backbone) {
 
         var LoginModel = Backbone.Model.extend({
@@ -27,10 +31,10 @@ define(["jquery", "backbone"],
                     }
                 });
             },
-
+            
+            //authenticate by sending the data wit the user information
+            //to the server
             login : function(data){
-			
-				console.log('hallo')
                 var _this = this;
                 var login = $.ajax({
                     url : this.url + '/login',
@@ -47,21 +51,21 @@ define(["jquery", "backbone"],
                 });
             },
             
+            //send the register data to the server
             register : function(data){
                 var _this = this;
                 var login = $.ajax({
-                    url : this.url + '/register',
+                    url : _this.url + '/register',
                     data : data,
                     type : 'POST'
                 });
                 login.done(function(response){
-                    console.log(response) 
                 });
                 login.fail(function(response){
-                    console.log(response) 
                 });
             },
 
+            //logout by sending delete session request to server
             logout : function(){
                 var _this = this;
                 $.ajax({
@@ -74,9 +78,6 @@ define(["jquery", "backbone"],
                 });
             }
         });
-
         return LoginModel;
-
     }
-
 );

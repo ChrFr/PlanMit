@@ -67,20 +67,19 @@ module.exports = function(){
             if(!(req.session.user && req.session.user.superuser))
                return res.send(403);  
             var insert = "INSERT INTO projects (name, location, description, "+
-                    "default_template, longitude, latitude, ignore_segments) VALUES" +
-                    "($1, $2, $3, $4, $5, $6, $7) RETURNING *" 
+                    "default_template, longitude, latitude) VALUES" +
+                    "($1, $2, $3, $4, $5, $6) RETURNING *" 
             // +" RETURNING id" returning id should give id of new row, 
             //throws unique constraint error instead! so no return of id this way
             pgQuery(insert, [req.body.name, req.body.location, req.body.description, 
-                req.body.default_template, req.body.longitude, req.body.latitude, 
-                req.body.ignore_segments],
+                req.body.default_template, req.body.longitude, req.body.latitude],
                 function(result){
                     res.status(200);
                     return res.send({id: result[0].id});
                 });
         },
 
-        post: function(req, res){
+        update: function(req, res){
             if(!(req.session.user && req.session.user.superuser)){
                res.status('Sie haben keine Berechtigung neue Projekte zu erstellen!')
                return res.send(403);    
@@ -390,7 +389,7 @@ module.exports = function(){
             delete: projects.delete,
             '/:pid': {
                 get: projects.get,
-                post: projects.post,
+                post: projects.update,
                 //only project specific segments
                 '/segments': {
                     get: segments.list,

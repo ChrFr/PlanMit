@@ -2,6 +2,13 @@
 // -------
 define(["jquery", "backbone", "text!templates/welcome.html"],
 
+    /**
+    * A View that renders a welcome message onto the screen 
+    *
+    * @param  options.el  the tag of the DOM Element, the view will be rendered in
+    * @return             the WelcomeView class
+    * @see                a welcome screen
+    */
     function($, Backbone, template){
         var WelcomeView = Backbone.View.extend({
             // The DOM Element associated with this view
@@ -12,7 +19,6 @@ define(["jquery", "backbone", "text!templates/welcome.html"],
                 this.render();  
             },
 
-            // View Event Handlers
             events: {
             },
 
@@ -26,6 +32,7 @@ define(["jquery", "backbone", "text!templates/welcome.html"],
                 return this;
             },        
             
+            //remove the view
             close: function () {
                 this.unbind(); // Unbind all local event bindings
                 this.remove(); // Remove view from DOM

@@ -1,35 +1,44 @@
-// editView.js
-// edit Window containing view on resources and the editor
+// EditMainView.js
 // -------
 define(["jquery", "backbone", "text!templates/editMain.html", 
-    "views/SourceView", "views/EditorView", "collections/SegmentSource"],
+    "views/SourceView", "views/EditorView", "collections/SegmentCollection"],
 
     function($, Backbone, template, SourceView,
-             EditorView, SegmentSource){
-
+             EditorView, SegmentCollection){
+                 
+        /**
+        * A View on the Editor and the Resources
+        *
+        * @param options.el       the tag of the DOM Element, the view will be rendered in
+        * @param options.session  a LoginModel with the current login status 
+        * @param options.images   an ImageCollection with the images of the segments
+        * @param options.edition  a SegmentCollection containing the street profile currently worked on
+        * @return                 the EditMainView class
+        * @see                    the editor and resources
+        */         
         var EditMainView = Backbone.View.extend({
 
             // The DOM Element associated with this view
             el: "#mainFrame",
 
-            // View constructor
+            // constructor
             initialize: function(options) {  
                 var _this = this;
                 $(this.$el).appendTo('body');
                 var options = options || {};
                 this.edition = options.edition;
-                this.images = options.images;                  
-                this.adminMode = options.adminMode || false;
+                this.images = options.images;     
                 this.editorView = null;
                 this.session = options.session;  
                 var user = this.session.get('user');   
                 this.adminMode = (user && user.superuser);                
                 if (this.adminMode)
-                    this.resources = new SegmentSource({showAll: true});
+                    this.resources = new SegmentCollection({isSource: true, showAll: true});
                 else
-                    this.resources = new SegmentSource();
+                    this.resources = new SegmentCollection({isSource: true});
                 // Calls the view's render method
                 this.render(); 
+                
                 var delay = (function(){
                     var timer = 0;
                     return function(callback, ms){
@@ -38,6 +47,7 @@ define(["jquery", "backbone", "text!templates/editMain.html",
                     };
                 })();
                 
+                //listen to resize event of the window and rerender, if resized
                 $(window).resize(function(e) {  
                     if (e.target === this)
                         delay(function(){
@@ -55,7 +65,6 @@ define(["jquery", "backbone", "text!templates/editMain.html",
 
             },
 
-            // View Event Handlers
             events: {
 
             },
@@ -77,11 +86,10 @@ define(["jquery", "backbone", "text!templates/editMain.html",
                                                   wrapper: "#editorWrapper",
                                                   images: this.images,
                                                   thumbSize: sourceHeight});
-                // Maintains chainability
-                                 
+                       
                 var _this = this;
-                   
-                var _this = this;
+                
+                //bind the buttons of the context menu
                 $('#uploadButton').unbind('click');
                 $('#uploadButton').click(function() {
                     var btn = $(this)
@@ -110,6 +118,7 @@ define(["jquery", "backbone", "text!templates/editMain.html",
                 return this;
             },       
                         
+            //remove the view
             close: function () {
                 this.editorView.close(); 
                 this.resourcesView.close();
@@ -119,9 +128,6 @@ define(["jquery", "backbone", "text!templates/editMain.html",
 
         });
 
-        // Returns the View class
         return EditMainView;
-
     }
-
 );

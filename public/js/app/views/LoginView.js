@@ -1,15 +1,24 @@
-// SourceView.js
+// LoginView.js
 // -------
 define(["jquery", "backbone", "text!templates/login.html"],
 
+    /**
+    * A View that renders a login and registration form onto the screen. 
+    * Shows informations about the login status, if already logged in
+    *
+    * @param  options.el        the tag of the DOM Element, the view will be rendered in
+    * @param  options.session   a LoginModel with the current login status 
+    * @return                   the LoginView class
+    * @see                      a login and registration form
+    */
     function($, Backbone, template){
 
-        var EditorView = Backbone.View.extend({
+        var LoginView = Backbone.View.extend({
 
             // The DOM Element associated with this view
             el: "#mainFrame",
 
-            // View constructor
+            //constructor
             initialize: function(options) {
                 var _this = this;
                 var options = options || {};
@@ -19,7 +28,7 @@ define(["jquery", "backbone", "text!templates/login.html"],
                 this.render();      
             },            
 
-            // View Event Handlers
+            // the Event Handlers of the login form
             events: {
                 "click #loginButton": "login",
                 "click #registerButton": "register",
@@ -49,6 +58,7 @@ define(["jquery", "backbone", "text!templates/login.html"],
                 return this;
             },
             
+            //log in with the entries made in the login form
             login: function() {
                 var name = $('#loginForm').find('#name').val() || '';      
                 var password = $('#loginForm').find('#password').val() || '';
@@ -58,10 +68,12 @@ define(["jquery", "backbone", "text!templates/login.html"],
                 });
             },
             
+            //log out
             logout: function(){
                 this.session.logout();
             },
             
+            //log in with the entries made in the login form
             register: function(){
                 var name = $('#registerForm').find('#name').val() || '';       
                 var email = $('#registerForm').find('#email').val() || '';      
@@ -73,6 +85,7 @@ define(["jquery", "backbone", "text!templates/login.html"],
                 });
             },
             
+            //display the login status in the form
             displayStatus: function(){            
                 var user = this.session.get('user');                
                 $('#loginStatus').find('#name').val(user.name);
@@ -82,6 +95,7 @@ define(["jquery", "backbone", "text!templates/login.html"],
                     $('#loginStatus').find('#status').text('Sie sind als Superuser angemeldet');
             },
             
+            //remove the view
             close: function () {
                 this.unbind(); // Unbind all local event bindings
                 this.remove(); // Remove view from DOM
@@ -89,8 +103,7 @@ define(["jquery", "backbone", "text!templates/login.html"],
             
         });
         
-        // Returns the View class
-        return EditorView;
+        return LoginView;
 
     }
 

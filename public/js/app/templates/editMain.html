@@ -1,77 +1,68 @@
 <!doctype html>
-<html lang="en">
-<head>
-</head>
-<body>    
-    <!--
-    <p>
-      <label for="zoom">Zoom:</label>
-    </p>
-    -->
-    <div id="editorWrapper">
-        <div id='leftFade' class='fadeControl'></div>
-        <div id='rightFade' class='fadeControl'></div>
-        <div class="contextMenu container-fluid" style="position: relative;">
-             <div class="navbar-header" style="z-index: 9999999">                    
-                <button type="button" class="navbar-toggle menuEntry" data-toggle="collapse" data-target="#context-collapse">  
-                    <img src="../../../img/icons-png/plus-black.png" > 
-                    mehr
-                </button>     
-                <button id="uploadButton" class="menuEntry">                            
-                    <img src="../../../img/icons-png/arrow-u-black.png" >
-                    Hochladen
-                </button> 
-              </div>
+<!--
+template of the EditMainView
+-->
+<div id="editorWrapper">
+    <div id='leftFade' class='fadeControl'></div>
+    <div id='rightFade' class='fadeControl'></div>
+    <div class="contextMenu container-fluid" style="position: relative;">
+         <div class="navbar-header" style="z-index: 9999999">                    
+            <button type="button" class="navbar-toggle menuEntry" data-toggle="collapse" data-target="#context-collapse">  
+                <img src="../../../img/icons-png/plus-black.png" > 
+                mehr
+            </button>     
+            <button id="uploadButton" class="menuEntry">                            
+                <img src="../../../img/icons-png/arrow-u-black.png" >
+                Hochladen
+            </button> 
+          </div>
 
-              <div class="collapse navbar-collapse" id="context-collapse" style="background-color: white;">
-                <ul class="nav navbar-nav">
-                    <li class="dropdown">    
-                        <button id="resetButton" class="menuEntry">                    
-                            <img src="../../../img/icons-png/reset.png" >
-                            Zurücksetzen                       
-                        </button>    
-                        <!--
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">                    
-                            <img src="../../../img/icons-png/reset.png" >
-                            Zurücksetzen 
-                            <b class="caret"></b>                        
-                        </a>                        
-                        
-                        <ul class="dropdown-menu"> 
-                            <li class="" id="resetDefault">Auf default zurücksetzen</li>
-                            <li class="" id="resetUser">Auf letzten Stand setzen</li>
-                        </ul>
-                        -->
-                    </li>  
-                    <li class=""> 
-                        <div id="changeZoom" class="menuEntry">                   
-                            <img src="../../../img/icons-png/lupe.png">                            
-                            Zoom
-                            <div id="zoomSlider" class="slider"></div>
-                            <label id="zoomLable" style="float:right; margin-left:5px">100</label>
-                        </div>
-                    </li>
-                    <li class=""> 
-                        <div id="changeWidth" class="menuEntry">                                    
-                            Breite
-                            <div id="scaleSlider" class="slider" ></div>
-                            <label id="scaleLable" style="float:right; margin-left:5px">100</label>
-                        </div>
-                    </li>
-                </ul>
-              </div>
-        </div> 
-        <div class="editor" id="editor">  
-            <div class="upfade"></div>              
-            <canvas id="editorCanvas"></canvas>   
-            <div class="downfade"></div>  
-        </div>    
+          <div class="collapse navbar-collapse" id="context-collapse" style="background-color: white;">
+            <ul class="nav navbar-nav">
+                <li class="dropdown">    
+                    <button id="resetButton" class="menuEntry">                    
+                        <img src="../../../img/icons-png/reset.png" >
+                        Zurücksetzen                       
+                    </button>    
+                    <!-- further differenciation of reset disabled by now
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">                    
+                        <img src="../../../img/icons-png/reset.png" >
+                        Zurücksetzen 
+                        <b class="caret"></b>                        
+                    </a>                        
+
+                    <ul class="dropdown-menu"> 
+                        <li class="" id="resetDefault">Auf default zurücksetzen</li>
+                        <li class="" id="resetUser">Auf letzten Stand setzen</li>
+                    </ul>
+                    -->
+                </li>  
+                <li class=""> 
+                    <div id="changeZoom" class="menuEntry">                   
+                        <img src="../../../img/icons-png/lupe.png">                            
+                        Zoom
+                        <div id="zoomSlider" class="slider"></div>
+                        <label id="zoomLable" style="float:right; margin-left:5px">100</label>
+                    </div>
+                </li>
+                <li class=""> 
+                    <div id="changeWidth" class="menuEntry">                                    
+                        Breite
+                        <div id="scaleSlider" class="slider" ></div>
+                        <label id="scaleLable" style="float:right; margin-left:5px">100</label>
+                    </div>
+                </li>
+            </ul>
+          </div>
+    </div> 
+    <div class="editor" id="editor">  
+        <div class="upfade"></div>              
+        <canvas id="editorCanvas"></canvas>   
+        <div class="downfade"></div>  
+    </div>    
+</div>
+<div id="sourceWrapper">
+    <div class="source" id="resources">
     </div>
-    <div id="sourceWrapper">
-        <div class="source" id="resources">
-        </div>
-    </div>
-    
-</body>
-    
-</html>
+</div>
+ 

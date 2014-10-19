@@ -1,7 +1,13 @@
 // ImageModel.js
-// the model of a single image
 // --------
 define(["jquery", "backbone"],
+
+    /**
+    * holds the png-, svg- images as well as the thumbnails 
+    * of a single segment
+    * 
+    * @return  the ImageModel class
+    */ 
 
     function($, Backbone) {
 
@@ -12,7 +18,9 @@ define(["jquery", "backbone"],
             initialize: function() {
             },            
             
-            //[svg, png, thumb]
+            //fetch the image data from the server
+            //param type determines the type of the image ('svg', 'png' or 'thumb')
+            //executes the callback, after successful fetch
             getImage: function(type, callback){
                 var img = this.get('type');
                 var size = this.get('actual_size');
@@ -30,11 +38,7 @@ define(["jquery", "backbone"],
                 else
                     callback(img, size);
             }
-
         });
-
         return ImageModel;
-
     }
-
 );

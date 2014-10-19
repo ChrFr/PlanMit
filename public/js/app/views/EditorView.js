@@ -1,7 +1,23 @@
-// editorView.js
+// EditorView.js
 // -------
 define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
 
+    /**
+    * The editor view on a street profile (SegmentCollection). The Segments are 
+    * movable and droppable inside the editor. Shows a measurement of the real
+    * sizes of the segments as an overlay.
+    *
+    * @param options.el           the tag of the DOM Element, the editor will be rendered in
+    * @param options.resources    SegmentCollection containing the resources of the project
+    * @param options.collection   SegmentCollection containing the street profile currently worked on
+    * @param options.images       an ImageCollection with the images of the segments
+    * @param options.adminMode    boolean, is a user with extended rights logged in? (if not: fixed elements can't be moved, if: render additional grid)
+    * @param options.wrapper      the wrapper around the editor dom element (options.el), needed for zoom
+    * @param options.thumbSize    the size of the thumbnails (in pixel) for dragged segments, default: 100
+    * @param options.streetSize   the size of the street (in cm), default: will be calculated inside the collection (or 10m, if street size can't be calc.)
+    * @return                     the EditorView class
+    * @see                        an editor showing the street profile of the given SegmentCollection
+    */ 
     function($, Backbone, SegmentView){
 
         var EditorView = Backbone.View.extend({
@@ -11,7 +27,7 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
 
             // View constructor
             initialize: function(options) {  
-                //check if svg is supported or png is preferred by project
+                //check if svg is unsupported or png is preferred by project-> use png instead of svg
                 var svgSupported = document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#Image", "1.1");
                 if(this.collection.project.preferPNG || !svgSupported)
                     this.pngPreferred = true;
@@ -26,7 +42,7 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                 this.width = this.$el.width;
                 this.wrapper = $(options.wrapper);
                 var _this = this;
-                this.resources.fetch({reset: true});
+                this.resources.changeProject(this.collection.project);
                 _.bindAll(this, 'render', 'renderEdition');                 
                 this.collection.bind("reset", function(){                    
                     var streetSize = this.getStreetSize();                    
@@ -52,7 +68,7 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                 var canvas = $('canvas')[0];                
                 this.measure = new this.MeasureDisplay(canvas, this.$el, 
                                             this.streetSize, this.adminMode);
-                this.segmentViewList = new this.SegmentViewList(this.$el, this.collection, this.steps, this.measure);
+                this.segmentViewList = new this.SegmentViewList(this.$el, this.collection, this.measure);
                 this.placeholder = new this.Placeholder(this.segmentViewList, this.$el);
                 this.segmentViewList.changeScale(this.pixelRatio());  
                 this.renderControls()
@@ -62,6 +78,7 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                 return this;
             },
             
+            //make the editor container droppable for segments
             makeDroppable: function(){
                 var _this = this;
                 this.wrapper.droppable({
@@ -133,15 +150,24 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                 });
             },
             
-            SegmentViewList: function(parent, collection, steps, measureDisplay){
+            /**
+            * A double concatenated list of the SegmentViews, rendered inside
+            * the container. Listens to the events fired when manipulating them, 
+            * and passes the changes to the street profile (SegmentCollection)
+            *
+            * @param parent         the container, the SegmentViews are rendered in (most likely the editor container)
+            * @param streetProfile  SegmentCollection, representing the street profile, that is edited
+            * @param measureDisplay MeasureDisplay, the object rendering the measurements
+            */ 
+            SegmentViewList: function(parent, streetProfile, measureDisplay){
                 this.parent = parent;
-                this.collection = collection;
+                this.streetProfile = streetProfile;
                 this.first = null;
                 this.length = 0;
                 this.measureDisplay = measureDisplay;                
                 this.pixelRatio = 1;
-                this.steps = steps;
                 
+                //
                 this.changeScale = function(pixelRatio){
                     var changeRatio = pixelRatio / this.pixelRatio;
                     this.pixelRatio = pixelRatio;
@@ -155,11 +181,12 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                         segmentView.render();
                         segmentView = segmentView.next;
                     };      
-                    this.collection.checkRules(); 
+                    this.streetProfile.checkRules(); 
                     this.measureDisplay.resize();
                     this.measureDisplay.draw(this);    
                 };
                                 
+                //return the SegmentView at given position                
                 this.at = function(pos){
                     var found = null;
                     var segmentView = this.first;
@@ -175,6 +202,12 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                     return found;
                 };          
 
+                //check if the given div fits into the rendered street profile
+                //isConnector determines, if the segment is a connecting element
+                //return an object with the attributes:
+                //       fits: does the div fit?
+                //       left: gap to the next div to the left (in pixel)
+                //       right: gap to the next div to the right (in pixel)
                 this.doesFit = function(div, isConnector){
                     var left = $(div).offset().left - parent.offset().left;
                     var width = parseInt($(div).css('width'));
@@ -239,13 +272,12 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                         }
                         
                         segmentView = segmentView.next;
-                    };
-                    
-                    tmp.next = null;
-                    
+                    };                    
+                    tmp.next = null;                    
                     return gap;
                 };
 
+                //insert the given SegmentView into the list
                 this.insert = function(segmentView){
                     if (!this.first){
                         this.first = segmentView;
@@ -274,24 +306,26 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                     var _this = this;
                     segmentView.on("moved", function(){                            
                         _this.relocate(this);
-                        _this.collection.checkRules();
+                        _this.streetProfile.checkRules();
                     });
                     segmentView.on("resized", function(){
                         //_this.measureDisplay.drawInfoLine(_this);
                     });
                     segmentView.on("delete", function(){  
                         _this.remove(this, true);
-                        _this.collection.checkRules();
+                        _this.streetProfile.checkRules();
                     });
                     segmentView.on("update", function(){  
                         _this.measureDisplay.draw(_this);
-                        _this.collection.checkRules();
+                        _this.streetProfile.checkRules();
                     });           
                     segmentView.pixelRatio = this.pixelRatio;  
                     this.length++;
                     this.measureDisplay.draw(this);
                 };
 
+                //remove the given SegmentView from the list, if doDelete: the corresponding 
+                //segment is removedfrom the street profile
                 this.remove = function(segmentView, doDelete){
                     segmentView.off("moved");
                     segmentView.off("delete");
@@ -299,15 +333,12 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                     //bend pointers                    
                     var prev = segmentView.prev;
                     var next = segmentView.next;
-                    if (prev){
+                    if (prev)
                         prev.next = (next) ? next: null;
-                    };
-                    if (next){
+                    if (next)
                         next.prev = (prev) ? prev: null;
-                    };
-                    if (!prev){
-                        this.first = next;
-                    };                            
+                    if (!prev)
+                        this.first = next;     
                     segmentView.prev = null;
                     segmentView.next = null;
                     this.length--;
@@ -315,9 +346,10 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                     //ToDo: remove view, segmentView.remove() removes the whole 
                     //editor (most likely because the parent el is the editor)
                     if (doDelete)
-                        this.collection.remove(segmentView.segment);
+                        this.streetProfile.remove(segmentView.segment);
                 };
 
+                //remove all SegmentViews inside this list
                 this.clear = function(){
                     var segmentView = this.first;
                     while(segmentView){  
@@ -336,6 +368,7 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                     this.measureDisplay.draw(this);                      
                 };
                 
+                //find and return a SegmentView by its cid
                 this.getView = function (cid){
                     var segmentView = this.first;
                     while(segmentView){                         
@@ -348,7 +381,17 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                     return null;
                 };
             },
-            
+                        
+            /**
+            * draws measurements onto the editor, including size of segments and 
+            * gaps as well as the metric scale and width of the street
+            *
+            * @param canvas      the canvas element, the measurements are drawn onto
+            * @param parent      the container, the canvas overlays (most likely the editor container)
+            * @param streetSize  the size of the street (in cm)
+            * @param showRaster  boolean, if true: draws a grid overlaying the street
+            * @see               measurements of the street profile
+            */ 
             MeasureDisplay: function(canvas, parent, streetSize, showRaster){
                 this.canvas = canvas;
                 this.streetSize = streetSize;
@@ -356,13 +399,10 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                 this.marginTop = 0;
                 this.marginBottom = 0;
                 this.gapTolerance = 1;
-                this.showRaster = showRaster || false;
+                this.showRaster = showRaster || false;                
                 
-                /*
-                 * adapt canvas to current parent
-                 */
-                this.resize = function(){
-                    
+                //adapt canvas to current parent                 
+                this.resize = function(){                    
                     var width = parseInt(this.parent.css('width'));
                     var height = parseInt(this.parent.css('height'))
                                  //+ this.marginTop + 
@@ -374,11 +414,14 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                     this.canvas.height = height;
                 };
                 
+                //draw the measurements onto canvas
                 this.draw = function(segmentViewList){                      
                     this.drawScalingLine(segmentViewList);
                     this.drawInfoLine(segmentViewList);
                 };
                 
+                //setLineDash deactivated, because of incompatibilities with Firefox!!
+                //draws the sizes of the gaps and segments on the bottom of the canvas
                 this.drawScalingLine = function(segmentViewList){
                     var ratio = segmentViewList.pixelRatio;
                     var ctx = this.canvas.getContext("2d");
@@ -426,8 +469,7 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                             ctx.beginPath();  
                             if (bigStep){
                                 //ctx.setLineDash([2,2]);
-                            }
-                            
+                            }                            
                             else {
                                 //ctx.setLineDash([1,4]);
                                 ctx.strokeStyle = 'grey';
@@ -445,8 +487,10 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                     ctx.fillText((size / 100).toFixed(2) + ' m', middle * ratio, y - 2);
                 };
                 
+                //setLineDash deactivated, because of incompatibilities with Firefox!!
+                //draws the metric scale on top of the canvas
+                //draws a grid, if showRaster
                 this.drawInfoLine = function(segmentViewList){  
-                    var ratio = segmentViewList.pixelRatio;  
                     var originY = this.canvas.height - 50;
                     var ctx = this.canvas.getContext("2d");
                     //clear lower area
@@ -526,8 +570,16 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                                 
                 this.resize();
             },
-                
-            Placeholder: function(segmentViewList, parent, options){
+            
+            /**
+            * the placeholder indicates, if a segment can be dropped or not
+            * moves horizontally along with the dragged segment
+            *
+            * @param segmentViewList  the list of redner SegmentViews inside the parent container (most likely the editor)
+            * @param parent           the container, the placeholder is rendered in (most likely the editor container)
+            * @see                    a placeholder colored green if droppable or red if not droppable
+            */ 
+            Placeholder: function(segmentViewList, parent){
                 this.parent = parent;
                 this.segmentViewList = segmentViewList;
                 this.active = false;
@@ -540,6 +592,8 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                 this.offsetX = -20;
                 this.droppable = true;
 
+                //moves the placeholder to the given position
+                //param left is the position inside the parent container (in pixel)
                 this.updatePos = function(left){
                     if (this.active){
                         left += this.offsetX;
@@ -582,6 +636,7 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                     }
                 };
 
+                //activate the placeholder
                 this.setActive = function(active, clone, width){
                     this.active = active;
                     //remove placeholder if deactivated
@@ -617,9 +672,7 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                 this.collection.fetch({reset:true});
             },
             
-            //divide the edit view into no editable divs and editable divs 
-            //(last ones are registered to shapeshift) depending on the
-            //the fixed attribute of each segment model in the collection
+            //render the street profile
             renderEdition: function(){
                 var _this = this;
                 var height = parseInt(this.$el.css('height'));
@@ -640,11 +693,13 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                 });
             },
             
+            //calculate the pixel/metric ratio
             pixelRatio: function(){
                 return parseInt($(this.$el[0]).css('width')) / 
                     this.streetSize;
             },
-			                                           
+            
+            //render the sliders to zoom and to change width of the street
             renderControls: function(){ 
                 var _this = this;
                 var editorWrapper = $("#editorWrapper" );
@@ -735,12 +790,12 @@ define(["jquery", "backbone", "views/SegmentView", "touchpunch"],
                     $('#changeWidth').hide();
             },
             
+            //remove the view
             close: function () {
                 this.segmentViewList.clear();
                 this.unbind(); // Unbind all local event bindings
                 this.collection.unbind();
                 this.remove(); // Remove view from DOM
-
             }
                  
         });
