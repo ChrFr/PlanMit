@@ -26,10 +26,10 @@ module.exports = function(){
     var config = require('./config').dbconfig;
     
     function pgQuery(queryString, parameters, callback){
-		var pool = new Pool(config);
-		pool.connect();
-		pool.query(queryString, parameters, function(err, result) {
-			pool.end();
+		var client = new Client(config);
+		client.connect();
+		client.query(queryString, parameters, function(err, result) {
+			client.end();
 			if(err) {
 				console.log(err)
 				return callback([]);
