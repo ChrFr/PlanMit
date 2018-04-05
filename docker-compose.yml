@@ -1,0 +1,12 @@
+version: '2'
+
+services:
+  web:
+
+    image: chrfr/planmit
+    command: bash -c "git pull && npm install && node /planmit/server/server.js"
+    ports:
+      - "8098:8000"
+    volumes:
+      - "./config.js:/planmit/server/config.js"
+    restart: unless-stopped
