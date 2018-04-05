@@ -21,28 +21,21 @@ module.exports = function(){
       }
     };
     
-    var pg = require("pg");
+	const { Pool, Client } = require('pg')
     
     var config = require('./config').dbconfig;
-
-    //var client = new pg.Client(conString);
-    //client.connect();
     
     function pgQuery(queryString, parameters, callback){
-        pg.connect(config, function(err, client, done) {
-            if(err) {
-                return callback([]);
-            }
-            client.query(queryString, parameters, function(err, result) {
-                //call `done()` to release the client back to the pool
-                done();
-                if(err) {
-                    console.log(err)
-                    return callback([]);
-                }
-                return callback(result.rows);
-            });
-        });
+		var pool = new Pool(config);
+		pool.connect();
+		pool.query(queryString, parameters, function(err, result) {
+			pool.end();
+			if(err) {
+				console.log(err)
+				return callback([]);
+			}
+			return callback(result.rows);
+		});
     }
 
     var projects = {
@@ -193,9 +186,9 @@ module.exports = function(){
     };
     
     var images = {
-        list: function(req, res){            
+        list: function(req, res){     
             pgQuery('SELECT id, name, actual_size from images', [],
-            function(result){
+            function(result){    
                 if (result.length === 0)
                     return res.send(404);
                 return res.status(200).send(result);
@@ -363,7 +356,7 @@ module.exports = function(){
     
     
     var rules = {
-        list: function(req, res){            
+        list: function(req, res){    
             pgQuery('SELECT id, rule, error_msg from rules', [],
             function(result){
                 if (result.length === 0)
